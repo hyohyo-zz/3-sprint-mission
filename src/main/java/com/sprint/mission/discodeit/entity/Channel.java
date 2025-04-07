@@ -1,20 +1,21 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 public class Channel {
     private UUID id;
     private String channelName;
-    private String category;
+    private List<String> categories;
     private Set<User> members;
     private long createdAt;
     private long updatedAt;
 
-    public Channel(String channelName, String category, Set<User> members) {
+    public Channel(String channelName, List<String> categories, Set<User> members) {
         this.id = UUID.randomUUID();
         this.channelName = channelName;
-        this.category = category;
+        this.categories = categories;
         this.members = members;
         this.createdAt = System.currentTimeMillis();
         this.updatedAt = this.createdAt;
@@ -26,24 +27,21 @@ public class Channel {
 
     public String getChannelName() {
         return channelName;
+    }public List<String> getCategory() {
+        return categories;
     }
-
+    public void setCategory(List<String> categories) {
+        this.categories = categories;
+    }
     public void setChannelName(String channelName) {
         this.channelName = channelName;
     }
 
-    public String getCategory() {
-        return category;
-    }
 
-    public void setCategory(String category) {
-        this.category = category;
-    }
 
     public Set<User> getMembers() {
         return members;
     }
-
     public void setMembers(Set<User> members) {
         this.members = members;
     }
@@ -51,7 +49,6 @@ public class Channel {
     public long getCreatedAt() {
         return createdAt;
     }
-
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
@@ -59,7 +56,6 @@ public class Channel {
     public long getUpdatedAt() {
         return updatedAt;
     }
-
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
     }
@@ -68,7 +64,7 @@ public class Channel {
         return "Channel{" +
                 "Id='" + id + '\'' +
                 ", ChannelName='" + channelName + '\'' +
-                ", Category=" + category + '\'' +
+                ", Category=" + categories + '\'' +
                 ", Members=" + members +
                 '}';
     }
