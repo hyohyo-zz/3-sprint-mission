@@ -1,19 +1,23 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class Message {
     private UUID id;
     private User sender;        //보낸사람
-    private Channel channel;    //보낸채널
+    private Channel channel;
+    private String category;
     private String content;     //내용
     private long createdAt;
     private long updatedAt;
 
-    public Message(User sender, Channel channel, String content) {
+    public Message(User sender,Channel channel, String category, String content) {
         this.id = UUID.randomUUID();
         this.sender = sender;
         this.channel = channel;
+        this.category = category;
         this.content = content;
         this.createdAt = System.currentTimeMillis();
         this.updatedAt = this.createdAt;
@@ -26,7 +30,6 @@ public class Message {
     public User getSender() {
         return sender;
     }
-
     public void setSender(User sender) {
         this.sender = sender;
     }
@@ -34,15 +37,18 @@ public class Message {
     public Channel getChannel() {
         return channel;
     }
-
     public void setChannel(Channel channel) {
         this.channel = channel;
+    }
+
+    public String getCategory() {return category;}
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public long getCreatedAt() {
         return createdAt;
     }
-
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
@@ -50,7 +56,6 @@ public class Message {
     public String getContent() {
         return content;
     }
-
     public void setContent(String content) {
         this.content = content;
     }
@@ -58,7 +63,6 @@ public class Message {
     public long getUpdatedAt() {
         return updatedAt;
     }
-
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
     }
