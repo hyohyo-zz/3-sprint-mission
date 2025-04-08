@@ -67,6 +67,15 @@ public class Message {
         this.updatedAt = updatedAt;
     }
 
+    public String toString() {
+        return "Message{" +
+                "id= " + id + '\'' +
+                ", sender= " + sender.getName() + '\'' +
+                ", channel= " + channel.getChannelName() + '\'' +
+                ", category= '" + category + '\'' +
+                ", content= " + content + '\'' +
 
+                '}';
+    }
 
 }

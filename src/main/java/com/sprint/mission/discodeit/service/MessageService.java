@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.entity.Message;
 import java.util.*;
 
 public interface MessageService {
+    Message findById(UUID id);
+    List<Message> Messages();
     Message createMessage(Message message);
     Message updateMessage(UUID id, Message updatedmessage);
     boolean deleteMessage(UUID id);
