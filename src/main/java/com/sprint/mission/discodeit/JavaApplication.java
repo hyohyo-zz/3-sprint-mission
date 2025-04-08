@@ -182,8 +182,8 @@ public class JavaApplication {
         System.out.println("전체 메시지");
         messageService.readAll().forEach(System.out::println);
 
-        System.out.println("메시지3 조회");
-        messageService.read(message1.getId()).toString();
+        System.out.println("\n메시지3 조회");
+        System.out.println(messageService.read(message3.getId()));
 
         Message m1 = messageService.read(message1.getId());
 
