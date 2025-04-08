@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.UUID;
 
 public class User {
@@ -72,10 +74,18 @@ public class User {
         this.updatedAt = updatedAt;
     }
 
+    public void update(User updateUserData) {
+        this.name = updateUserData.name;
+        this.gender = updateUserData.gender;
+        this.email = updateUserData.email;
+        this.phone = updateUserData.phone;
+        this.password = updateUserData.password;
+        this.updatedAt = System.currentTimeMillis();
+    }
+
     public String toString() {
         return "User{" +
-                "Id='" + id + '\'' +
-                ", UserName='" + name + '\'' +
+                "UserName='" + name + '\'' +
                 ", Gender='" + gender + '\'' +
                 ", email=" + email + '\'' +
                 ", phone=" + phone + '\'' +

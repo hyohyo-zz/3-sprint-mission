@@ -1,8 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class Channel {
     private UUID id;
@@ -21,23 +19,23 @@ public class Channel {
         this.updatedAt = this.createdAt;
     }
 
-    public UUID getChannelId() {
+    public UUID getId() {
         return id;
     }
 
     public String getChannelName() {
         return channelName;
-    }public List<String> getCategory() {
-        return categories;
-    }
-    public void setCategory(List<String> categories) {
-        this.categories = categories;
     }
     public void setChannelName(String channelName) {
         this.channelName = channelName;
     }
 
-
+    public List<String> getCategory() {
+        return categories;
+    }
+    public void setCategory(List<String> categories) {
+        this.categories = categories;
+    }
 
     public Set<User> getMembers() {
         return members;
@@ -60,10 +58,16 @@ public class Channel {
         this.updatedAt = updatedAt;
     }
 
+    public void update(Channel updateChannelData) {
+        this.channelName = updateChannelData.channelName;
+        this.categories = new ArrayList<>(categories);
+        this.members = new HashSet<>(updateChannelData.members);
+        this.updatedAt = System.currentTimeMillis();
+    }
+
     public String toString() {
         return "Channel{" +
-                "Id='" + id + '\'' +
-                ", ChannelName='" + channelName + '\'' +
+                "ChannelName='" + channelName + '\'' +
                 ", Category=" + categories + '\'' +
                 ", Members=" + members +
                 '}';

@@ -66,7 +66,10 @@ public class Message {
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
     }
-
+    public void update(Message updateMessageData) {
+        this.content = updateMessageData.content;
+        this.updatedAt = System.currentTimeMillis();
+    }
     public String toString() {
         return "Message{" +
                 "id= " + id + '\'' +

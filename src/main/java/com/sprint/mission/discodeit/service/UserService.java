@@ -5,11 +5,17 @@ import com.sprint.mission.discodeit.entity.User;
 import java.util.*;
 
 public interface UserService {
-    User createUser(User user);
-    User findById(UUID id);
-    List<User> Users();
-    User updateUser(UUID id, User updatedUser);
-    boolean deleteUser(UUID id);
 
+    public void create(User user);
+
+    public User read(UUID id);
+
+    public List<User> read(String name);
+
+    public List<User> readAll();
+
+    public User update(UUID id, User update);
+
+    public boolean delete(UUID id);
 
 }
