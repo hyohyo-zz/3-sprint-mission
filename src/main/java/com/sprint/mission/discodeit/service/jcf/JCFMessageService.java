@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public class JCFMessageService implements MessageService {
-    private final Map<UUID, Message> data = new HashMap<>();
+    private final Map<UUID, Message> data = new LinkedHashMap<>();
     private final JCFUserService userService;
     private final JCFChannelService channelService;
 
@@ -21,7 +21,38 @@ public class JCFMessageService implements MessageService {
     //메시지 생성
     @Override
     public void create(Message message) {
+        //채널 멤버가 아닌 유저가 메시지 생성시
+        if (!message.getChannel().getMembers().contains(message.getSender())) {
+            throw new IllegalArgumentException(
+                    " ---" + message.getSender().getName()+"(은/는) [" + message.getChannel().getChannelName() + "]채널 멤버가 아닙니다.");
+        }
+
+        //채널에 없는 카테고리에 메시지 생성시
+        if (!message.getChannel().getCategory().contains(message.getCategory())) {
+            throw new IllegalArgumentException(
+                    " ---"+message.getCategory()+ "(은/는) [" + message.getChannel().getChannelName() + "]채널에 존재 하지 않는 카테고리입니다.");
+        }
+
         data.put(message.getId(), message);
+    }
+
+    //메시지 조회
+    @Override
+    public Message read(UUID id) {
+        Message message = this.data.get(id);
+
+        //메시지id 존재하지 않음
+        if (message == null) {
+            throw new IllegalArgumentException(" --해당 ID의 메시지를 찾을 수 없습니다.");
+        }
+
+        return this.data.get(id);
+    }
+
+    //메시지 전체조회
+    @Override
+    public List<Message> readAll() {
+        return new ArrayList<>(this.data.values());
     }
 
     //메시지 수정
@@ -36,18 +67,6 @@ public class JCFMessageService implements MessageService {
     @Override
     public boolean delete(UUID id) {
         return data.remove(id) != null;
-    }
-
-    //메시지 조회
-    @Override
-    public Message read(UUID id) {
-        return this.data.get(id);
-    }
-
-    //메시지 전체조회
-    @Override
-    public List<Message> readAll() {
-        return new ArrayList<>(this.data.values());
     }
 
 

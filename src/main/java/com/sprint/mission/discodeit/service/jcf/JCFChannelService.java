@@ -13,6 +13,19 @@ public class JCFChannelService implements ChannelService {
     //채널 생성
     @Override
     public void create(Channel channel) {
+        //이미 생성된 채널 추가시
+        for (Channel existingChannel : data.values()) {
+            if (existingChannel.getChannelName().equals(channel.getChannelName())) {
+                throw new IllegalArgumentException(" --- 이미 등록된 채널입니다.");
+            }
+        }
+
+        List<String> categoryList = channel.getCategory();
+        Set<String> categorySet = new HashSet<>(categoryList);
+        if (categoryList.size() != categorySet.size()) {    //list사이즈=2, set사이즈1 -> 중복있다
+            throw new IllegalArgumentException(" --- 중복된 카테고리가 포함되어 있습니다.");
+        }
+
         this.data.put(channel.getId(),channel);
     }
 
@@ -65,8 +78,15 @@ public class JCFChannelService implements ChannelService {
                 .collect(Collectors.toList());
     }
 
+    //멤버에서 유저삭제
+    public void removeMember(User user){
+        for (Channel channel : data.values()) {
+            Set<User> members = new HashSet<>(channel.getMembers());
 
-
-
-
+            if (members.remove(user)) {
+                Channel updated = new Channel(channel.getChannelName(), channel.getCategory(), members);
+                this.data.put(channel.getId(), updated);
+            }
+        }
+    }
 }

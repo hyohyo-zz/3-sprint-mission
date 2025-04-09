@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
@@ -9,10 +10,21 @@ import java.util.stream.Collectors;
 
 public class JCFUserService implements UserService {
     private final Map<UUID, User> data = new HashMap<>();
+    private final JCFChannelService channelService;
+
+    public JCFUserService(JCFChannelService channelService) {
+        this.channelService = channelService;
+    }
 
     //유저 생성
     @Override
     public void create(User user) {
+        //이미 등록된 이메일 추가시
+        for (User existingUser : data.values()) {
+            if (existingUser.getEmail().equals(user.getEmail())) {
+                throw new IllegalArgumentException(" --- 이미 등록된 이메일입니다.");
+            }
+        }
         this.data.put(user.getId(), user);
     }
 
@@ -25,9 +37,14 @@ public class JCFUserService implements UserService {
     //유저 이름으로 조회
     @Override
     public List<User> read(String name) {
-        return data.values().stream()
-                .filter(user-> user.getName().contains(name))
-                .toList();
+        List<User> result = data.values().stream()
+                .filter(user -> user.getName().contains(name))
+                .collect(Collectors.toList());
+
+        if (result.isEmpty()) {
+            throw new IllegalArgumentException("존재하지 않는 유저입니다.");
+        }
+        return result;
     }
 
     //유저 전체 조회
@@ -46,8 +63,34 @@ public class JCFUserService implements UserService {
 
     //유저 삭제
     @Override
-    public boolean delete(UUID id) {
-        return data.remove(id) != null;
+    public boolean delete(UUID id, String password) {
+        User user = this.data.get(id);
+        if (!user.getPassword().equals(password)) {
+            System.out.println("!!유저 탈퇴 실패!! --- 비밀번호 불일치");
+            return false;
+        }
+        System.out.println("<<유저 [" + user.getName() + "] 탈퇴 성공>>");
+        boolean isDeleted = this.data.remove(id) != null;
+
+        if (isDeleted){
+            removeUserFromChannels(user);
+        }
+        return isDeleted;
+    }
+
+    //채널 전체에서 해당 유저 삭제
+    private void removeUserFromChannels(User user) {
+        for (Channel channel : channelService.readAll()) {
+            Set<User> members = new HashSet<>(channel.getMembers());
+            if (members.remove(user)) {
+                Channel updatedChannel = new Channel(
+                        channel.getChannelName(),
+                        channel.getCategory(),
+                        members
+                );
+                channelService.update(channel.getId(), updatedChannel);
+            }
+        }
     }
 
     //성별 그룹화
