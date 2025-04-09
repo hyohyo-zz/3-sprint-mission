@@ -19,5 +19,4 @@ public interface ChannelService {
 
     public Set<User> members(UUID id);
 
-    public List<String> cat(Channel category);
 }

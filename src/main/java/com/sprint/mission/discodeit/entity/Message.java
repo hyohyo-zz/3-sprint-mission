@@ -20,7 +20,7 @@ public class Message {
         this.category = category;
         this.content = content;
         this.createdAt = System.currentTimeMillis();
-        this.updatedAt = this.createdAt;
+        this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
     }
 
     public UUID getId() {
@@ -66,10 +66,12 @@ public class Message {
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
     }
+
     public void update(Message updateMessageData) {
         this.content = updateMessageData.content;
         this.updatedAt = System.currentTimeMillis();
     }
+
     public String toString() {
         return "Message{" +
                 "id= " + id + '\'' +
@@ -77,7 +79,6 @@ public class Message {
                 ", channel= " + channel.getChannelName() + '\'' +
                 ", category= '" + category + '\'' +
                 ", content= " + content + '\'' +
-
                 '}';
     }
 

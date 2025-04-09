@@ -81,12 +81,16 @@ public class JavaApplication {
 
     private static void demonstrateUserOperations(JCFUserService userService, List<User> users){
         System.out.println("\n--------------------------- User ---------------------------");
+
+        //전체 유저조회(다건 조회)
         System.out.println("전체 유저 목록: ");
         userService.readAll().forEach(System.out::println);
 
+        //특정 유저조회(단건 조회, 이름)
         System.out.println("\n신짱구 유저 조회(이름으로 검색): ");
         userService.read("신짱구").forEach(System.out::println);
 
+        //특정 유저조회(단건 조회, id)
         System.out.println("\n이훈이 유저 조회(id로 검색): ");
         System.out.println(userService.read(users.get(3).getId()).toString());
 
@@ -96,9 +100,12 @@ public class JavaApplication {
 
         //유저 수정 테스트
         System.out.println("\n유저 수정하기\n수정 전: ");
+
+        //수정하려는 유저 origin에 저장
         User origin = users.get(2);
         System.out.println(userService.read(origin.getId()));
 
+        //수정한 유저정보 updated에 저장
         User updated = userService.update(origin.getId(), new User("김철수", origin.getGender(), origin.getEmail(), origin.getPhone(), origin.getPassword()));
         System.out.println("수정 후(이름, 번호): ");
         System.out.println(userService.read(updated.getId()));
@@ -145,6 +152,7 @@ public class JavaApplication {
             System.out.println("[" + channel.getChannelName() + "] 채널 유저 수: " + memberCount + "명");
         }
 
+        //채널 멤버조회
         System.out.print("\n[sp01] 채널 멤버: ");
         for (User member : channelService.members(channels.get(0).getId())) {
             System.out.print(member.getName() + " ");
@@ -177,13 +185,16 @@ public class JavaApplication {
 
         //채널 수정
         System.out.println("\n\n채널 수정하기\n수정 전: ");
+        //수정하려는 채널 original에 저장
         Channel original =  channels.get(2);
         System.out.println(channelService.read(original.getId()));
 
+        //수정한 채널 updated에 저장, 출력(채널명 수정)
         Channel updated = channelService.update(original.getId(), new Channel("변경sp03", original.getCategory(), original.getMembers()));
         System.out.println("수정 후(채널 이름): ");
         System.out.println(updated.toString());
 
+        //채널 삭제
         System.out.println("\n.\n.\n<<채널3 삭제>>\n");
         channelService.delete(channels.get(2).getId());
 

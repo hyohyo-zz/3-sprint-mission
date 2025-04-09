@@ -16,7 +16,7 @@ public class Channel {
         this.categories = categories;
         this.members = members;
         this.createdAt = System.currentTimeMillis();
-        this.updatedAt = this.createdAt;
+        this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
     }
 
     public UUID getId() {

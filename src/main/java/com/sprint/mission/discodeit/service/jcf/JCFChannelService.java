@@ -10,21 +10,25 @@ import java.util.stream.Collectors;
 public class JCFChannelService implements ChannelService {
     private final Map<UUID, Channel> data = new HashMap<>();
 
+    //채널 생성
     @Override
     public void create(Channel channel) {
         this.data.put(channel.getId(),channel);
     }
 
+    //채널 조회
     @Override
     public Channel read(UUID id) {
         return this.data.get(id);
     }
 
+    //채널 전체 조회
     @Override
     public List<Channel> readAll() {
         return new ArrayList<>(data.values());
     }
 
+    //채널 수정
     @Override
     public Channel update(UUID id, Channel update) {
         Channel selected = this.data.get(id);
@@ -32,20 +36,17 @@ public class JCFChannelService implements ChannelService {
         return selected;
     }
 
+    //채널 삭제
     @Override
     public boolean delete(UUID id) {
         return data.remove(id) != null;
     }
 
+    //채널 멤버셋
     @Override
     public Set<User> members(UUID id) {
         Channel channel = data.get(id);
         return channel != null ? channel.getMembers() : Set.of();
-    }
-
-    @Override
-    public List<String> cat(Channel channel) {
-        return channel.getCategory();
     }
 
     //채널별 카테고리

@@ -18,11 +18,13 @@ public class JCFMessageService implements MessageService {
         this.channelService = channelService;
     }
 
+    //메시지 생성
     @Override
     public void create(Message message) {
         data.put(message.getId(), message);
     }
 
+    //메시지 수정
     @Override
     public Message update(UUID id, Message update) {
         Message selected = this.data.get(id);
@@ -30,16 +32,19 @@ public class JCFMessageService implements MessageService {
         return selected;
     }
 
+    //메시지 삭제
     @Override
     public boolean delete(UUID id) {
         return data.remove(id) != null;
     }
 
+    //메시지 조회
     @Override
     public Message read(UUID id) {
         return this.data.get(id);
     }
 
+    //메시지 전체조회
     @Override
     public List<Message> readAll() {
         return new ArrayList<>(this.data.values());
