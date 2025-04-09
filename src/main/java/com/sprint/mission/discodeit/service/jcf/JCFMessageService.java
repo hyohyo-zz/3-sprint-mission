@@ -9,8 +9,14 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 public class JCFMessageService implements MessageService {
-
     private final Map<UUID, Message> data = new HashMap<>();
+    private final JCFUserService userService;
+    private final JCFChannelService channelService;
+
+    public JCFMessageService(JCFUserService userService, JCFChannelService channelService) {
+        this.userService = userService;
+        this.channelService = channelService;
+    }
 
     @Override
     public void create(Message message) {
