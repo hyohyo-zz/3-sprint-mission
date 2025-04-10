@@ -74,11 +74,11 @@ public class Message {
 
     public String toString() {
         return "Message{" +
-                "id= " + id + '\'' +
-                ", sender= " + sender.getName() + '\'' +
-                ", channel= " + channel.getChannelName() + '\'' +
+                "id= '" + id + '\'' +
+                ", sender= '" + sender.getName() + '\'' +
+                ", channel= '" + channel.getChannelName() + '\'' +
                 ", category= '" + category + '\'' +
-                ", content= " + content + '\'' +
+                ", content= '" + content + '\'' +
                 '}';
     }
 

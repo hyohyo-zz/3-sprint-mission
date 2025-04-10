@@ -13,20 +13,25 @@ public class JCFChannelService implements ChannelService {
     //채널 생성
     @Override
     public void create(Channel channel) {
-        //이미 생성된 채널 추가시
+
+        //중복 채널명 검증
         for (Channel existingChannel : data.values()) {
-            if (existingChannel.getChannelName().equals(channel.getChannelName())) {
-                throw new IllegalArgumentException(" --- 이미 등록된 채널입니다.");
+            if (existingChannel.getChannelName().equals(channel.getChannelName())
+            && existingChannel.getKeyUser().equals(channel.getKeyUser())) {
+
+                throw new IllegalArgumentException(" --- "+ channel.getKeyUser().getName()+"님! 이미 등록된 채널입니다.");
             }
         }
 
-        List<String> categoryList = channel.getCategory();
-        Set<String> categorySet = new HashSet<>(categoryList);
-        if (categoryList.size() != categorySet.size()) {    //list사이즈=2, set사이즈1 -> 중복있다
+        //중복 카테고리 검증
+        Set<String> categorySet = new HashSet<>(channel.getCategory());
+        if (channel.getCategory().size() != categorySet.size()) {      //list사이즈=2, set사이즈1 -> 중복있다
             throw new IllegalArgumentException(" --- 중복된 카테고리가 포함되어 있습니다.");
         }
+        channel.getMembers().add(channel.getKeyUser()); // 키 유저를 초기 멤버로 추가
 
-        this.data.put(channel.getId(),channel);
+        data.put(channel.getId(), channel);
+
     }
 
     //채널 조회
@@ -51,9 +56,16 @@ public class JCFChannelService implements ChannelService {
 
     //채널 삭제
     @Override
-    public boolean delete(UUID id) {
-        return data.remove(id) != null;
+    public boolean delete(UUID id, User user, String password) {
+        Channel channel = this.data.get(id);
+        if (!user.getPassword().equals(password)) {
+            System.out.println("!!채널 삭제 실패!! --- 비밀번호 불일치");
+            return false;
+        }
+        System.out.println("<<채널 [" + channel.getChannelName() + "] 삭제 성공>>");
+        return this.data.remove(id) != null;
     }
+
 
     //채널 멤버셋
     @Override
@@ -78,15 +90,4 @@ public class JCFChannelService implements ChannelService {
                 .collect(Collectors.toList());
     }
 
-    //멤버에서 유저삭제
-    public void removeMember(User user){
-        for (Channel channel : data.values()) {
-            Set<User> members = new HashSet<>(channel.getMembers());
-
-            if (members.remove(user)) {
-                Channel updated = new Channel(channel.getChannelName(), channel.getCategory(), members);
-                this.data.put(channel.getId(), updated);
-            }
-        }
-    }
 }

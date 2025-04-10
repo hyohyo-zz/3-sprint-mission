@@ -85,11 +85,11 @@ public class User {
 
     public String toString() {
         return "User{" +
-                "UserName='" + name + '\'' +
-                ", Gender='" + gender + '\'' +
-                ", email=" + email + '\'' +
-                ", phone=" + phone + '\'' +
-                ", password=" + password + '\'' +
+                "UserName= '" + name + '\'' +
+                ", Gender= '" + gender + '\'' +
+                ", email= '" + email + '\'' +
+                ", phone= '" + phone + '\'' +
+                ", password= '" + password + '\'' +
                 '}';
     }
 }

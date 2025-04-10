@@ -85,6 +85,7 @@ public class JCFUserService implements UserService {
             if (members.remove(user)) {
                 Channel updatedChannel = new Channel(
                         channel.getChannelName(),
+                        channel.getKeyUser(),
                         channel.getCategory(),
                         members
                 );
@@ -94,8 +95,11 @@ public class JCFUserService implements UserService {
     }
 
     //성별 그룹화
-    public Map<String, List<User>> groupByGender() {
+    public Map<String, List<String>> groupByGender() {
         return data.values().stream()
-                .collect(Collectors.groupingBy(User::getGender));
+                .collect(Collectors.groupingBy(
+                        User::getGender,
+                        Collectors.mapping(User::getName, Collectors.toList())
+                ));
     }
 }
