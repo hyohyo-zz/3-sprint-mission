@@ -16,6 +16,6 @@ public interface UserService {
 
     public User update(UUID id, User update);
 
-    public boolean delete(UUID id);
+    public boolean delete(UUID id, String password);
 
 }

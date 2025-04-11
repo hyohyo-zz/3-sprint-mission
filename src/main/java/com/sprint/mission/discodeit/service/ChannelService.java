@@ -15,9 +15,8 @@ public interface ChannelService {
 
     public Channel update(UUID id, Channel update);
 
-    public boolean delete(UUID id);
+    public boolean delete(UUID id, User user, String password);
 
     public Set<User> members(UUID id);
 
-    public List<String> cat(Channel category);
 }

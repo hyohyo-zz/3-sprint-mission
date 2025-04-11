@@ -22,7 +22,7 @@ public class User {
         this.phone = phone;
         this.password = password;
         this.createdAt = System.currentTimeMillis();
-        this.updatedAt = this.createdAt;
+        this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
     }
 
     public UUID getId() {
@@ -85,11 +85,11 @@ public class User {
 
     public String toString() {
         return "User{" +
-                "UserName='" + name + '\'' +
-                ", Gender='" + gender + '\'' +
-                ", email=" + email + '\'' +
-                ", phone=" + phone + '\'' +
-                ", password=" + password + '\'' +
+                "UserName= '" + name + '\'' +
+                ", Gender= '" + gender + '\'' +
+                ", email= '" + email + '\'' +
+                ", phone= '" + phone + '\'' +
+                ", password= '" + password + '\'' +
                 '}';
     }
 }

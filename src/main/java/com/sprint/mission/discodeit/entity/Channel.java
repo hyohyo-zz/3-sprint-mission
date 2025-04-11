@@ -1,22 +1,28 @@
 package com.sprint.mission.discodeit.entity;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Channel {
     private UUID id;
     private String channelName;
+    private User keyUser;
     private List<String> categories;
     private Set<User> members;
     private long createdAt;
     private long updatedAt;
 
-    public Channel(String channelName, List<String> categories, Set<User> members) {
+    public Channel(String channelName, User keyUser, List<String> categories, Set<User> members) {
         this.id = UUID.randomUUID();
         this.channelName = channelName;
         this.categories = categories;
-        this.members = members;
+
+        this.keyUser = keyUser;
+        this.members = new HashSet<>(members);
+        this.members.add(keyUser);
+
         this.createdAt = System.currentTimeMillis();
-        this.updatedAt = this.createdAt;
+        this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
     }
 
     public UUID getId() {
@@ -58,18 +64,28 @@ public class Channel {
         this.updatedAt = updatedAt;
     }
 
+    public User getKeyUser() {
+        return keyUser;
+    }
+
+    public void addMember(User user) {
+        members.add(user);
+    }
+
     public void update(Channel updateChannelData) {
         this.channelName = updateChannelData.channelName;
-        this.categories = new ArrayList<>(categories);
+        this.keyUser = updateChannelData.keyUser;
+        this.categories = new ArrayList<>(updateChannelData.categories);
         this.members = new HashSet<>(updateChannelData.members);
         this.updatedAt = System.currentTimeMillis();
     }
 
     public String toString() {
         return "Channel{" +
-                "ChannelName='" + channelName + '\'' +
-                ", Category=" + categories + '\'' +
-                ", Members=" + members +
-                '}';
+                "ChannelName= '" + channelName + '\'' +
+                ", KeyUser= '" + keyUser.getName() + '\'' +
+                ", Category= '" + categories + '\'' +
+                ", Members= '" + members.stream().map(User::getName).collect(Collectors.toList()) +
+                "'}";
     }
 }
