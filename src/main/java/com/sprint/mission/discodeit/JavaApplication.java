@@ -3,26 +3,26 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.factory.ServiceFactory;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
-import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
-import jdk.jfr.Category;
-
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class JavaApplication {
     public static void main(String[] args) {
+        ServiceFactory serviceFactory = ServiceFactory.getInstance();
 
-        JCFChannelService channelService = new JCFChannelService();
-        JCFUserService userService = new JCFUserService(channelService);
-        JCFMessageService messageService = new JCFMessageService(userService, channelService);
+        ChannelService channelService = serviceFactory.createChannelService();
+        UserService userService = serviceFactory.createUserService();
+        MessageService messageService = serviceFactory.createMessageService();
+
 
         List<User> users = createAndRegisterUsers(userService);
         List<Channel> channels = createAndRegisterChannels(channelService, users);
-        createAndRegisterMessages(messageService, users, channels);
+        List<Message> messages = createAndRegisterMessages(messageService, users, channels);
 
         demonstrateUserOperations(userService, users);
         demonstrateChannelOperations(channelService, channels,users);
@@ -32,40 +32,41 @@ public class JavaApplication {
 
 
     //유저생성 및 등록
-    private static List<User> createAndRegisterUsers(JCFUserService userService) {
-
-        User user1 = new User("조현아", "여", "akbkck8101@gmail.com", "010-6658-8101", "2701");
-        User user2 = new User("신짱구", "남", "zzang9@gmail.com", "010-1234-5678", "9999");
-        User user3 = new User("김철슈", "남", "steelwater@naver.com", "010-0000-0000", "steelwater");
-        User user4 = new User("이훈이", "남", "2hun2@naver.com", "010-2345-6789", "2hun222");
-        User user5 = new User("맹구", "남", "stone_lover9@gmail.com", "010-1010-0101", "stone_lover");
-        User user6 = new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345");
-
-
-        //-----심화-----//
-        //중복 이메일 유저_ex)
-        User user7 = new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345");
+    private static List<User> createAndRegisterUsers(UserService userService) {
+        List<User> users = List.of(
+            new User("조현아", "여", "akbkck8101@gmail.com", "010-6658-8101", "2701"),
+            new User("신짱구", "남", "zzang9@gmail.com", "010-1234-5678", "9999"),
+            new User("김철슈", "남", "steelwater@naver.com", "010-0000-0000", "steelwater"),
+            new User("이훈이", "남", "2hun2@naver.com", "010-2345-6789", "2hun222"),
+            new User("맹구", "남", "stone_lover9@gmail.com", "010-1010-0101", "stone_lover"),
+            new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345"),
+            //-----심화-----//
+            //중복 이메일 유저_ex)
+            new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345")
+        );
 
         System.out.println("<--------------------유저를 등록합니다------------------------->\n.\n.");
-        List<User> u_i = List.of(user1, user2, user3, user4, user5, user6, user7);
-        List<User> users = new ArrayList<>();   //등록된 유저만 users에 담음
 
-        for (int i = 0; i < u_i.size(); i++) {
-            try {
-                userService.create(u_i.get(i));
-                users.add(u_i.get(i));
-                System.out.println("유저"+(i+1)+" 등록 완료");
-            } catch (IllegalArgumentException e) {
-                System.out.println("!!유저" + (i+1) + " 등록 실패!!" + e.getMessage());
-            }
-        }
+        List<User> registeredUsers = users.stream()
+                .filter(user -> {
+                    try {
+                        userService.create(user);
+                        System.out.println("유저 등록 완료: " + user.getName());
+                        return true;
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("!!유저 등록 실패!! " + e.getMessage());
+                        return false;
+                    }
+                })
+                .toList();
+
         System.out.println(".\n.\n<--------------------유저 등록 종료---------------------------->\n");
-        return users;
+        return registeredUsers;
         //-----심화-----//
     }
 
     //채널,멤버,카테고리 생성 및 등록
-    private static List<Channel> createAndRegisterChannels(JCFChannelService channelService, List<User> users) {
+    private static List<Channel> createAndRegisterChannels(ChannelService channelService, List<User> users) {
         //채널1 멤버, 카테고리생성
         Set<User> members1 = new HashSet<>(Set.of(users.get(0), users.get(1), users.get(3)));
         List<String> cat1 = List.of("공지", "질문", "2팀");
@@ -78,74 +79,91 @@ public class JavaApplication {
         Set<User> members3 = new HashSet<>(Set.of(users.get(5)));
         List<String> cat3 = List.of("기타");
 
-        Channel channel1 = new Channel("sp01", users.get(1), cat1, members1);
-        Channel channel2 = new Channel("sp02", users.get(1), cat2, members2);
-        Channel channel3 = new Channel("sp03", users.get(5), cat3, members3);
-
-
-        //-----심화-----//
-        //중복 채널명_ex)
-        Channel channel4 = new Channel("sp03", users.get(5), cat3, members3);
-
-        //중복 카테고리_ex)
+        //중복 카테고리
         List<String> cat5 = List.of("공지","공지");
-        Channel channel5 = new Channel("sp05", users.get(5), cat5, members3);
+
+        List<Channel> channels = List.of(
+                new Channel("sp01", users.get(1), cat1, members1),
+                new Channel("sp02", users.get(1), cat2, members2),
+                new Channel("sp03", users.get(5), cat3, members3),
+                new Channel("sp03", users.get(5), cat3, members3),   //중복 채널명_ex)
+                new Channel("sp05", users.get(5), cat5, members3)   //중복 카테고리_ex)
+        );
 
         System.out.println("<--------------------채널을 등록합니다------------------------->\n.\n.");
 
-        List<Channel> ch_i = List.of(channel1, channel2, channel3,channel4,channel5);
-        List<Channel> channels = new ArrayList<>();   //등록된 채널만담기
+        List<Channel> registeredChannels = channels.stream()
+                .filter(channel -> {
+                    try {
+                        channelService.create(channel);
+                        System.out.println("채널 등록 완료: " + channel.getChannelName());
+                        return true;
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("!!채널 등록 실패!! " + e.getMessage());
+                        return false;
+                    }
+                })
+                .toList(); // 성공한 채널만 리스트로 변환
 
-        for (int i = 0; i < ch_i.size(); i++) {
-            try {
-                channelService.create(ch_i.get(i));
-                channels.add(ch_i.get(i));
-                System.out.print("채널"+(i+1)+"[" + ch_i.get(i).getChannelName() + "] 등록 완료");
-                System.out.println(" --- 방장: " + ch_i.get(i).getKeyUser().getName());
-
-            } catch (IllegalArgumentException e) {
-                System.out.println("!!채널" + (i+1) + "[" + ch_i.get(i).getChannelName() + "] 등록 실패!!" + e.getMessage());
-            }
-        }
         System.out.println(".\n.\n<--------------------채널 등록 종료---------------------------->\n");
-        return channels;
-        //-----심화-----//
+        return registeredChannels;
     }
 
     //메시지 생성 및 등록
-    private static void createAndRegisterMessages(JCFMessageService messageService, List<User> users, List<Channel> channels) {
-        Message message1 = new Message(users.get(0), channels.get(0), "공지", "공지입니다.");
-        Message message2 = new Message(users.get(1), channels.get(0), "2팀", "안녕하세요.");
-        Message message3 = new Message(users.get(4), channels.get(1), "소통", "소통해요");
-        Message message4 = new Message(users.get(2), channels.get(1), "소통", "좋아요");
-
-
-        //-----심화-----//
-        //채널 멤버가 아닌 유저가 메시지 생성시_ex)
-        Message message5 = new Message(users.get(5), channels.get(1), "소통", "hi");
-
-        //채널에 없는 카테고리에 메시지 생성시_ex)
-        Message message6 = new Message(users.get(0), channels.get(0), "공자", "hi");
+    private static List<Message> createAndRegisterMessages(MessageService messageService, List<User> users, List<Channel> channels) {
+//        List<Message> messages1 = List.of(
+//                new Message(users.get(0), channels.get(0), "공지", "공지입니다."),
+//                new Message(users.get(1), channels.get(0), "2팀", "안녕하세요."),
+//                new Message(users.get(4), channels.get(1), "소통", "소통해요"),
+//                new Message(users.get(2), channels.get(1), "소통", "좋아요"),
+//                new Message(users.get(5), channels.get(1), "소통", "hi"),  //채널 멤버가 아닌 유저
+//                new Message(users.get(0), channels.get(0), "공자", "hi")  //채널에 없는 카테고리
+//        );
 
         System.out.println("<--------------------메시지를 저장합니다----------------------->\n.\n.");
-        List<Message> me_i = List.of(message1, message2, message3, message4, message5, message6);
+
+        List<Object[]> rawMessages = List.of(
+                new Object[]{0, 0, "공지", "공지입니다."},
+                new Object[]{1, 0, "2팀", "안녕하세요."},
+                new Object[]{4, 1, "소통", "소통해요"},
+                new Object[]{2, 1, "소통", "좋아요"},
+                new Object[]{5, 1, "소통", "hi"},       // 멤버 아님
+                new Object[]{0, 0, "공자", "hi"}        // 없는 카테고리
+        );
+
         List<Message> messages = new ArrayList<>();
 
-        for (int i = 0; i < me_i.size(); i++) {
+        for (Object[] raw : rawMessages) {
             try {
-                messageService.create(me_i.get(i));
-                messages.add(me_i.get(i));
-                System.out.println("채널 ["+messages.get(i).getChannel().getChannelName() + "]에 메시지"+(i+1)+" 저장 완료");
+                Message message = new Message(users.get((int) raw[0]), channels.get((int) raw[1]), (String) raw[2], (String) raw[3]);
+                messageService.create(message);
+                messages.add(message);
+                System.out.println("[" + message.getChannel().getChannelName() + "] 채널에 메시지 등록 완료");
             } catch (IllegalArgumentException e) {
-                System.out.println("!!메시지" + (i+1) + " 저장 실패!!" + e.getMessage());
+                System.out.println("!!메시지 등록 실패!! " + e.getMessage());
             }
         }
+
+//        List<Message> registeredMessages = messages.stream()
+//                .map(message -> {
+//                    try {
+//                        messageService.create(message);
+//                        System.out.println("[" + message.getChannel().getChannelName() + "] 채널에 메시지 등록 완료");
+//                        return message;
+//                    } catch (IllegalArgumentException e) {
+//                        System.out.println("!!메시지 등록 실패!! " + e.getMessage());
+//                        return null;
+//                    }
+//                })
+//                .filter(Objects::nonNull) // null 제거 (등록 실패한 메시지 필터링)
+//                .collect(Collectors.toList());
+
         System.out.println(".\n.\n<--------------------메시지 저장 종료-------------------------->\n");
-        //-----심화-----//
+        return messages;
     }
 
 
-    private static void demonstrateUserOperations(JCFUserService userService, List<User> users){
+    private static void demonstrateUserOperations(UserService userService, List<User> users){
         System.out.println("\n########################### User ###############################");
 
         readUser(userService, users);
@@ -155,7 +173,7 @@ public class JavaApplication {
 
     }
 
-    private static void readUser(JCFUserService  userService, List<User> users){
+    private static void readUser(UserService  userService, List<User> users){
         System.out.println("------------------------- ReadUser -----------------------------");
         //전체 유저조회(다건 조회)
         System.out.println("\n전체 유저 목록: ");
@@ -163,7 +181,7 @@ public class JavaApplication {
 
         //특정 유저조회(단건 조회, 이름)
         System.out.println("\n신짱구 유저 조회(이름으로 검색): ");
-        userService.read("신짱구").forEach(System.out::println);
+        userService.readByName("신짱구").forEach(System.out::println);
 
         //특정 유저조회(단건 조회, id)
         System.out.println("\n이훈이 유저 조회(id로 검색): ");
@@ -171,9 +189,9 @@ public class JavaApplication {
 
         //이름에 "구"가 포함된 유저
         System.out.println("\n이름에 '구'가 포함된 유저('구'로 검색): ");
-        userService.read("구").forEach(System.out::println);
+        userService.readByName("구").forEach(System.out::println);
     }
-    private static void updateUser(JCFUserService userService, List<User> users){
+    private static void updateUser(UserService userService, List<User> users){
         System.out.println("\n------------------------- UpdateUser ---------------------------");
         //유저 수정 테스트
         System.out.println("\n유저 수정하기\n수정 전: ");
@@ -187,7 +205,7 @@ public class JavaApplication {
         System.out.println("수정 후(이름, 번호): ");
         System.out.println(userService.read(updated.getId()));
     }
-    private static void deleteUser(JCFUserService userService, List<User> users){
+    private static void deleteUser(UserService userService, List<User> users){
         System.out.println("\n------------------------ DeleteUser ----------------------------");
         System.out.println("\n전체 유저 목록: ");
         userService.readAll().forEach(System.out::println);
@@ -206,7 +224,7 @@ public class JavaApplication {
         System.out.println();
     }
 
-    private static void groupingUser(JCFUserService userService, List<User> users){
+    private static void groupingUser(UserService userService, List<User> users){
         System.out.println("------------------------- GroupingUser -------------------------");
         //성별 그룹화
         System.out.println("\n성별 그룹화");
@@ -216,66 +234,76 @@ public class JavaApplication {
     }
 
 
-    private static void demonstrateChannelOperations(JCFChannelService channelService, List<Channel> channels, List<User> users) {
+    private static void demonstrateChannelOperations(ChannelService channelService, List<Channel> channels, List<User> users) {
         System.out.println("\n########################### Channel ############################");
 
         readChannel(channelService,channels,users);
         updateChannel(channelService,channels,users);
         deleteChannel(channelService,channels,users);
-
+        groupingChannel(channelService, channels, users);
     }
 
-    private static void readChannel(JCFChannelService channelService, List<Channel> channels, List<User> users){
+    private static void readChannel(ChannelService channelService, List<Channel> channels, List<User> users){
         System.out.println("------------------------- ReadChannel --------------------------");
         System.out.println("\n전체 채널 목록");
-        channelService.readAll().forEach(channel -> System.out.println("[" + channel.getChannelName() + "]"));
+
+        if (channelService.readAll().isEmpty()) {
+            System.out.println("조회할 채널이 없습니다.");
+        } else {
+            channels.forEach(channel -> System.out.println("[" + channel.getChannelName() + "]"));
+        }
+
 
         //특정 채널 정보
-        System.out.print("\n[sp01]채널 조회");
-        for (Channel channel : channelService.findChannel("sp01")) {
+        try {
+            Channel channel = channelService.read(channels.get(0).getId());
             System.out.println("\n채널명: " + channel.getChannelName());
             System.out.println("카테고리: " + channel.getCategory());
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("!!채널 조회 실패!! " + e.getMessage());
         }
 
         //채널 멤버조회
-        System.out.print("\n[sp01] 채널 멤버: ");
-        for (User member : channelService.members(channels.get(0).getId())) {
-            System.out.print(member.getName() + " ");
-        }
-
-        System.out.print("\n[sp02] 채널 멤버: ");
-        for (User member : channelService.members(channels.get(1).getId())) {
-            System.out.print(member.getName() + " ");
-
+        try {
+            System.out.print("\n[sp01] 채널 멤버: ");
+            for (User member : channelService.members(channels.get(0).getId())) {
+                System.out.print(member.getName() + " ");
+            }
+        } catch (IllegalArgumentException e) {
+            System.out.println("!!채널 조회 실패!! " + e.getMessage());
         }
         System.out.println();
     }
-    private static void updateChannel(JCFChannelService channelService, List<Channel> channels, List<User> users){
+    private static void updateChannel(ChannelService channelService, List<Channel> channels, List<User> users){
         System.out.println("\n------------------------- UpdateChannel -----------------------");
 
         //채널 수정
-        Channel original, updated;
-        original = channels.get(2);     //수정하려는 채널
+        Channel original = channels.get(2);     //수정하려는 채널
 
         System.out.println("\n["+ original.getChannelName() +"] 채널 수정 진행중\n.\n.\n.");
         System.out.println("\n["+ original.getChannelName() +"] 수정 완료(채널 이름): ");
         System.out.println("수정 전: " + channelService.read(original.getId()));
 
         //수정한 채널 updated에 저장, 출력(채널명 수정)
-        updated = channelService.update(original.getId(), new Channel("변경sp03", original.getKeyUser(),original.getCategory(), original.getMembers()));
-        channelService.update(original.getId(), updated);
-        System.out.println("수정 후: " + channelService.read(original.getId()));
-
+        try {
+            Channel updatedChannel = channelService.update(original.getId(), new Channel("변경sp03", original.getKeyUser(),original.getCategory(), original.getMembers()));
+            System.out.println("수정 후: " + channelService.read(updatedChannel.getId()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("!!채널 수정 실패!! " + e.getMessage());
+        }
 
         //수정한 채널 updated에 저장, 출력(방장 변경 + member에 추가)
         System.out.println("\n["+ original.getChannelName() +"] 채널 수정 진행중\n.\n.\n.");
         System.out.println("\n["+ original.getChannelName() +"] 수정 완료(새 유저로 방장 변경): ");
         System.out.println("수정 전: " + channelService.read(original.getId()));
 
-        updated = channelService.update(original.getId(), new Channel(original.getChannelName(), users.get(1), original.getCategory(), original.getMembers()));
-        channelService.update(original.getId(), updated);
-        System.out.println("수정 후: " + channelService.read(original.getId()));
-
+        try {
+            Channel updatedChannel = channelService.update(original.getId(), new Channel(original.getChannelName(), users.get(1), original.getCategory(), original.getMembers()));
+            System.out.println("수정 후: " + channelService.read(updatedChannel.getId()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("!!채널 수정 실패!! " + e.getMessage());
+        }
 
         //기존 유저에서 방장변경
         //채널1에서 변경
@@ -284,12 +312,15 @@ public class JavaApplication {
         System.out.println("\n["+ original.getChannelName() +"] 수정 완료(기존 유저로 방장 변경): ");
         System.out.println("수정 전: " + channelService.read(original.getId()));
 
-        updated = channelService.update(original.getId(), new Channel(original.getChannelName(), users.get(0), original.getCategory(), original.getMembers()));
-        channelService.update(original.getId(), updated);
-        System.out.println("수정 후: " + channelService.read(original.getId()));
+        try {
+            Channel updatedChannel = channelService.update(original.getId(), new Channel(original.getChannelName(), users.get(0), original.getCategory(), original.getMembers()));
+            System.out.println("수정 후: " + channelService.read(updatedChannel.getId()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("!!채널 수정 실패!! " + e.getMessage());
+        }
 
     }
-    private static void deleteChannel(JCFChannelService channelService, List<Channel> channels, List<User> users){
+    private static void deleteChannel(ChannelService channelService, List<Channel> channels, List<User> users){
         System.out.println("\n------------------------ DeleteChannel ------------------------");
 
         System.out.print("\n전체 채널 목록: \n");
@@ -308,7 +339,7 @@ public class JavaApplication {
         channelService.readAll().forEach(System.out::println);
 
     }
-    private static void groupingChannel(JCFChannelService channelService, List<Channel> channels, List<User> users) {
+    private static void groupingChannel(ChannelService channelService, List<Channel> channels, List<User> users) {
         System.out.println("------------------------- GroupingUser -------------------------");
         //채널별 카테고리
         System.out.print("\n채널별 카테고리 목록:\n");
@@ -325,7 +356,7 @@ public class JavaApplication {
     }
 
 
-    private static void demonstrateMessageOperations(JCFMessageService messageService) {
+    private static void demonstrateMessageOperations(MessageService messageService) {
         System.out.println("\n########################### Message ###########################");
 
         readMessages(messageService);
@@ -333,26 +364,31 @@ public class JavaApplication {
         deleteMessages(messageService);
     }
 
-    private static void readMessages(JCFMessageService messageService) {
+    private static void readMessages(MessageService messageService) {
         System.out.println("------------------------- ReadMessage -------------------------");
         //메시지 전체조회(다건 조회)
         System.out.println("\n전체 메시지");
         messageService.readAll().forEach(System.out::println);
 
         //메시지3 조회(단건 조회)
-        //-----심화-----//
         try{
-            System.out.println("\n메시지3 조회");
+            System.out.println("\n메시지 조회");
             System.out.println(messageService.read(messageService.readAll().get(2).getId()));
-            System.out.println(messageService.read(UUID.randomUUID()));
 
         } catch (IllegalArgumentException e) {
             System.out.println("\n!!메시지 조회 실패!!" + e.getMessage());
 
         }
-        //-----심화-----//
+
+        //존재하지 않는 메시지 조회
+        try{
+            System.out.println("\n메시지 조회");
+            System.out.println(messageService.read(UUID.randomUUID()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("\n!!메시지 조회 실패!!" + e.getMessage());
+        }
     }
-    private static void updateMessages(JCFMessageService messageService) {
+    private static void updateMessages(MessageService messageService) {
         System.out.println("\n------------------------- UpdateMessage ------------------------");
         //수정할 메시지 original변수에 저장
         Message original = messageService.read(messageService.readAll().get(0).getId());
@@ -369,7 +405,7 @@ public class JavaApplication {
         System.out.println("\n전체 메시지");
         messageService.readAll().forEach(System.out::println);
     }
-    private static void deleteMessages(JCFMessageService messageService) {
+    private static void deleteMessages(MessageService messageService) {
         System.out.println("\n------------------------ DeleteMessage ------------------------");
         //메시지 삭제
         System.out.println("\n.\n.\n<<메시지4 삭제 완료>>\n");

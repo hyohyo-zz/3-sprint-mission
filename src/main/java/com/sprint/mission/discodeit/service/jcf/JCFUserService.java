@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
@@ -36,7 +35,7 @@ public class JCFUserService implements UserService {
 
     //유저 이름으로 조회
     @Override
-    public List<User> read(String name) {
+    public List<User> readByName(String name) {
         List<User> result = data.values().stream()
                 .filter(user -> user.getName().contains(name))
                 .collect(Collectors.toList());
@@ -56,9 +55,14 @@ public class JCFUserService implements UserService {
     //유저 수정
     @Override
     public User update(UUID id, User update) {
-        User selected = this.data.get(id);
-        selected.update(update);
-        return selected;
+        User user = this.data.get(id);
+
+        if (user == null) {
+            throw new IllegalArgumentException(" --해당 ID의 채널을 찾을 수 없습니다.");
+        }
+
+        user.update(update);
+        return user;
     }
 
     //유저 삭제
@@ -79,7 +83,7 @@ public class JCFUserService implements UserService {
     }
 
     //채널 전체에서 해당 유저 삭제
-    private void removeUserFromChannels(User user) {
+    public void removeUserFromChannels(User user) {
         for (Channel channel : channelService.readAll()) {
             Set<User> members = new HashSet<>(channel.getMembers());
             if (members.remove(user)) {

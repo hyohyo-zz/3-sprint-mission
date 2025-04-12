@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 
@@ -18,7 +19,6 @@ public class JCFChannelService implements ChannelService {
         for (Channel existingChannel : data.values()) {
             if (existingChannel.getChannelName().equals(channel.getChannelName())
             && existingChannel.getKeyUser().equals(channel.getKeyUser())) {
-
                 throw new IllegalArgumentException(" --- "+ channel.getKeyUser().getName()+"님! 이미 등록된 채널입니다.");
             }
         }
@@ -37,21 +37,38 @@ public class JCFChannelService implements ChannelService {
     //채널 조회
     @Override
     public Channel read(UUID id) {
-        return this.data.get(id);
+        Channel channel = this.data.get(id);
+
+        if (channel == null) {  //아무 객체도 가리키지 않음
+            throw new IllegalArgumentException(" --해당 ID의 채널을 찾을 수 없습니다.");
+        }
+
+        return channel;
     }
 
     //채널 전체 조회
     @Override
     public List<Channel> readAll() {
-        return new ArrayList<>(data.values());
+        List<Channel> channels = new ArrayList<>(data.values());
+
+        if (channels.isEmpty()) {   //리스트있지만 요소없음
+            System.out.println(" --조회 가능한 채널이 없습니다.");
+        }
+
+        return channels;
     }
 
     //채널 수정
     @Override
     public Channel update(UUID id, Channel update) {
-        Channel selected = this.data.get(id);
-        selected.update(update);
-        return selected;
+        Channel channel = this.data.get(id);
+
+        if (channel == null) {
+            throw new IllegalArgumentException(" --해당 ID의 채널을 찾을 수 없습니다.");
+        }
+
+        channel.update(update);
+        return channel;
     }
 
     //채널 삭제
@@ -84,10 +101,16 @@ public class JCFChannelService implements ChannelService {
     }
 
     //특정 채널 정보
-    public List<Channel> findChannel(String channelName) {
-        return data.values().stream()
-                .filter(c -> c.getChannelName().equals(channelName))
+    public List<Channel> readByName(String channelName) {
+        List<Channel> result = data.values().stream()
+                .filter(channel -> channel.getChannelName().contains(channelName))
                 .collect(Collectors.toList());
+
+        if (result.isEmpty()) {
+            throw new IllegalArgumentException("존재하지 않는 채널입니다.");
+        }
+        return result;
     }
+
 
 }
