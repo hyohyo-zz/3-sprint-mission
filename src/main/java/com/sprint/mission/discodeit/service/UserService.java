@@ -10,12 +10,16 @@ public interface UserService {
 
     public User read(UUID id);
 
-    public List<User> read(String name);
+    public List<User> readByName(String name);
 
     public List<User> readAll();
 
     public User update(UUID id, User update);
 
     public boolean delete(UUID id, String password);
+
+    public void removeUserFromChannels(User user);
+
+    public Map<String, List<String>> groupByGender();
 
 }

@@ -19,4 +19,8 @@ public interface ChannelService {
 
     public Set<User> members(UUID id);
 
+    public List<Channel> readByName(String channelName);
+
+    public Map<String, List<List<String>>> groupByChannel();
+
 }

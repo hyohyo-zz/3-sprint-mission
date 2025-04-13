@@ -80,6 +80,21 @@ public class Channel {
         this.updatedAt = System.currentTimeMillis();
     }
 
+    public void validateMembership(User sender) {
+        //채널 멤버가 아닌 유저가 메시지 생성시
+        if (!members.contains(sender)) {
+            throw new IllegalArgumentException(
+                    " ---" + sender.getName() + "(은/는) [" + channelName + "]채널 멤버가 아닙니다.");
+        }
+    }
+        public void validateCategory(String category) {
+        //채널에 없는 카테고리에 메시지 생성시
+        if (!categories.contains(category)) {
+            throw new IllegalArgumentException(
+                    " ---"+ category + "(은/는) [" +channelName + "]채널에 존재 하지 않는 카테고리입니다.");
+        }
+    }
+
     public String toString() {
         return "Channel{" +
                 "ChannelName= '" + channelName + '\'' +

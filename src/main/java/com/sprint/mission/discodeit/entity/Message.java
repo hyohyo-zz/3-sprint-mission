@@ -21,6 +21,7 @@ public class Message {
         this.content = content;
         this.createdAt = System.currentTimeMillis();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
+
     }
 
     public UUID getId() {
@@ -70,6 +71,12 @@ public class Message {
     public void update(Message updateMessageData) {
         this.content = updateMessageData.content;
         this.updatedAt = System.currentTimeMillis();
+    }
+
+    public void validateContent() {
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("메시지 내용은 비어있을 수 없습니다.");
+        }
     }
 
     public String toString() {

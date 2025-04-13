@@ -21,18 +21,11 @@ public class JCFMessageService implements MessageService {
     //메시지 생성
     @Override
     public void create(Message message) {
-        //채널 멤버가 아닌 유저가 메시지 생성시
-        if (!message.getChannel().getMembers().contains(message.getSender())) {
-            throw new IllegalArgumentException(
-                    " ---" + message.getSender().getName()+"(은/는) [" + message.getChannel().getChannelName() + "]채널 멤버가 아닙니다.");
-        }
+        Channel channel = message.getChannel();
+        channel.validateMembership(message.getSender());
+        channel.validateCategory(message.getCategory());
 
-        //채널에 없는 카테고리에 메시지 생성시
-        if (!message.getChannel().getCategory().contains(message.getCategory())) {
-            throw new IllegalArgumentException(
-                    " ---"+message.getCategory()+ "(은/는) [" + message.getChannel().getChannelName() + "]채널에 존재 하지 않는 카테고리입니다.");
-        }
-
+        message.validateContent();
         data.put(message.getId(), message);
     }
 
@@ -45,7 +38,6 @@ public class JCFMessageService implements MessageService {
         if (message == null) {
             throw new IllegalArgumentException(" --해당 ID의 메시지를 찾을 수 없습니다.");
         }
-
         return this.data.get(id);
     }
 
