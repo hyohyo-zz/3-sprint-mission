@@ -21,7 +21,11 @@ public class JCFMessageService implements MessageService {
     //메시지 생성
     @Override
     public void create(Message message) {
-//        message.validateMessage();
+        Channel channel = message.getChannel();
+        channel.validateMembership(message.getSender());
+        channel.validateCategory(message.getCategory());
+
+        message.validateContent();
         data.put(message.getId(), message);
     }
 

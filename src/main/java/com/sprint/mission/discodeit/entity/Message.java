@@ -22,7 +22,6 @@ public class Message {
         this.createdAt = System.currentTimeMillis();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
 
-        validateMessage();
     }
 
     public UUID getId() {
@@ -74,17 +73,9 @@ public class Message {
         this.updatedAt = System.currentTimeMillis();
     }
 
-    public void validateMessage() {
-        //채널 멤버가 아닌 유저가 메시지 생성시
-        if (!channel.getMembers().contains(sender)) {
-            throw new IllegalArgumentException(
-                    " ---" + sender.getName()+"(은/는) [" + channel.getChannelName() + "]채널 멤버가 아닙니다.");
-        }
-
-        //채널에 없는 카테고리에 메시지 생성시
-        if (!channel.getCategory().contains(category)) {
-            throw new IllegalArgumentException(
-                    " ---"+ category + "(은/는) [" + channel.getChannelName() + "]채널에 존재 하지 않는 카테고리입니다.");
+    public void validateContent() {
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("메시지 내용은 비어있을 수 없습니다.");
         }
     }
 

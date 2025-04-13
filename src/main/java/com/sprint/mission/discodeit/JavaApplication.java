@@ -111,55 +111,33 @@ public class JavaApplication {
 
     //메시지 생성 및 등록
     private static List<Message> createAndRegisterMessages(MessageService messageService, List<User> users, List<Channel> channels) {
-//        List<Message> messages1 = List.of(
-//                new Message(users.get(0), channels.get(0), "공지", "공지입니다."),
-//                new Message(users.get(1), channels.get(0), "2팀", "안녕하세요."),
-//                new Message(users.get(4), channels.get(1), "소통", "소통해요"),
-//                new Message(users.get(2), channels.get(1), "소통", "좋아요"),
-//                new Message(users.get(5), channels.get(1), "소통", "hi"),  //채널 멤버가 아닌 유저
-//                new Message(users.get(0), channels.get(0), "공자", "hi")  //채널에 없는 카테고리
-//        );
+        List<Message> messages = List.of(
+                new Message(users.get(0), channels.get(0), "공지", "공지입니다."),
+                new Message(users.get(1), channels.get(0), "2팀", "안녕하세요."),
+                new Message(users.get(4), channels.get(1), "소통", "소통해요"),
+                new Message(users.get(2), channels.get(1), "소통", "좋아요"),
+                new Message(users.get(5), channels.get(1), "소통", "hi"),  //채널 멤버가 아닌 유저
+                new Message(users.get(0), channels.get(0), "공자", "hi")  //채널에 없는 카테고리
+        );
 
         System.out.println("<--------------------메시지를 저장합니다----------------------->\n.\n.");
 
-        List<Object[]> rawMessages = List.of(
-                new Object[]{0, 0, "공지", "공지입니다."},
-                new Object[]{1, 0, "2팀", "안녕하세요."},
-                new Object[]{4, 1, "소통", "소통해요"},
-                new Object[]{2, 1, "소통", "좋아요"},
-                new Object[]{5, 1, "소통", "hi"},       // 멤버 아님
-                new Object[]{0, 0, "공자", "hi"}        // 없는 카테고리
-        );
-
-        List<Message> messages = new ArrayList<>();
-
-        for (Object[] raw : rawMessages) {
-            try {
-                Message message = new Message(users.get((int) raw[0]), channels.get((int) raw[1]), (String) raw[2], (String) raw[3]);
-                messageService.create(message);
-                messages.add(message);
-                System.out.println("[" + message.getChannel().getChannelName() + "] 채널에 메시지 등록 완료");
-            } catch (IllegalArgumentException e) {
-                System.out.println("!!메시지 등록 실패!! " + e.getMessage());
-            }
-        }
-
-//        List<Message> registeredMessages = messages.stream()
-//                .map(message -> {
-//                    try {
-//                        messageService.create(message);
-//                        System.out.println("[" + message.getChannel().getChannelName() + "] 채널에 메시지 등록 완료");
-//                        return message;
-//                    } catch (IllegalArgumentException e) {
-//                        System.out.println("!!메시지 등록 실패!! " + e.getMessage());
-//                        return null;
-//                    }
-//                })
-//                .filter(Objects::nonNull) // null 제거 (등록 실패한 메시지 필터링)
-//                .collect(Collectors.toList());
+        List<Message> registeredMessages = messages.stream()
+                .map(message -> {
+                    try {
+                        messageService.create(message);
+                        System.out.println("[" + message.getChannel().getChannelName() + "] 채널에 메시지 등록 완료");
+                        return message;
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("!!메시지 등록 실패!! " + e.getMessage());
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull) // null 제거 (등록 실패한 메시지 필터링)
+                .collect(Collectors.toList());
 
         System.out.println(".\n.\n<--------------------메시지 저장 종료-------------------------->\n");
-        return messages;
+        return registeredMessages;
     }
 
 
