@@ -1,22 +1,29 @@
-package com.sprint.mission.discodeit.service.jcf;
+package com.sprint.mission.discodeit.service.file;
+
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class JCFUserService implements UserService {
-    private final Map<UUID, User> data = new HashMap<>();
-    private final ChannelService channelService;
+public class FileUserService implements UserService {
+    private static final long serialVersionUID = 1L;
+    private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/user.ser";
 
-    public JCFUserService(JCFChannelService channelService) {
+    private Map<UUID, User> data = loadData();
+
+    private final ChannelService channelService;
+    public FileUserService(FileChannelService channelService) {
         this.channelService = channelService;
     }
 
-    //유저 생성
     @Override
     public void create(User user) {
         //이미 등록된 이메일 추가시
@@ -26,6 +33,7 @@ public class JCFUserService implements UserService {
             }
         }
         this.data.put(user.getId(), user);
+        saveData();
     }
 
     //유저 아이디 조회
@@ -107,4 +115,23 @@ public class JCFUserService implements UserService {
                         Collectors.mapping(User::getName, Collectors.toList())
                 ));
     }
+
+    private void saveData() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
+            oos.writeObject(data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 불러오기 메서드
+    @SuppressWarnings("unchecked")
+    private Map<UUID, User> loadData() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
+            return (Map<UUID, User>) ois.readObject();
+        } catch (Exception e) {
+            return new HashMap<>();
+        }
+    }
+
 }
