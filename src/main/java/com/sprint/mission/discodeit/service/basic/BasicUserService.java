@@ -1,4 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-public class BasicUserRepository {
+import com.sprint.mission.discodeit.repository.UserRepository;
+
+public class BasicUserService implements UserRepository {
 }

@@ -19,7 +19,4 @@ public interface UserRepository {
 
     public boolean delete(UUID id, String password);
 
-    public void removeUserFromChannels(User user);
-
-    public Map<String, List<String>> groupByGender();
 }

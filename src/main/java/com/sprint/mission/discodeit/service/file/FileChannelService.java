@@ -47,7 +47,7 @@ public class FileChannelService implements ChannelService {
         if (channel == null) {  //아무 객체도 가리키지 않음
             throw new IllegalArgumentException(" --해당 ID의 채널을 찾을 수 없습니다.");
         }
-
+        //loadData();       -> 이미 repo에서 데이터 불러오고 있으므로 필요없음, 매번 파일에서 읽어와버려
         return channel;
     }
 

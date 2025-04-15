@@ -28,7 +28,6 @@ public class ServiceFactory {
         this.channelService = new FileChannelService();
         this.userService = new FileUserService((FileChannelService) channelService);
         this.messageService = new FileMessageService((FileUserService) userService, (FileChannelService) channelService);
-
     }
 
     public static ServiceFactory getInstance() {

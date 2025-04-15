@@ -20,6 +20,7 @@ public class FileUserService implements UserService {
     private Map<UUID, User> data = loadData();
 
     private final ChannelService channelService;
+
     public FileUserService(FileChannelService channelService) {
         this.channelService = channelService;
     }

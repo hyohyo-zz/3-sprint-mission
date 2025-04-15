@@ -23,6 +23,4 @@ public interface ChannelRepository{
 
     public List<Channel> readByName(String channelName);
 
-    public Map<String, List<List<String>>> groupByChannel();
-
 }

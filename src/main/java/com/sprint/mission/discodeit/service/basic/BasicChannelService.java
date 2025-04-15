@@ -1,4 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-public class BasicChannelRepository {
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+
+public class BasicChannelService implements ChannelRepository {
 }

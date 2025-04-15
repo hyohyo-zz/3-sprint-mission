@@ -34,12 +34,6 @@ public class JCFMessageRepository implements MessageRepository {
     //메시지 조회
     @Override
     public Message read(UUID id) {
-        Message message = this.data.get(id);
-
-        //메시지id 존재하지 않음
-        if (message == null) {
-            throw new IllegalArgumentException(" --해당 ID의 메시지를 찾을 수 없습니다.");
-        }
         return this.data.get(id);
     }
 
