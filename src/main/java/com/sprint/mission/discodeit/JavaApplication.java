@@ -34,7 +34,6 @@ public class JavaApplication {
 
     }
 
-
     //유저생성 및 등록
     private static List<User> createAndRegisterUsers(UserService userService) {
         List<User> users = List.of(
@@ -46,31 +45,6 @@ public class JavaApplication {
             new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345"),
             new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345")  //중복 이메일 유저_ex)
         );
-
-        //객체 직렬화
-        ObjectOutputStream objOut = null;
-
-        try {
-            objOut = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("src/main/java/com/sprint/mission/discodeit/user.ser")));
-
-            for(int i = 0; i < users.size(); i++){
-                objOut.writeObject(users);
-            }
-
-            objOut.flush();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if(objOut != null) {
-                try {
-                    objOut.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
 
         System.out.println("<--------------------유저를 등록합니다------------------------->\n.\n.");
 
@@ -116,32 +90,6 @@ public class JavaApplication {
                 new Channel("sp05", users.get(5), cat5, members3)   //중복 카테고리_ex)
         );
 
-        //객체직렬화
-        ObjectOutputStream objOut = null;
-
-        try {
-            objOut = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("src/main/java/com/sprint/mission/discodeit/channel.ser")));
-
-            for(int i = 0; i < channels.size(); i++){
-                objOut.writeObject(channels);
-            }
-
-            objOut.flush();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if(objOut != null) {
-                try {
-                    objOut.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-
-
         System.out.println("<--------------------채널을 등록합니다------------------------->\n.\n.");
 
         List<Channel> registeredChannels = channels.stream()
@@ -171,30 +119,6 @@ public class JavaApplication {
                 new Message(users.get(5), channels.get(1), "소통", "hi"),  //채널 멤버가 아닌 유저
                 new Message(users.get(0), channels.get(0), "공자", "hi")  //채널에 없는 카테고리
         );
-
-        //객체 직렬화
-        ObjectOutputStream objOut = null;
-
-        try {
-            objOut = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("src/main/java/com/sprint/mission/discodeit/message.ser")));
-
-            for(int i = 0; i < messages.size(); i++){
-                objOut.writeObject(messages);
-            }
-
-            objOut.flush();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if(objOut != null) {
-                try {
-                    objOut.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
 
         System.out.println("<--------------------메시지를 저장합니다----------------------->\n.\n.");
 
