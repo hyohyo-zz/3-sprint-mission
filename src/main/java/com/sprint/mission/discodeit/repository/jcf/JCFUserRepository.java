@@ -1,21 +1,13 @@
 package com.sprint.mission.discodeit.repository.jcf;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class JCFUserRepository implements UserRepository {
     private final Map<UUID, User> data = new HashMap<>();
-    private final ChannelService channelService;
-
-    public JCFUserRepository(JCFChannelService channelService) {
-        this.channelService = channelService;
-    }
 
     //유저 생성
     @Override

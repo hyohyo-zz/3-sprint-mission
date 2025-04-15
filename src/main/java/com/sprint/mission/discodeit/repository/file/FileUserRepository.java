@@ -1,8 +1,6 @@
 package com.sprint.mission.discodeit.repository.file;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
 import java.io.FileInputStream;
@@ -18,19 +16,8 @@ public class FileUserRepository implements UserRepository {
 
     private Map<UUID, User> data = loadData();
 
-    private final ChannelRepository channelRepository;
-    public FileUserRepository(FileChannelRepository channelRepository) {
-        this.channelRepository = channelRepository;
-    }
-
     @Override
     public void create(User user) {
-        //이미 등록된 이메일 추가시
-        for (User existingUser : data.values()) {
-            if (existingUser.getEmail().equals(user.getEmail())) {
-                throw new IllegalArgumentException(" --- 이미 등록된 이메일입니다.");
-            }
-        }
         this.data.put(user.getId(), user);
         saveData();
     }
@@ -44,14 +31,9 @@ public class FileUserRepository implements UserRepository {
     //유저 이름으로 조회
     @Override
     public List<User> readByName(String name) {
-        List<User> result = data.values().stream()
+        return data.values().stream()
                 .filter(user -> user.getName().contains(name))
                 .collect(Collectors.toList());
-
-        if (result.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 유저입니다.");
-        }
-        return result;
     }
 
     //유저 전체 조회
@@ -64,11 +46,6 @@ public class FileUserRepository implements UserRepository {
     @Override
     public User update(UUID id, User update) {
         User user = this.data.get(id);
-
-        if (user == null) {
-            throw new IllegalArgumentException(" --해당 ID의 채널을 찾을 수 없습니다.");
-        }
-
         user.update(update);
         return user;
     }
@@ -76,43 +53,7 @@ public class FileUserRepository implements UserRepository {
     //유저 삭제
     @Override
     public boolean delete(UUID id, String password) {
-        User user = this.data.get(id);
-        if (!user.getPassword().equals(password)) {
-            System.out.println("!!유저 탈퇴 실패!! --- 비밀번호 불일치");
-            return false;
-        }
-        System.out.println("<<유저 [" + user.getName() + "] 탈퇴 성공>>");
-        boolean isDeleted = this.data.remove(id) != null;
-
-        if (isDeleted){
-            removeUserFromChannels(user);
-        }
-        return isDeleted;
-    }
-
-    //채널 전체에서 해당 유저 삭제
-    public void removeUserFromChannels(User user) {
-        for (Channel channel : channelRepository.readAll()) {
-            Set<User> members = new HashSet<>(channel.getMembers());
-            if (members.remove(user)) {
-                Channel updatedChannel = new Channel(
-                        channel.getChannelName(),
-                        channel.getKeyUser(),
-                        channel.getCategory(),
-                        members
-                );
-                channelRepository.update(channel.getId(), updatedChannel);
-            }
-        }
-    }
-
-    //성별 그룹화
-    public Map<String, List<String>> groupByGender() {
-        return data.values().stream()
-                .collect(Collectors.groupingBy(
-                        User::getGender,
-                        Collectors.mapping(User::getName, Collectors.toList())
-                ));
+        return this.data.remove(id) != null;
     }
 
     private void saveData() {

@@ -2,9 +2,7 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,15 +15,6 @@ public class FileMessageRepository implements MessageRepository {
     private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/message.ser";
 
     private final Map<UUID, Message> data = loadData();
-
-    private final UserRepository userRepository;
-    private final ChannelRepository channelRepository;
-
-    public FileMessageRepository(FileUserRepository userRepository, FileChannelRepository channelRepository) {
-        this.userRepository = userRepository;
-        this.channelRepository = channelRepository;
-    }
-
 
     //메시지 생성
     @Override
