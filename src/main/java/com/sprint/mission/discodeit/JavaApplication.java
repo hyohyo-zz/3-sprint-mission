@@ -7,16 +7,16 @@ import com.sprint.mission.discodeit.factory.ServiceFactory;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.util.DataInitializer;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class JavaApplication {
     public static void main(String[] args) {
+        //초기화
+        DataInitializer.clearSerializedData();
+
         ServiceFactory serviceFactory = ServiceFactory.getInstance();
 
         ChannelService channelService = serviceFactory.createChannelService();
@@ -147,7 +147,6 @@ public class JavaApplication {
         readUser(userService, users);
         updateUser(userService, users);
         deleteUser(userService, users);
-//        groupingUser(userService, users);
 
     }
 
@@ -202,23 +201,12 @@ public class JavaApplication {
         System.out.println();
     }
 
-//    private static void groupingUser(UserService userService, List<User> users){
-//        System.out.println("------------------------- GroupingUser -------------------------");
-//        //성별 그룹화
-//        System.out.println("\n성별 그룹화");
-//        userService.groupByGender().forEach((gender, list) -> {
-//            System.out.println("[" + gender + "]\n" + list);
-//        });
-//    }
-
-
     private static void demonstrateChannelOperations(ChannelService channelService, List<Channel> channels, List<User> users) {
         System.out.println("\n########################### Channel ############################");
 
         readChannel(channelService,channels,users);
         updateChannel(channelService,channels,users);
         deleteChannel(channelService,channels,users);
-//        groupingChannel(channelService, channels, users);
     }
 
     private static void readChannel(ChannelService channelService, List<Channel> channels, List<User> users){
@@ -317,22 +305,6 @@ public class JavaApplication {
         channelService.readAll().forEach(System.out::println);
 
     }
-
-//    private static void groupingChannel(ChannelService channelService, List<Channel> channels, List<User> users) {
-//        System.out.println("------------------------- GroupingUser -------------------------");
-//        //채널별 카테고리
-//        System.out.print("\n채널별 카테고리 목록:\n");
-//        channelService.groupByChannel().forEach((channelName, list) -> {
-//            System.out.println("[" + channelName + "]\n" + list);
-//        });
-//
-//        //채널별 유저 수
-//        System.out.println("\n채널별 유저 수:");
-//        for (Channel channel : channels) {
-//            int memberCount = channelService.members(channel.getId()).size();
-//            System.out.println("[" + channel.getChannelName() + "] 채널 유저 수: " + memberCount + "명");
-//        }
-//    }
 
     private static void demonstrateMessageOperations(MessageService messageService) {
         System.out.println("\n########################### Message ###########################");

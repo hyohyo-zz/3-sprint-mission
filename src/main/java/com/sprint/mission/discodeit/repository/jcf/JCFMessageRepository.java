@@ -12,10 +12,6 @@ public class JCFMessageRepository implements MessageRepository {
     //메시지 생성
     @Override
     public void create(Message message) {
-        Channel channel = message.getChannel();
-        channel.validateMembership(message.getSender());
-        channel.validateCategory(message.getCategory());
-
         message.validateContent();
         data.put(message.getId(), message);
     }

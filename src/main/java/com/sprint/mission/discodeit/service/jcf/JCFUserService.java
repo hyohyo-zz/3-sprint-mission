@@ -99,12 +99,4 @@ public class JCFUserService implements UserService {
         }
     }
 
-    //성별 그룹화
-    public Map<String, List<String>> groupByGender() {
-        return data.values().stream()
-                .collect(Collectors.groupingBy(
-                        User::getGender,
-                        Collectors.mapping(User::getName, Collectors.toList())
-                ));
-    }
 }
