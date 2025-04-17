@@ -20,6 +20,4 @@ public interface UserService {
 
     public void removeUserFromChannels(User user);
 
-    public Map<String, List<String>> groupByGender();
-
 }

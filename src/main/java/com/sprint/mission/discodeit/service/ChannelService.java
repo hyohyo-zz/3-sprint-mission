@@ -13,14 +13,12 @@ public interface ChannelService {
 
     public List<Channel> readAll();
 
+    public List<Channel> readByName(String channelName);
+
     public Channel update(UUID id, Channel update);
 
     public boolean delete(UUID id, User user, String password);
 
     public Set<User> members(UUID id);
-
-    public List<Channel> readByName(String channelName);
-
-    public Map<String, List<List<String>>> groupByChannel();
 
 }

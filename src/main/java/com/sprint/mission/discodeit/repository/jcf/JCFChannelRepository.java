@@ -29,6 +29,13 @@ public class JCFChannelRepository implements ChannelRepository {
         return new ArrayList<>(data.values());
     }
 
+    //특정 채널 정보
+    public List<Channel> readByName(String channelName) {
+        return data.values().stream()
+                .filter(channel -> channel.getChannelName().contains(channelName))
+                .collect(Collectors.toList());
+    }
+
     //채널 수정
     @Override
     public Channel update(UUID id, Channel update) {
@@ -48,13 +55,6 @@ public class JCFChannelRepository implements ChannelRepository {
     public Set<User> members(UUID id) {
         Channel channel = data.get(id);
         return channel != null ? channel.getMembers() : Set.of();
-    }
-
-    //특정 채널 정보
-    public List<Channel> readByName(String channelName) {
-        return data.values().stream()
-                .filter(channel -> channel.getChannelName().contains(channelName))
-                .collect(Collectors.toList());
     }
 
 }

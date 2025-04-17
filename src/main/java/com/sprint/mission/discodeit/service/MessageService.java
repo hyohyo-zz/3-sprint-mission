@@ -18,5 +18,4 @@ public interface MessageService {
 
     public boolean delete(UUID id);
 
-
 }

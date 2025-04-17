@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.repository.file;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,7 +15,13 @@ import java.util.stream.Collectors;
 
 public class FileChannelRepository implements ChannelRepository {
     private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/channel.ser";
+    private final ChannelRepository channelRepository;
+
     private Map<UUID, Channel> data = loadData();
+
+    public FileChannelRepository(ChannelRepository channelRepository) {
+        this.channelRepository = channelRepository;
+    }
 
     //채널 생성
     @Override
@@ -32,6 +40,14 @@ public class FileChannelRepository implements ChannelRepository {
     @Override
     public List<Channel> readAll() {
         return new ArrayList<>(data.values());
+    }
+
+    //특정 채널 정보
+    public List<Channel> readByName(String channelName) {
+        List<Channel> result = data.values().stream()
+                .filter(channel -> channel.getChannelName().contains(channelName))
+                .collect(Collectors.toList());
+        return result;
     }
 
     //채널 수정
@@ -54,14 +70,6 @@ public class FileChannelRepository implements ChannelRepository {
     public Set<User> members(UUID id) {
         Channel channel = data.get(id);
         return channel != null ? channel.getMembers() : Set.of();
-    }
-
-    //특정 채널 정보
-    public List<Channel> readByName(String channelName) {
-        List<Channel> result = data.values().stream()
-                .filter(channel -> channel.getChannelName().contains(channelName))
-                .collect(Collectors.toList());
-        return result;
     }
 
     private void saveData() {
