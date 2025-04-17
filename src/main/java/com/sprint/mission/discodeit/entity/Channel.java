@@ -51,7 +51,6 @@ public class Channel implements Serializable {
     public Set<User> getMembers() {
         return members;
     }
-
     public void setMembers(Set<User> members) {
         this.members = members;
     }

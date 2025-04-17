@@ -27,7 +27,13 @@ public class FileUserService implements UserService {
 
     @Override
     public void create(User user) {
-        data.put(user.getId(), user);
+        for (User existingUser : data.values()) {
+            if (existingUser.getEmail().equals(user.getEmail())) {
+                throw new IllegalArgumentException(" --- 이미 등록된 이메일입니다.");
+            }
+        }
+        this.data.put(user.getId(), user);
+
         saveData();
     }
 
@@ -40,9 +46,14 @@ public class FileUserService implements UserService {
     //유저 이름으로 조회
     @Override
     public List<User> readByName(String name) {
-        return data.values().stream()
+        List<User> result = data.values().stream()
                 .filter(user -> user.getName().contains(name))
                 .collect(Collectors.toList());
+
+        if (result.isEmpty()) {
+            throw new IllegalArgumentException("존재하지 않는 유저입니다.");
+        }
+        return result;
     }
 
     //유저 전체 조회
@@ -55,6 +66,11 @@ public class FileUserService implements UserService {
     @Override
     public User update(UUID id, User update) {
         User user = this.data.get(id);
+
+        if (user == null) {
+            throw new IllegalArgumentException(" --해당 ID의 채널을 찾을 수 없습니다.");
+        }
+
         user.update(update);
         return user;
     }
@@ -62,7 +78,18 @@ public class FileUserService implements UserService {
     //유저 삭제
     @Override
     public boolean delete(UUID id, String password) {
-        return this.data.remove(id) != null;
+        User user = this.data.get(id);
+        if (!user.getPassword().equals(password)) {
+            System.out.println("!!유저 탈퇴 실패!! --- 비밀번호 불일치");
+            return false;
+        }
+        System.out.println("<<유저 [" + user.getName() + "] 탈퇴 성공>>");
+        boolean isDeleted = this.data.remove(id) != null;
+
+        if (isDeleted){
+            removeUserFromChannels(user);
+        }
+        return isDeleted;
     }
 
     //채널 전체에서 해당 유저 삭제

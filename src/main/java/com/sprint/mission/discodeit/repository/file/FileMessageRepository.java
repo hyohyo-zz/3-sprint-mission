@@ -21,7 +21,7 @@ public class FileMessageRepository implements MessageRepository {
 
     private final Map<UUID, Message> data = loadData();
 
-    public FileMessageRepository( UserRepository userRepository,ChannelRepository channelRepository) {
+    public FileMessageRepository(UserRepository userRepository, ChannelRepository channelRepository) {
         this.userRepository = userRepository;
         this.channelRepository = channelRepository;
     }
