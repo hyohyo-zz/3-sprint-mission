@@ -23,20 +23,14 @@ public class FileMessageService implements MessageService {
     private final UserService userService;
     private final ChannelService channelService;
 
-    public FileMessageService(FileUserService userService, FileChannelService channelService) {
+    public FileMessageService(UserService userService, ChannelService channelService) {
         this.userService = userService;
         this.channelService = channelService;
     }
 
-
     //메시지 생성
     @Override
     public void create(Message message) {
-        Channel channel = message.getChannel();
-        channel.validateMembership(message.getSender());
-        channel.validateCategory(message.getCategory());
-
-        message.validateContent();
         data.put(message.getId(), message);
         saveData();
     }

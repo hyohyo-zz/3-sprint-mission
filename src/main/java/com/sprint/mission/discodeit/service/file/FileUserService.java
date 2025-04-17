@@ -21,7 +21,7 @@ public class FileUserService implements UserService {
 
     private final ChannelService channelService;
 
-    public FileUserService(FileChannelService channelService) {
+    public FileUserService(ChannelService channelService) {
         this.channelService = channelService;
     }
 

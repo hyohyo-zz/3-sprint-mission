@@ -15,13 +15,8 @@ import java.util.stream.Collectors;
 
 public class FileChannelRepository implements ChannelRepository {
     private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/channel.ser";
-    private final ChannelRepository channelRepository;
 
     private Map<UUID, Channel> data = loadData();
-
-    public FileChannelRepository(ChannelRepository channelRepository) {
-        this.channelRepository = channelRepository;
-    }
 
     //채널 생성
     @Override
@@ -63,7 +58,6 @@ public class FileChannelRepository implements ChannelRepository {
     public boolean delete(UUID id, User user, String password) {
         return this.data.remove(id) != null;
     }
-
 
     //채널 멤버셋
     @Override

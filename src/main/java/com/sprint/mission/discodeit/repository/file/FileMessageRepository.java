@@ -16,24 +16,19 @@ public class FileMessageRepository implements MessageRepository {
     private static final long serialVersionUID = 1L;
     private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/message.ser";
 
-    private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
 
     private final Map<UUID, Message> data = loadData();
 
-    public FileMessageRepository(ChannelRepository channelRepository, UserRepository userRepository) {
-        this.channelRepository = channelRepository;
+    public FileMessageRepository( UserRepository userRepository,ChannelRepository channelRepository) {
         this.userRepository = userRepository;
+        this.channelRepository = channelRepository;
     }
 
     //메시지 생성
     @Override
     public void create(Message message) {
-        Channel channel = message.getChannel();
-        channel.validateMembership(message.getSender());
-        channel.validateCategory(message.getCategory());
-
-        message.validateContent();
         data.put(message.getId(), message);
         saveData();
     }

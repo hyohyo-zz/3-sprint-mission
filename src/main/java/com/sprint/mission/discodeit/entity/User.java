@@ -35,16 +35,23 @@ public class User implements Serializable {
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
 
-    public String getGender() {return gender;}
-    public void setGender(String gender) {this.gender = gender;}
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
 
     public String getEmail() {
         return email;
     }
+
     public void setEmail(String email) {
         this.email = email;
     }
@@ -52,6 +59,7 @@ public class User implements Serializable {
     public String getPhone() {
         return phone;
     }
+
     public void setPhone(String phone) {
         this.phone = phone;
     }
@@ -59,6 +67,7 @@ public class User implements Serializable {
     public String getPassword() {
         return password;
     }
+
     public void setPassword(String password) {
         this.password = password;
     }
@@ -66,6 +75,7 @@ public class User implements Serializable {
     public long getCreatedAt() {
         return createdAt;
     }
+
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
@@ -73,6 +83,7 @@ public class User implements Serializable {
     public long getUpdatedAt() {
         return updatedAt;
     }
+
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
     }
