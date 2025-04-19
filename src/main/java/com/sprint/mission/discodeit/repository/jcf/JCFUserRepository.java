@@ -47,7 +47,7 @@ public class JCFUserRepository implements UserRepository {
 
     //유저 삭제
     @Override
-    public boolean delete(UUID id, String password) {
+    public boolean delete(UUID id) {
         return data.remove(id) != null;
     }
 

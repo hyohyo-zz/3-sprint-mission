@@ -56,7 +56,7 @@ public class FileUserRepository implements UserRepository {
 
     //유저 삭제
     @Override
-    public boolean delete(UUID id, String password) {
+    public boolean delete(UUID id) {
         return this.data.remove(id) != null;
     }
 
@@ -68,8 +68,6 @@ public class FileUserRepository implements UserRepository {
             e.printStackTrace();
         }
     }
-
-
 
     // 불러오기 메서드
     @SuppressWarnings("unchecked")

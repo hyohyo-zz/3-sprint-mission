@@ -16,6 +16,6 @@ public interface UserRepository {
 
     public User update(UUID id, User update);
 
-    public boolean delete(UUID id, String password);
+    public boolean delete(UUID id);
 
 }

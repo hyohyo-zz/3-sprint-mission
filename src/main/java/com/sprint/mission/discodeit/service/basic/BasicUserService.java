@@ -59,9 +59,15 @@ public class BasicUserService implements UserService {
             throw new IllegalArgumentException(" --해당 유저를 찾을 수 없습니다.");
         }
 
-        boolean deleted = userRepository.delete(id, password);
+        if (!user.getPassword().equals(password)) {
+            System.out.println("!!유저 탈퇴 실패!! --- 비밀번호 불일치");
+            return false;
+        }
+
+        boolean deleted = userRepository.delete(id);
         if (deleted) {
             removeUserFromChannels(user);
+            System.out.println("유저 탈퇴 성공");
         }
         return deleted;
     }
@@ -71,13 +77,9 @@ public class BasicUserService implements UserService {
         for (Channel channel : channelRepository.readAll()) {
             Set<User> members = new HashSet<>(channel.getMembers());
             if (members.remove(user)) {
-                Channel updatedChannel = new Channel(
-                        channel.getChannelName(),
-                        channel.getKeyUser(),
-                        channel.getCategory(),
-                        members
-                );
-                channelRepository.update(channel.getId(), updatedChannel);
+                channel.setMembers(members);
+                channelRepository.update(channel.getId(), channel);
+
             }
         }
     }
