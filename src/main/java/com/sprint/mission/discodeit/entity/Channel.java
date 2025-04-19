@@ -35,6 +35,7 @@ public class Channel implements Serializable {
     public String getChannelName() {
         return channelName;
     }
+
     public void setChannelName(String channelName) {
         this.channelName = channelName;
     }
@@ -42,6 +43,7 @@ public class Channel implements Serializable {
     public List<String> getCategory() {
         return categories;
     }
+
     public void setCategory(List<String> categories) {
         this.categories = categories;
     }
@@ -56,6 +58,7 @@ public class Channel implements Serializable {
     public long getCreatedAt() {
         return createdAt;
     }
+
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
@@ -63,6 +66,7 @@ public class Channel implements Serializable {
     public long getUpdatedAt() {
         return updatedAt;
     }
+
     public void setUpdatedAt(long updatedAt) {
         this.updatedAt = updatedAt;
     }
@@ -91,7 +95,7 @@ public class Channel implements Serializable {
         }
     }
 
-    //중복 카테고리
+    //카테고리 중복 확인
     public void validateUniqueCategory() {
         Set<String> categorySet = new HashSet<>(this.categories);
         if (categorySet.size() != this.categories.size()) {
@@ -99,9 +103,8 @@ public class Channel implements Serializable {
         }
     }
 
-
     //채널에 없는 카테고리에 메시지 생성시
-    public void validateCategory(String category) {
+    public void validateCategory(String category){
         if (!categories.contains(category)) {
             throw new IllegalArgumentException(
                     " ---"+ category + "(은/는) [" +channelName + "]채널에 존재 하지 않는 카테고리입니다.");
@@ -110,6 +113,18 @@ public class Channel implements Serializable {
 
     public void addKeyUserToMembers() {
         this.members.add(this.keyUser);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Channel channel)) return false;
+        return id.equals(channel.id);
     }
 
     public String toString() {

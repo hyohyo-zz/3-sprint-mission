@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.repository.jcf;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,7 @@ public class JCFUserRepository implements UserRepository {
 
     //유저 삭제
     @Override
-    public boolean delete(UUID id, String password) {
+    public boolean delete(UUID id) {
         return data.remove(id) != null;
     }
 

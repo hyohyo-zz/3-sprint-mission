@@ -1,15 +1,12 @@
 package com.sprint.mission.discodeit.repository.file;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.*;
 
 public class FileMessageRepository implements MessageRepository {
@@ -60,9 +57,11 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     private void saveData() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
+        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
-        } catch (Exception e) {
+        } catch (IOException e) {
+            System.err.println("[메시지] 데이터 저장 중 오류 발생: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -72,8 +71,13 @@ public class FileMessageRepository implements MessageRepository {
     private Map<UUID, Message> loadData() {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
             return (Map<UUID, Message>) ois.readObject();
-        } catch (Exception e) {
-            return new HashMap<>();
+        } catch (FileNotFoundException e) {
+            System.out.println("[메시지] 저장된 파일이 없습니다. 새 데이터를 시작합니다.");
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("[메시지] 데이터 불러오기 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
         }
+        // 실패 시 빈 Map 반환
+        return new HashMap<>();
     }
 }

@@ -9,11 +9,19 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class JCFUserService implements UserService {
+    private static JCFUserService instance;
     private final Map<UUID, User> data = new HashMap<>();
     private final ChannelService channelService;
 
-    public JCFUserService(JCFChannelService channelService) {
+    public JCFUserService(ChannelService channelService) {
         this.channelService = channelService;
+    }
+
+    public static JCFUserService getInstance(ChannelService channelService) {
+        if (instance == null) {
+            instance = new JCFUserService(channelService);
+        }
+        return instance;
     }
 
     //유저 생성

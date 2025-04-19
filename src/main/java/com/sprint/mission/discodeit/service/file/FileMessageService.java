@@ -1,12 +1,9 @@
 package com.sprint.mission.discodeit.service.file;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,11 +28,6 @@ public class FileMessageService implements MessageService {
     //메시지 생성
     @Override
     public void create(Message message) {
-        Channel channel = message.getChannel();
-        channel.validateMembership(message.getSender());
-        channel.validateCategory(message.getCategory());
-
-        message.validateContent();
         data.put(message.getId(), message);
         saveData();
     }
