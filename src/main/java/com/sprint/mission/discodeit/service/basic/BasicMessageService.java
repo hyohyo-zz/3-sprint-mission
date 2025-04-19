@@ -51,6 +51,10 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public boolean delete(UUID id) {
+        Message message = messageRepository.read(id);
+        if (message == null) {
+            throw new IllegalArgumentException(" --해당 메시지를 찾을 수 없습니다.");
+        }
         return messageRepository.delete(id);
     }
 }

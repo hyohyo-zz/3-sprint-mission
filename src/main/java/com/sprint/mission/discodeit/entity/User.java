@@ -88,6 +88,18 @@ public class User implements Serializable {
         this.updatedAt = updatedAt;
     }
 
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof User user)) return false;
+        return id.equals(user.id);
+    }
+
     public void update(User updateUserData) {
         this.name = updateUserData.name;
         this.gender = updateUserData.gender;

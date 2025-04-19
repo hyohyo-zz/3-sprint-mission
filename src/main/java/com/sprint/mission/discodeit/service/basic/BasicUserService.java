@@ -54,7 +54,16 @@ public class BasicUserService implements UserService {
 
     @Override
     public boolean delete(UUID id, String password) {
-        return userRepository.delete(id, password);
+        User user = userRepository.read(id);
+        if (user == null) {
+            throw new IllegalArgumentException(" --해당 유저를 찾을 수 없습니다.");
+        }
+
+        boolean deleted = userRepository.delete(id, password);
+        if (deleted) {
+            removeUserFromChannels(user);
+        }
+        return deleted;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -53,6 +54,10 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public boolean delete(UUID id, User user, String password) {
+        Channel channel = channelRepository.read(id);
+        if (channel == null) {
+            throw new IllegalArgumentException(" --해당 채널을 찾을 수 없습니다.");
+        }
         return channelRepository.delete(id, user, password);
     }
 
