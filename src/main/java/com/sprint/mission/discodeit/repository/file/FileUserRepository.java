@@ -61,7 +61,8 @@ public class FileUserRepository implements UserRepository {
     }
 
     private void saveData() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
+        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
         } catch (IOException e) {
             System.err.println("[유저] 데이터 저장 중 오류 발생: " + e.getMessage());
