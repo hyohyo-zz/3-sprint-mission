@@ -9,7 +9,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class JCFChannelService implements ChannelService {
+    private static JCFChannelService instance;
     private final Map<UUID, Channel> data = new HashMap<>();
+
+    private JCFChannelService() {}
+
+    public static JCFChannelService getInstance() {
+        if (instance == null) {
+            instance = new JCFChannelService();
+        }
+        return instance;
+    }
 
     //채널 생성
     @Override

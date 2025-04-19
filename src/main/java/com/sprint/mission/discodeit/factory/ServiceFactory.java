@@ -28,6 +28,16 @@ public class ServiceFactory {
         this.messageService = new BasicMessageService(messageRepository, userRepository, channelRepository);
     }
 
+//    private ServiceFactory() {
+//        ChannelService channelService = JCFChannelService.getInstance();
+//        UserService userService = JCFUserService.getInstance(channelService);
+//        MessageService messageService = JCFMessageService.getInstance(userService, channelService);
+//
+//        this.channelService = channelService;
+//        this.userService = userService;
+//        this.messageService = messageService;
+//    }
+
     public static ServiceFactory getInstance() {
         return instance;
     }

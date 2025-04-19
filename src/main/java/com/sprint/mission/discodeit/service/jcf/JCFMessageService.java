@@ -10,13 +10,21 @@ import com.sprint.mission.discodeit.service.UserService;
 import java.util.*;
 
 public class JCFMessageService implements MessageService {
+    private static JCFMessageService instance;
     private final Map<UUID, Message> data = new LinkedHashMap<>();
     private final UserService userService;
     private final ChannelService channelService;
 
-    public JCFMessageService(JCFUserService userService, JCFChannelService channelService) {
+    public JCFMessageService(UserService userService, ChannelService channelService) {
         this.userService = userService;
         this.channelService = channelService;
+    }
+
+    public static JCFMessageService getInstance(UserService userService, ChannelService channelService) {
+        if (instance == null) {
+            instance = new JCFMessageService(userService, channelService);
+        }
+        return instance;
     }
 
     //메시지 생성
