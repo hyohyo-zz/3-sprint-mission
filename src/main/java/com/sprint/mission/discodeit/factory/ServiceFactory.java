@@ -18,6 +18,7 @@ public class ServiceFactory {
     private final UserService userService;
     private final MessageService messageService;
 
+    //FileRepository 구현체를 활용
     private ServiceFactory() {
         FileChannelRepository channelRepository = new FileChannelRepository();
         FileUserRepository userRepository = new FileUserRepository(channelRepository);
@@ -28,6 +29,18 @@ public class ServiceFactory {
         this.messageService = new BasicMessageService(messageRepository, userRepository, channelRepository);
     }
 
+//JCFRepository 구현체를 활용
+//    private ServiceFactory() {
+//        JCFChannelRepository channelRepo = new JCFChannelRepository();
+//        JCFUserRepository userRepo = new JCFUserRepository(channelRepo);
+//        JCFMessageRepository messageRepo = new JCFMessageRepository(userRepo, channelRepo);
+//
+//        UserService userService = new BasicUserService(channelRepo, userRepo);
+//        ChannelService channelService = new BasicChannelService(channelRepo);
+//        MessageService messageService = new BasicMessageService(messageRepo, userRepo, channelRepo);
+//    }
+
+//JCFService 구현체를 활용
 //    private ServiceFactory() {
 //        ChannelService channelService = JCFChannelService.getInstance();
 //        UserService userService = JCFUserService.getInstance(channelService);
