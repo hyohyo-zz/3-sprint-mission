@@ -71,11 +71,9 @@ public class JavaApplication {
         Set<User> members1 = new HashSet<>(Set.of(users.get(0), users.get(1), users.get(3)));
         List<String> cat1 = List.of("공지", "질문", "2팀");
 
-        //채널2 멤버, 카테고리생성
         Set<User> members2 = new HashSet<>(Set.of(users.get(1), users.get(2), users.get(4)));
         List<String> cat2 = List.of("이벤트", "소통");
 
-        //채널3 멤버, 카테고리생성
         Set<User> members3 = new HashSet<>(Set.of(users.get(5)));
         List<String> cat3 = List.of("기타");
 

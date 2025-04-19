@@ -7,7 +7,6 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class BasicUserService implements UserService {
     private final ChannelRepository channelRepository;
