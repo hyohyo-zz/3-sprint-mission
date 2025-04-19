@@ -91,15 +91,6 @@ public class JCFChannelService implements ChannelService {
         return channel != null ? channel.getMembers() : Set.of();
     }
 
-    //채널별 카테고리
-    public Map<String, List<List<String>>> groupByChannel() {
-        return data.values().stream()
-                .collect(Collectors.groupingBy(
-                        Channel::getChannelName,
-                        Collectors.mapping(Channel::getCategory,
-                                Collectors.toList())));
-    }
-
     //특정 채널 정보
     public List<Channel> readByName(String channelName) {
         List<Channel> result = data.values().stream()
