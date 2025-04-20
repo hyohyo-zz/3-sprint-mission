@@ -11,9 +11,11 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.*;
 
+import static com.sprint.mission.discodeit.util.DataInitializer.*;
+
 public class FileMessageService implements MessageService {
     private static final long serialVersionUID = 1L;
-    private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/message.ser";
+    private final String FILE_PATH = MESSAGE_FILE_PATH;
 
     private final Map<UUID, Message> data = loadData();
 

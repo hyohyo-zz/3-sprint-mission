@@ -11,9 +11,11 @@ import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.sprint.mission.discodeit.util.DataInitializer.*;
+
 
 public class FileChannelService implements ChannelService {
-    private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/channel.ser";
+    private final String FILE_PATH = CHANNEL_FILE_PATH;
     private Map<UUID, Channel> data = loadData();
 
     //채널 생성
