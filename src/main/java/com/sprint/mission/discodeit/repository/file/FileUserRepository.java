@@ -4,13 +4,16 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
+import static com.sprint.mission.discodeit.util.DataInitializer.*;
+
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class FileUserRepository implements UserRepository {
     private static final long serialVersionUID = 1L;
-    private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/user.ser";
+
+    private final String FILE_PATH = USER_FILE_PATH;
 
     private ChannelRepository channelRepository;
 

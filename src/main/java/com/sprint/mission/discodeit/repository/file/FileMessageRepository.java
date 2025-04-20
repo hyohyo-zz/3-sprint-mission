@@ -1,17 +1,19 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+
+import static com.sprint.mission.discodeit.util.DataInitializer.*;
 
 import java.io.*;
 import java.util.*;
 
 public class FileMessageRepository implements MessageRepository {
     private static final long serialVersionUID = 1L;
-    private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/message.ser";
+
+    private final String FILE_PATH = MESSAGE_FILE_PATH;
 
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;

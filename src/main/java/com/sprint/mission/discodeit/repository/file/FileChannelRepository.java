@@ -3,13 +3,16 @@ package com.sprint.mission.discodeit.repository.file;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.util.DataInitializer;
 
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.sprint.mission.discodeit.util.DataInitializer.*;
+
 public class FileChannelRepository implements ChannelRepository {
-    private final String FILE_PATH = "src/main/java/com/sprint/mission/discodeit/channel.ser";
+    private final String FILE_PATH = CHANNEL_FILE_PATH;
 
     private Map<UUID, Channel> data = loadData();
 
