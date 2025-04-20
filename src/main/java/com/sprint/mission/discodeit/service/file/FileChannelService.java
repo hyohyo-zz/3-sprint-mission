@@ -99,14 +99,6 @@ public class FileChannelService implements ChannelService {
         return channel != null ? channel.getMembers() : Set.of();
     }
 
-    private void saveData() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
-            oos.writeObject(data);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     //중복 채널명 검증
     private void validateDuplicateChannelName(Channel channel) {
         for (Channel existingChannel : data.values()) {
@@ -117,12 +109,23 @@ public class FileChannelService implements ChannelService {
         }
     }
 
+    private void saveData() {
+        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            oos.writeObject(data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     // 불러오기 메서드
     @SuppressWarnings("unchecked")
     private Map<UUID, Channel> loadData() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
+        try (FileInputStream fis = new FileInputStream(FILE_PATH);
+               ObjectInputStream ois = new ObjectInputStream(fis)) {
             return (Map<UUID, Channel>) ois.readObject();
         } catch (Exception e) {
+            e.printStackTrace();
             return new HashMap<>();
         }
     }

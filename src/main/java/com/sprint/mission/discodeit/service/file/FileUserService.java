@@ -111,7 +111,8 @@ public class FileUserService implements UserService {
     }
 
     private void saveData() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
+        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
         } catch (Exception e) {
             e.printStackTrace();
@@ -121,9 +122,11 @@ public class FileUserService implements UserService {
     // 불러오기 메서드
     @SuppressWarnings("unchecked")
     private Map<UUID, User> loadData() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
+        try (FileInputStream fis = new FileInputStream(FILE_PATH);
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
             return (Map<UUID, User>) ois.readObject();
         } catch (Exception e) {
+            e.printStackTrace();
             return new HashMap<>();
         }
     }
