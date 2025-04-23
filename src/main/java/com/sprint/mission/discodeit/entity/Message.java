@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -16,8 +17,8 @@ public class Message implements Serializable {
     private Channel channel;
     private String category;
     private String content;     //내용
-    private long createdAt;
-    private long updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public Message(User sender,Channel channel, String category, String content) {
         this.id = UUID.randomUUID();
@@ -25,9 +26,14 @@ public class Message implements Serializable {
         this.channel = channel;
         this.category = category;
         this.content = content;
-        this.createdAt = System.currentTimeMillis();
+        this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
 
+    }
+
+    public void update(Message updateMessageData) {
+        this.content = updateMessageData.content;
+        this.updatedAt = Instant.now();
     }
 
     public void validateContent() {

@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.UUID;
@@ -17,8 +18,8 @@ public class User implements Serializable {
     private String email;
     private String phone;
     private transient String password;
-    private long createdAt;
-    private long updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public User(String name, String gender, String email, String phone, String password) {
         this.id = UUID.randomUUID();
@@ -27,7 +28,7 @@ public class User implements Serializable {
         this.email = email;
         this.phone = phone;
         this.password = password;
-        this.createdAt = System.currentTimeMillis();
+        this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
     }
 
@@ -49,7 +50,7 @@ public class User implements Serializable {
         this.email = updateUserData.email;
         this.phone = updateUserData.phone;
         this.password = updateUserData.password;
-        this.updatedAt = System.currentTimeMillis();
+        this.updatedAt = Instant.now();
     }
 
     public String toString() {

@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -15,8 +16,8 @@ public class Channel implements Serializable {
     private User keyUser;
     private List<String> categories;
     private Set<User> members;
-    private long createdAt;
-    private long updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public Channel(String channelName, User keyUser, List<String> categories, Set<User> members) {
         this.id = UUID.randomUUID();
@@ -27,7 +28,7 @@ public class Channel implements Serializable {
         this.members = new HashSet<>(members);
         this.members.add(keyUser);
 
-        this.createdAt = System.currentTimeMillis();
+        this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
     }
 
@@ -40,7 +41,7 @@ public class Channel implements Serializable {
         this.keyUser = updateChannelData.keyUser;
         this.categories = new ArrayList<>(updateChannelData.categories);
         this.members = new HashSet<>(updateChannelData.members);
-        this.updatedAt = System.currentTimeMillis();
+        this.updatedAt = Instant.now();
     }
 
     //채널 멤버가 아닌 유저가 메시지 생성시
