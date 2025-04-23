@@ -55,9 +55,12 @@ public class BasicChannelService implements ChannelService {
     @Override
     public boolean delete(UUID id, User user, String password) {
         Channel channel = channelRepository.read(id);
-        if (channel == null) {
-            throw new IllegalArgumentException(" --해당 채널을 찾을 수 없습니다.");
+        if (!user.getPassword().equals(password)) {
+            System.out.println("!!채널 삭제 실패!! --- 비밀번호 불일치");
+            return false;
         }
+        System.out.println("<<채널 [" + channel.getChannelName() + "] 삭제 성공>>");
+       
         return channelRepository.delete(id, user, password);
     }
 
