@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 import static com.sprint.mission.discodeit.util.DataInitializer.*;
 
-
 public class FileChannelService implements ChannelService {
     private final String FILE_PATH = CHANNEL_FILE_PATH;
     private Map<UUID, Channel> data = loadData();

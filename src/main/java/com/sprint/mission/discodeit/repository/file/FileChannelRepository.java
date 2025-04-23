@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.util.DataInitializer;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.util.*;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 
 import static com.sprint.mission.discodeit.util.DataInitializer.*;
 
+@Repository
 public class FileChannelRepository implements ChannelRepository {
     private final String FILE_PATH = CHANNEL_FILE_PATH;
 

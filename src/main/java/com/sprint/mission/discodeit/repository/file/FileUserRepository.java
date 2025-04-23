@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.repository.file;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.stereotype.Repository;
 
 import static com.sprint.mission.discodeit.util.DataInitializer.*;
 
@@ -10,6 +11,7 @@ import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Repository
 public class FileUserRepository implements UserRepository {
     private static final long serialVersionUID = 1L;
 
