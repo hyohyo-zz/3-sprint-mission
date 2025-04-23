@@ -3,13 +3,13 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.factory.ServiceFactory;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.util.DataInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,16 +18,17 @@ import java.util.stream.Collectors;
 public class DiscodeitApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(DiscodeitApplication.class, args);
+		ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
 
 		//초기화
 		DataInitializer.clearSerializedData();
 
-		ServiceFactory serviceFactory = ServiceFactory.getInstance();
+//		ServiceFactory serviceFactory = ServiceFactory.getInstance();
 
-		ChannelService channelService = serviceFactory.createChannelService();
-		UserService userService = serviceFactory.createUserService();
-		MessageService messageService = serviceFactory.createMessageService();
+		//콩받기
+		UserService userService = context.getBean(UserService.class);
+		ChannelService channelService = context.getBean(ChannelService.class);
+		MessageService messageService = context.getBean(MessageService.class);
 
 
 		List<User> users = createAndRegisterUsers(userService);
