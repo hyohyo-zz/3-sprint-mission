@@ -44,6 +44,14 @@ public class Channel implements Serializable {
         this.updatedAt = Instant.now();
     }
 
+    public List<String> getCategory() {
+        return categories;
+    }
+
+    public void setMembers(Set<User> members) {
+        this.members = members;
+    }
+
     //채널 멤버가 아닌 유저가 메시지 생성시
     public void validateMembership(User sender) {
         if (!members.contains(sender)) {
