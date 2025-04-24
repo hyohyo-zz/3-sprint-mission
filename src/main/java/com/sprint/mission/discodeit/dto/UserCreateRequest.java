@@ -1,4 +1,11 @@
 package com.sprint.mission.discodeit.dto;
 
-public record UserCreateRequest() {
+import java.util.UUID;
+
+public record UserCreateRequest(
+        UUID id,
+        String name,
+        String email,
+        UUID profileId
+) {
 }
