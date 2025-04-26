@@ -9,7 +9,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class JCFChannelService implements ChannelService {
+    private static JCFChannelService instance;
     private final Map<UUID, Channel> data = new HashMap<>();
+
+    private JCFChannelService() {}
+
+    public static JCFChannelService getInstance() {
+        if (instance == null) {
+            instance = new JCFChannelService();
+        }
+        return instance;
+    }
 
     //채널 생성
     @Override
@@ -89,15 +99,6 @@ public class JCFChannelService implements ChannelService {
     public Set<User> members(UUID id) {
         Channel channel = data.get(id);
         return channel != null ? channel.getMembers() : Set.of();
-    }
-
-    //채널별 카테고리
-    public Map<String, List<List<String>>> groupByChannel() {
-        return data.values().stream()
-                .collect(Collectors.groupingBy(
-                        Channel::getChannelName,
-                        Collectors.mapping(Channel::getCategory,
-                                Collectors.toList())));
     }
 
     //특정 채널 정보

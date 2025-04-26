@@ -1,41 +1,37 @@
-package com.sprint.mission.discodeit.service.jcf;
+package com.sprint.mission.discodeit.service.file;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
-
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 
-public class JCFMessageService implements MessageService {
-    private static JCFMessageService instance;
-    private final Map<UUID, Message> data = new LinkedHashMap<>();
+import static com.sprint.mission.discodeit.util.DataInitializer.*;
+
+public class FileMessageService implements MessageService {
+    private static final long serialVersionUID = 1L;
+    private final String FILE_PATH = MESSAGE_FILE_PATH;
+
+    private final Map<UUID, Message> data = loadData();
+
     private final UserService userService;
     private final ChannelService channelService;
 
-    public JCFMessageService(UserService userService, ChannelService channelService) {
+    public FileMessageService(UserService userService, ChannelService channelService) {
         this.userService = userService;
         this.channelService = channelService;
-    }
-
-    public static JCFMessageService getInstance(UserService userService, ChannelService channelService) {
-        if (instance == null) {
-            instance = new JCFMessageService(userService, channelService);
-        }
-        return instance;
     }
 
     //메시지 생성
     @Override
     public void create(Message message) {
-        Channel channel = message.getChannel();
-        channel.validateMembership(message.getSender());
-        channel.validateCategory(message.getCategory());
-
-        message.validateContent();
         data.put(message.getId(), message);
+        saveData();
     }
 
     //메시지 조회
@@ -70,5 +66,24 @@ public class JCFMessageService implements MessageService {
         return data.remove(id) != null;
     }
 
+    private void saveData() {
+        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            oos.writeObject(data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
+    // 불러오기 메서드
+    @SuppressWarnings("unchecked")
+    private Map<UUID, Message> loadData() {
+        try (FileInputStream fis = new FileInputStream(FILE_PATH);
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
+            return (Map<UUID, Message>) ois.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new HashMap<>();
+        }
+    }
 }

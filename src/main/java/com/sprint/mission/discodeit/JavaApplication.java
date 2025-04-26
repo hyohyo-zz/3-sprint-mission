@@ -7,12 +7,16 @@ import com.sprint.mission.discodeit.factory.ServiceFactory;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.util.DataInitializer;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class JavaApplication {
     public static void main(String[] args) {
+        //초기화
+        DataInitializer.clearSerializedData();
+
         ServiceFactory serviceFactory = ServiceFactory.getInstance();
 
         ChannelService channelService = serviceFactory.createChannelService();
@@ -30,7 +34,6 @@ public class JavaApplication {
 
     }
 
-
     //유저생성 및 등록
     private static List<User> createAndRegisterUsers(UserService userService) {
         List<User> users = List.of(
@@ -40,9 +43,7 @@ public class JavaApplication {
             new User("이훈이", "남", "2hun2@naver.com", "010-2345-6789", "2hun222"),
             new User("맹구", "남", "stone_lover9@gmail.com", "010-1010-0101", "stone_lover"),
             new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345"),
-            //-----심화-----//
-            //중복 이메일 유저_ex)
-            new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345")
+            new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345")  //중복 이메일 유저_ex)
         );
 
         System.out.println("<--------------------유저를 등록합니다------------------------->\n.\n.");
@@ -62,7 +63,6 @@ public class JavaApplication {
 
         System.out.println(".\n.\n<--------------------유저 등록 종료---------------------------->\n");
         return registeredUsers;
-        //-----심화-----//
     }
 
     //채널,멤버,카테고리 생성 및 등록
@@ -71,11 +71,9 @@ public class JavaApplication {
         Set<User> members1 = new HashSet<>(Set.of(users.get(0), users.get(1), users.get(3)));
         List<String> cat1 = List.of("공지", "질문", "2팀");
 
-        //채널2 멤버, 카테고리생성
         Set<User> members2 = new HashSet<>(Set.of(users.get(1), users.get(2), users.get(4)));
         List<String> cat2 = List.of("이벤트", "소통");
 
-        //채널3 멤버, 카테고리생성
         Set<User> members3 = new HashSet<>(Set.of(users.get(5)));
         List<String> cat3 = List.of("기타");
 
@@ -147,7 +145,6 @@ public class JavaApplication {
         readUser(userService, users);
         updateUser(userService, users);
         deleteUser(userService, users);
-        groupingUser(userService, users);
 
     }
 
@@ -202,23 +199,12 @@ public class JavaApplication {
         System.out.println();
     }
 
-    private static void groupingUser(UserService userService, List<User> users){
-        System.out.println("------------------------- GroupingUser -------------------------");
-        //성별 그룹화
-        System.out.println("\n성별 그룹화");
-        userService.groupByGender().forEach((gender, list) -> {
-            System.out.println("[" + gender + "]\n" + list);
-        });
-    }
-
-
     private static void demonstrateChannelOperations(ChannelService channelService, List<Channel> channels, List<User> users) {
         System.out.println("\n########################### Channel ############################");
 
         readChannel(channelService,channels,users);
         updateChannel(channelService,channels,users);
         deleteChannel(channelService,channels,users);
-        groupingChannel(channelService, channels, users);
     }
 
     private static void readChannel(ChannelService channelService, List<Channel> channels, List<User> users){
@@ -317,22 +303,6 @@ public class JavaApplication {
         channelService.readAll().forEach(System.out::println);
 
     }
-    private static void groupingChannel(ChannelService channelService, List<Channel> channels, List<User> users) {
-        System.out.println("------------------------- GroupingUser -------------------------");
-        //채널별 카테고리
-        System.out.print("\n채널별 카테고리 목록:\n");
-        channelService.groupByChannel().forEach((channelName, list) -> {
-            System.out.println("[" + channelName + "]\n" + list);
-        });
-
-        //채널별 유저 수
-        System.out.println("\n채널별 유저 수:");
-        for (Channel channel : channels) {
-            int memberCount = channelService.members(channel.getId()).size();
-            System.out.println("[" + channel.getChannelName() + "] 채널 유저 수: " + memberCount + "명");
-        }
-    }
-
 
     private static void demonstrateMessageOperations(MessageService messageService) {
         System.out.println("\n########################### Message ###########################");

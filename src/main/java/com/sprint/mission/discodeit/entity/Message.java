@@ -1,10 +1,13 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class Message {
+public class Message implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private UUID id;
     private User sender;        //보낸사람
     private Channel channel;
@@ -77,6 +80,18 @@ public class Message {
         if (content == null || content.trim().isEmpty()) {
             throw new IllegalArgumentException("메시지 내용은 비어있을 수 없습니다.");
         }
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (!(obj instanceof Message message)) return false;
+        return id.equals(message.id);
     }
 
     public String toString() {

@@ -1,39 +1,42 @@
-package com.sprint.mission.discodeit.service.jcf;
+package com.sprint.mission.discodeit.service.file;
+
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class JCFUserService implements UserService {
-    private static JCFUserService instance;
-    private final Map<UUID, User> data = new HashMap<>();
+import static com.sprint.mission.discodeit.util.DataInitializer.*;
+
+public class FileUserService implements UserService {
+    private static final long serialVersionUID = 1L;
+    private final String FILE_PATH = USER_FILE_PATH;
+
+    private Map<UUID, User> data = loadData();
+
     private final ChannelService channelService;
 
-    public JCFUserService(ChannelService channelService) {
+    public FileUserService(ChannelService channelService) {
         this.channelService = channelService;
     }
 
-    public static JCFUserService getInstance(ChannelService channelService) {
-        if (instance == null) {
-            instance = new JCFUserService(channelService);
-        }
-        return instance;
-    }
-
-    //유저 생성
     @Override
     public void create(User user) {
-        //이미 등록된 이메일 추가시
         for (User existingUser : data.values()) {
             if (existingUser.getEmail().equals(user.getEmail())) {
                 throw new IllegalArgumentException(" --- 이미 등록된 이메일입니다.");
             }
         }
         this.data.put(user.getId(), user);
+
+        saveData();
     }
 
     //유저 아이디 조회
@@ -104,6 +107,27 @@ public class JCFUserService implements UserService {
                 );
                 channelService.update(channel.getId(), updatedChannel);
             }
+        }
+    }
+
+    private void saveData() {
+        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            oos.writeObject(data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 불러오기 메서드
+    @SuppressWarnings("unchecked")
+    private Map<UUID, User> loadData() {
+        try (FileInputStream fis = new FileInputStream(FILE_PATH);
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
+            return (Map<UUID, User>) ois.readObject();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new HashMap<>();
         }
     }
 
