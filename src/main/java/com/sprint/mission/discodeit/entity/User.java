@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 @Getter
+@Setter
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -21,6 +23,8 @@ public class User implements Serializable {
     private Instant createdAt;
     private Instant updatedAt;
 
+    private UUID profileId;
+
     public User(String name, String gender, String email, String phone, String password) {
         this.id = UUID.randomUUID();
         this.name = name;
@@ -30,6 +34,8 @@ public class User implements Serializable {
         this.password = password;
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
+
+        this.profileId = null;   // 나중에 등록하는 경우가 대부분??
     }
 
     @Override
@@ -51,11 +57,14 @@ public class User implements Serializable {
         this.phone = updateUserData.phone;
         this.password = updateUserData.password;
         this.updatedAt = Instant.now();
+
+        this.profileId = updateUserData.profileId;
     }
 
     public String toString() {
         return "User{" +
                 "UserName= '" + name + '\'' +
+                ", ProfileId= '" + profileId + '\'' +
                 ", Gender= '" + gender + '\'' +
                 ", email= '" + email + '\'' +
                 ", phone= '" + phone + '\'' +

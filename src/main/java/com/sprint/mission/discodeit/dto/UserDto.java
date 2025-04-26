@@ -2,12 +2,13 @@ package com.sprint.mission.discodeit.dto;
 
 import java.util.UUID;
 
-public record UserCreateRequest(
+public record UserDto(
+        UUID id,
         String name,
-        String gender,
         String email,
+        String gender,
         String phone,
-        String password,
-        UUID profileImageId
+        UUID profileImageId,
+        boolean online
 ) {
 }

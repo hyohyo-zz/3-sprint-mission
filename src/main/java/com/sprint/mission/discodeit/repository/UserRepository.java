@@ -1,12 +1,13 @@
 package com.sprint.mission.discodeit.repository;
 
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.User;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface UserRepository {
-    public void create(User user);
+    public void create(UserCreateRequest request);
 
     public User read(UUID id);
 
