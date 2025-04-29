@@ -1,10 +1,13 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.dto.UserResponse;
+import com.sprint.mission.discodeit.dto.UserUpdateRequest;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -14,63 +17,123 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
+
     private final ChannelRepository channelRepository;
-
     private final UserRepository userRepository;
-
     private final UserStatusRepository userStatusRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
 
-    public UserDto create(UserCreateRequest request) {
-        validateDuplicateNameAndEmail(request);
+    public UserResponse create(UserCreateRequest request) {
+        // 중복 name, email 검사
+        existsByUserName(request.name());
+        existsByEmail(request.email());
 
-        User user = new User(request.name(), request.gender(), request.email(), request.phone(), request.password());
+       UUID profileImageId = null;
+       if(request.profileImage() != null && !request.profileImage().isEmpty()) {
+           BinaryContent binaryContent = binaryContentRepository.save(new BinaryContent(
+                   null,
+                   request.profileImage().getContentType(),
+                   request.profileImage().getBytes(),
+                   Instant.now()
+           ));
 
-        if(request.profileImageId() != null) {
-            user.setProfileId(request.profileImageId());
+           profileImageId = binaryContent.getId();
+       }
+
+       User user = new User(request.name(), request.email(), request.phone(), request.password());
+       user.setProfileImageId(profileImageId);
+       User savedUser = Objects.requireNonNull(userRepository.create(user));
+
+       UserStatus status = new UserStatus(savedUser.getId(), false);
+       userStatusRepository.create(status);
+
+       return toUserResponse(savedUser, status);
+    }
+
+    @Override
+    public UserResponse find(UUID userId) {
+        User user = userRepository.read(userId).orElseThrow();
+
+        UserStatus status = userStatusRepository.readByUserId(userId)
+                .orElse(new UserStatus(userId, false));
+
+        return toUserResponse(user, status);
+    }
+
+    @Override
+    public List<UserResponse> findAll() {
+        List<User> users = userRepository.readAll();
+
+        return users.stream()
+                .map(user -> {
+                    UserStatus status =
+                            userStatusRepository.readByUserId(user.getId())
+                       .orElse(new UserStatus(user.getId(), false));
+                    return toUserResponse(user,status);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<UserResponse> findByName(String name) {
+        List<User> users = userRepository.readByName(name);
+
+        return users.stream()
+                .map(user -> {
+                    UserStatus status =
+                            userStatusRepository.readByUserId(user.getId())
+                                    .orElse(new UserStatus(user.getId(), false));
+                    return toUserResponse(user,status);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public UserResponse update(UserUpdateRequest request) {
+        //1. 수정할 엔티티 조회
+        User user = userRepository.read(request.id()).orElseThrow();
+
+        //2. username/email 변경 시 중복 체크
+        if (request.username() != null && !request.username().equals(user.getName())) {
+            existsByUserName(request.username());
         }
 
+        if(request.email() != null && !request.email().equals(user.getEmail())) {
+            existsByEmail(request.email());
+        }
+
+        //3. 변경할 값 있으면 반영
+        if(request.username() != null) user.setName(request.username());
+        if(request.email() != null ) user.setEmail(request.email());
+        if(request.password() != null) user.setPassword(request.password());
+
+        //4. 프로필 이미지 대체( 있으면 새로 저장)
+        if(request.username() != null && ! request.profileImage().isEmpty()) {
+            BinaryContent binaryContent = binaryContentRepository.save(request.profileImage().getBytes(),
+                    request.profileImage().getOriginalFilename());
+            user.setProfileImageId(binaryContent.getId());
+        }
+
+        //5. 변경된 User 엔티티 저장
         userRepository.create(user);
 
-        userRepository.create(new UserStatus(user.getId(), Instant.now()));
+        //6. UserStatus 조회 ( 없으면 기본값)
+        UserStatus status = userStatusRepository.readByUserId(user.getId())
+                .orElse(new UserStatus(user.getId(), false));
+
+        //dto로 변환해서 반환
+        return toUserResponse(user, status);
     }
 
     @Override
-    public User read(UUID id) {
-        User user = userRepository.read(id);
-        if (user == null) {
-            throw new IllegalArgumentException(" --해당 유저를 찾을 수 없습니다.");
-        }
-        return user;
-    }
-
-    @Override
-    public List<User> readAll() {
-        return userRepository.readAll();
-    }
-
-    @Override
-    public List<User> readByName(String name) {
-        return userRepository.readByName(name);
-    }
-
-    @Override
-    public User update(UUID id, User update) {
-        User user = userRepository.read(id);
-        if (user == null) {
-            throw new IllegalArgumentException(" --해당 ID의 채널을 찾을 수 없습니다.");
-        }
-        user.update(update);
-        return user;
-    }
-
-    @Override
-    public boolean delete(UUID id, String password) {
-        User user = userRepository.read(id);
+    public boolean delete(UUID userId, String password) {
+        User user = userRepository.read(userId).orElseThrow();
         if (user == null) {
             throw new IllegalArgumentException(" --해당 유저를 찾을 수 없습니다.");
         }
@@ -80,9 +143,13 @@ public class BasicUserService implements UserService {
             return false;
         }
 
-        boolean deleted = userRepository.delete(id);
+        boolean deleted = userRepository.delete(userId);
         if (deleted) {
             removeUserFromChannels(user);
+            binaryContentRepository.deleteByUserId(userId);
+            userStatusRepository.deleteByUserId(userId);
+
+            userRepository.delete(userId);
             System.out.println("유저 탈퇴 성공");
         }
         return deleted;
@@ -100,32 +167,32 @@ public class BasicUserService implements UserService {
         }
     }
 
-    private void validateDuplicateNameAndEmail(UserCreateRequest request) {
+    private void existsByEmail(String email) {
         List<User> users = userRepository.readAll();
         boolean exists = users.stream()
-                .anyMatch((u -> u.getEmail().equals(request.email())));
+                .anyMatch((u -> u.getEmail().equals(email)));
         if(exists) {
             throw new IllegalArgumentException(" --- 이미 등록된 이메일입니다.");
         }
     }
 
-    //User를 UserDto로 변환
-    private UserDto toDto(User user, boolean includeStatus) {
-        boolean isOnline = false;
-
-        if (includeStatus) {
-            UserStatus status = userStatusRepository.readByUserId(user.getId());
-            isOnline = status != null && status.isOnlineNow();
+    private void existsByUserName(String userName) {
+        List<User> users = userRepository.readAll();
+        boolean exists = users.stream()
+                .anyMatch((u -> u.getName().equals(userName)));
+        if(exists) {
+            throw new IllegalArgumentException(" --- 이미 등록된 이름입니다.");
         }
+    }
 
-        return new UserDto(
+    private UserResponse toUserResponse(User user, UserStatus status) {
+        return new UserResponse(
                 user.getId(),
                 user.getName(),
-                user.getGender(),
                 user.getEmail(),
-                user.getPhone(),
-                user.getProfileId(),
-                isOnline
+                user.getProfileImageId(),
+                status.isOnline(),
+                status
         );
     }
 }
