@@ -10,14 +10,12 @@ public interface BinaryContentRepository {
 
     public BinaryContent read(UUID id);
 
-    public BinaryContent delete(UUID id);
+    public List<BinaryContent> readAll();
+
+    public void delete(UUID id);
 
     //특정 유저의 (프로필 이미지 등) 바이너리 조회
-    public List<BinaryContent> readByUserId(UUID userId);
+    public List<BinaryContent> readByUserId(UUID userId);\
 
-    public List<BinaryContent> readByMessageId(UUID messageId);
-
-    public void deleteByMessageId(UUID messageId);
-
-
+    public void deleteByUserId(UUID userId);
 }

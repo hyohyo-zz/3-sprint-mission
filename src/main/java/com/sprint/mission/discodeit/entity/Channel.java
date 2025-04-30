@@ -16,24 +16,25 @@ public class Channel implements Serializable {
     private User keyUser;
     private List<String> categories;
     private Set<User> members;
+
+    private boolean isPrivate;
+
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Channel(String channelName, User keyUser, List<String> categories, Set<User> members) {
+    public Channel(String channelName, User keyUser, List<String> categories, Set<User> members , boolean isPrivate) {
         this.id = UUID.randomUUID();
-        this.channelName = channelName;
-        this.categories = categories;
+        this.channelName = channelName != null ? channelName : "";
+        this.categories = categories  != null ? categories : new ArrayList<>();
 
         this.keyUser = keyUser;
         this.members = new HashSet<>(members);
         this.members.add(keyUser);
 
+        this.isPrivate = isPrivate;
+
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
-    }
-
-    public void addMember(User user) {
-        members.add(user);
     }
 
     public void update(Channel updateChannelData) {
@@ -44,8 +45,10 @@ public class Channel implements Serializable {
         this.updatedAt = Instant.now();
     }
 
-    public List<String> getCategory() {
-        return categories;
+    public void update(String newChannelName, List<String> newCategories) {
+        this.channelName = newChannelName;
+        this.categories = new ArrayList<>(newCategories);
+        this.updatedAt = Instant.now();
     }
 
     public void setMembers(Set<User> members) {

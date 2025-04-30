@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.repository;
 import com.sprint.mission.discodeit.entity.UserStatus;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface UserStatusRepository {
@@ -18,5 +19,5 @@ public interface UserStatusRepository {
 
     public void deleteByUserId(UUID userId);
 
-    public UserStatus readByUserId(UUID userId);
+    public Optional<UserStatus> readByUserId(UUID userId);
 }

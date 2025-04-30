@@ -20,6 +20,8 @@ public class Message implements Serializable {
     private Instant createdAt;
     private Instant updatedAt;
 
+    private UUID fileAtttachedId;
+
     public Message(User sender,Channel channel, String category, String content) {
         this.id = UUID.randomUUID();
         this.sender = sender;
@@ -29,6 +31,7 @@ public class Message implements Serializable {
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
 
+        this.fileAtttachedId = null;
     }
 
     public void update(Message updateMessageData) {

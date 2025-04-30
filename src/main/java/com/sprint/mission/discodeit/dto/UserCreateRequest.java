@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.dto;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.UUID;
 
 public record UserCreateRequest(
@@ -8,6 +10,7 @@ public record UserCreateRequest(
         String email,
         String phone,
         String password,
-        UUID profileImageId
+        UUID profileImageId,
+        MultipartFile profileImage
 ) {
 }

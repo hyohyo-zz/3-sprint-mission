@@ -2,13 +2,12 @@ package com.sprint.mission.discodeit.dto;
 
 import java.util.UUID;
 
-public record UserDto(
+
+public record UserResponse(
         UUID id,
-        String name,
+        String userName,
         String email,
-        String gender,
-        String phone,
-        UUID profileImageId,
+        String profileImageUrl,
         boolean online
 ) {
 }

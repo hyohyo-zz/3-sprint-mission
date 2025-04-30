@@ -44,13 +44,13 @@ public class DiscodeitApplication {
 	//유저생성 및 등록
 	private static List<User> createAndRegisterUsers(UserService userService) {
 		List<User> users = List.of(
-				new User("조현아", "여", "akbkck8101@gmail.com", "010-6658-8101", "2701"),
-				new User("신짱구", "남", "zzang9@gmail.com", "010-1234-5678", "9999"),
-				new User("김철슈", "남", "steelwater@naver.com", "010-0000-0000", "steelwater"),
-				new User("이훈이", "남", "2hun2@naver.com", "010-2345-6789", "2hun222"),
-				new User("맹구", "남", "stone_lover9@gmail.com", "010-1010-0101", "stone_lover"),
-				new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345"),
-				new User("한유리", "여", "yuryyy@gmail.com", "010-1111-2222", "12345")  //중복 이메일 유저_ex)
+				new User("조현아", "akbkck8101@gmail.com", "010-6658-8101", "2701"),
+				new User("신짱구",  "zzang9@gmail.com", "010-1234-5678", "9999"),
+				new User("김철슈", "steelwater@naver.com", "010-0000-0000", "steelwater"),
+				new User("이훈이", "2hun2@naver.com", "010-2345-6789", "2hun222"),
+				new User("맹구", "stone_lover9@gmail.com", "010-1010-0101", "stone_lover"),
+				new User("한유리",  "yuryyy@gmail.com", "010-1111-2222", "12345"),
+				new User("한유리", "yuryyy@gmail.com", "010-1111-2222", "12345")  //중복 이메일 유저_ex)
 		);
 
 		System.out.println("<--------------------유저를 등록합니다------------------------->\n.\n.");
@@ -159,19 +159,19 @@ public class DiscodeitApplication {
 		System.out.println("------------------------- ReadUser -----------------------------");
 		//전체 유저조회(다건 조회)
 		System.out.println("\n전체 유저 목록: ");
-		userService.readAll().forEach(System.out::println);
+		userService.findAll().forEach(System.out::println);
 
 		//특정 유저조회(단건 조회, 이름)
 		System.out.println("\n신짱구 유저 조회(이름으로 검색): ");
-		userService.readByName("신짱구").forEach(System.out::println);
+		userService.findByName("신짱구").forEach(System.out::println);
 
 		//특정 유저조회(단건 조회, id)
 		System.out.println("\n이훈이 유저 조회(id로 검색): ");
-		System.out.println(userService.read(users.get(3).getId()).toString());
+		System.out.println(userService.find(users.get(3).getId()).toString());
 
 		//이름에 "구"가 포함된 유저
 		System.out.println("\n이름에 '구'가 포함된 유저('구'로 검색): ");
-		userService.readByName("구").forEach(System.out::println);
+		userService.findByName("구").forEach(System.out::println);
 	}
 	private static void updateUser(UserService userService, List<User> users){
 		System.out.println("\n------------------------- UpdateUser ---------------------------");
@@ -180,17 +180,17 @@ public class DiscodeitApplication {
 
 		//수정하려는 유저 original에 저장
 		User original = users.get(2);
-		System.out.println(userService.read(original.getId()));
+		System.out.println(userService.find(original.getId()));
 
 		//수정한 유저정보 updated에 저장
-		User updated = userService.update(original.getId(), new User("김철수", original.getGender(), original.getEmail(), "010-0011-0011", original.getPassword()));
+		User updated = userService.update(original.getId(), new User("김철수", original.getEmail(), "010-0011-0011", original.getPassword()));
 		System.out.println("수정 후(이름, 번호): ");
-		System.out.println(userService.read(updated.getId()));
+		System.out.println(userService.find(updated.getId()));
 	}
 	private static void deleteUser(UserService userService, List<User> users){
 		System.out.println("\n------------------------ DeleteUser ----------------------------");
 		System.out.println("\n전체 유저 목록: ");
-		userService.readAll().forEach(System.out::println);
+		userService.findAll().forEach(System.out::println);
 
 		//유저 삭제 실패
 		System.out.println("\n"+ users.get(3).getName() +" 유저 탈퇴 진행중..\n.\n.\n");
@@ -202,7 +202,7 @@ public class DiscodeitApplication {
 
 		//삭제 후 전체 유저 조회
 		System.out.println("\n\n전체 유저 목록: ");
-		userService.readAll().forEach(System.out::println);
+		userService.findAll().forEach(System.out::println);
 		System.out.println();
 	}
 
@@ -218,7 +218,7 @@ public class DiscodeitApplication {
 		System.out.println("------------------------- ReadChannel --------------------------");
 		System.out.println("\n전체 채널 목록");
 
-		if (channelService.readAll().isEmpty()) {
+		if (channelService.findAllByUserId().isEmpty()) {
 			System.out.println("조회할 채널이 없습니다.");
 		} else {
 			channels.forEach(channel -> System.out.println("[" + channel.getChannelName() + "]"));
@@ -227,7 +227,7 @@ public class DiscodeitApplication {
 
 		//특정 채널 정보
 		try {
-			Channel channel = channelService.read(channels.get(0).getId());
+			Channel channel = channelService.find(channels.get(0).getId());
 			System.out.println("\n채널명: " + channel.getChannelName());
 			System.out.println("카테고리: " + channel.getCategory());
 
@@ -254,12 +254,12 @@ public class DiscodeitApplication {
 
 		System.out.println("\n["+ original.getChannelName() +"] 채널 수정 진행중\n.\n.\n.");
 		System.out.println("\n["+ original.getChannelName() +"] 수정 완료(채널 이름): ");
-		System.out.println("수정 전: " + channelService.read(original.getId()));
+		System.out.println("수정 전: " + channelService.find(original.getId()));
 
 		//수정한 채널 updated에 저장, 출력(채널명 수정)
 		try {
 			Channel updatedChannel = channelService.update(original.getId(), new Channel("변경sp03", original.getKeyUser(),original.getCategory(), original.getMembers()));
-			System.out.println("수정 후: " + channelService.read(updatedChannel.getId()));
+			System.out.println("수정 후: " + channelService.find(updatedChannel.getId()));
 		} catch (IllegalArgumentException e) {
 			System.out.println("!!채널 수정 실패!! " + e.getMessage());
 		}
@@ -267,11 +267,11 @@ public class DiscodeitApplication {
 		//수정한 채널 updated에 저장, 출력(방장 변경 + member에 추가)
 		System.out.println("\n["+ original.getChannelName() +"] 채널 수정 진행중\n.\n.\n.");
 		System.out.println("\n["+ original.getChannelName() +"] 수정 완료(새 유저로 방장 변경): ");
-		System.out.println("수정 전: " + channelService.read(original.getId()));
+		System.out.println("수정 전: " + channelService.find(original.getId()));
 
 		try {
 			Channel updatedChannel = channelService.update(original.getId(), new Channel(original.getChannelName(), users.get(1), original.getCategory(), original.getMembers()));
-			System.out.println("수정 후: " + channelService.read(updatedChannel.getId()));
+			System.out.println("수정 후: " + channelService.find(updatedChannel.getId()));
 		} catch (IllegalArgumentException e) {
 			System.out.println("!!채널 수정 실패!! " + e.getMessage());
 		}
@@ -281,11 +281,11 @@ public class DiscodeitApplication {
 		original = channels.get(0);
 		System.out.println("\n["+ original.getChannelName() +"] 채널 수정 진행중\n.\n.\n.");
 		System.out.println("\n["+ original.getChannelName() +"] 수정 완료(기존 유저로 방장 변경): ");
-		System.out.println("수정 전: " + channelService.read(original.getId()));
+		System.out.println("수정 전: " + channelService.find(original.getId()));
 
 		try {
 			Channel updatedChannel = channelService.update(original.getId(), new Channel(original.getChannelName(), users.get(0), original.getCategory(), original.getMembers()));
-			System.out.println("수정 후: " + channelService.read(updatedChannel.getId()));
+			System.out.println("수정 후: " + channelService.find(updatedChannel.getId()));
 		} catch (IllegalArgumentException e) {
 			System.out.println("!!채널 수정 실패!! " + e.getMessage());
 		}
@@ -295,7 +295,7 @@ public class DiscodeitApplication {
 		System.out.println("\n------------------------ DeleteChannel ------------------------");
 
 		System.out.print("\n전체 채널 목록: \n");
-		channelService.readAll().forEach(System.out::println);
+		channelService.findAllByUserId().forEach(System.out::println);
 
 		//채널 삭제 실패
 		System.out.println("\n["+ channels.get(2).getChannelName() +"] 채널 삭제 진행중..\n.\n.\n");
@@ -307,7 +307,7 @@ public class DiscodeitApplication {
 
 		//삭제 후 전체 유저 조회
 		System.out.print("\n전체 채널 목록: \n");
-		channelService.readAll().forEach(System.out::println);
+		channelService.findAllByUserId().forEach(System.out::println);
 
 	}
 

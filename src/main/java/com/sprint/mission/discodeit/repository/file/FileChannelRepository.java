@@ -27,18 +27,18 @@ public class FileChannelRepository implements ChannelRepository {
 
     //채널 조회
     @Override
-    public Channel read(UUID id) {
+    public Channel find(UUID id) {
         return this.data.get(id);
     }
 
     //채널 전체 조회
     @Override
-    public List<Channel> readAll() {
+    public List<Channel> findAll() {
         return new ArrayList<>(data.values());
     }
 
     //특정 채널 정보
-    public List<Channel> readByName(String channelName) {
+    public List<Channel> findByChannelName(String channelName) {
         List<Channel> result = data.values().stream()
                 .filter(channel -> channel.getChannelName().contains(channelName))
                 .collect(Collectors.toList());

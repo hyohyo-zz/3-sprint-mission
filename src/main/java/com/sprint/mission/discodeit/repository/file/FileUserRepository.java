@@ -33,13 +33,13 @@ public class FileUserRepository implements UserRepository {
 
     //유저 아이디 조회
     @Override
-    public User read(UUID id) {
+    public User find(UUID id) {
         return this.data.get(id);
     }
 
     //유저 이름으로 조회
     @Override
-    public List<User> readByName(String name) {
+    public List<User> findByUserName(String name) {
         return data.values().stream()
                 .filter(user -> user.getName().contains(name))
                 .collect(Collectors.toList());
@@ -47,7 +47,7 @@ public class FileUserRepository implements UserRepository {
 
     //유저 전체 조회
     @Override
-    public List<User> readAll() {
+    public List<User> findAll() {
         return new ArrayList<>(data.values());
     }
 

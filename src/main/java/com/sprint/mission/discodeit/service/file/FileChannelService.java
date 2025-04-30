@@ -30,7 +30,7 @@ public class FileChannelService implements ChannelService {
 
     //채널 조회
     @Override
-    public Channel read(UUID id) {
+    public Channel find(UUID id) {
         Channel channel = this.data.get(id);
 
         if (channel == null) {  //아무 객체도 가리키지 않음
@@ -42,7 +42,7 @@ public class FileChannelService implements ChannelService {
 
     //특정 채널 정보
     @Override
-    public List<Channel> readByName(String channelName) {
+    public List<Channel> findByChannelName(String channelName) {
         List<Channel> result = data.values().stream()
                 .filter(channel -> channel.getChannelName().contains(channelName))
                 .collect(Collectors.toList());
@@ -55,7 +55,7 @@ public class FileChannelService implements ChannelService {
 
     //채널 전체 조회
     @Override
-    public List<Channel> readAll() {
+    public List<Channel> findAllByUserId() {
         List<Channel> channels = new ArrayList<>(data.values());
 
         if (channels.isEmpty()) {   //리스트있지만 요소없음

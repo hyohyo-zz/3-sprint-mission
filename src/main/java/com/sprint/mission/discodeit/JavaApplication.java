@@ -152,19 +152,19 @@ public class JavaApplication {
         System.out.println("------------------------- ReadUser -----------------------------");
         //전체 유저조회(다건 조회)
         System.out.println("\n전체 유저 목록: ");
-        userService.readAll().forEach(System.out::println);
+        userService.findAll().forEach(System.out::println);
 
         //특정 유저조회(단건 조회, 이름)
         System.out.println("\n신짱구 유저 조회(이름으로 검색): ");
-        userService.readByName("신짱구").forEach(System.out::println);
+        userService.findByName("신짱구").forEach(System.out::println);
 
         //특정 유저조회(단건 조회, id)
         System.out.println("\n이훈이 유저 조회(id로 검색): ");
-        System.out.println(userService.read(users.get(3).getId()).toString());
+        System.out.println(userService.find(users.get(3).getId()).toString());
 
         //이름에 "구"가 포함된 유저
         System.out.println("\n이름에 '구'가 포함된 유저('구'로 검색): ");
-        userService.readByName("구").forEach(System.out::println);
+        userService.findByName("구").forEach(System.out::println);
     }
     private static void updateUser(UserService userService, List<User> users){
         System.out.println("\n------------------------- UpdateUser ---------------------------");
@@ -173,17 +173,17 @@ public class JavaApplication {
 
         //수정하려는 유저 original에 저장
         User original = users.get(2);
-        System.out.println(userService.read(original.getId()));
+        System.out.println(userService.find(original.getId()));
 
         //수정한 유저정보 updated에 저장
         User updated = userService.update(original.getId(), new User("김철수", original.getGender(), original.getEmail(), "010-0011-0011", original.getPassword()));
         System.out.println("수정 후(이름, 번호): ");
-        System.out.println(userService.read(updated.getId()));
+        System.out.println(userService.find(updated.getId()));
     }
     private static void deleteUser(UserService userService, List<User> users){
         System.out.println("\n------------------------ DeleteUser ----------------------------");
         System.out.println("\n전체 유저 목록: ");
-        userService.readAll().forEach(System.out::println);
+        userService.findAll().forEach(System.out::println);
 
         //유저 삭제 실패
         System.out.println("\n"+ users.get(3).getName() +" 유저 탈퇴 진행중..\n.\n.\n");
@@ -195,7 +195,7 @@ public class JavaApplication {
 
         //삭제 후 전체 유저 조회
         System.out.println("\n\n전체 유저 목록: ");
-        userService.readAll().forEach(System.out::println);
+        userService.findAll().forEach(System.out::println);
         System.out.println();
     }
 
@@ -211,7 +211,7 @@ public class JavaApplication {
         System.out.println("------------------------- ReadChannel --------------------------");
         System.out.println("\n전체 채널 목록");
 
-        if (channelService.readAll().isEmpty()) {
+        if (channelService.findAllByUserId().isEmpty()) {
             System.out.println("조회할 채널이 없습니다.");
         } else {
             channels.forEach(channel -> System.out.println("[" + channel.getChannelName() + "]"));
@@ -220,7 +220,7 @@ public class JavaApplication {
 
         //특정 채널 정보
         try {
-            Channel channel = channelService.read(channels.get(0).getId());
+            Channel channel = channelService.find(channels.get(0).getId());
             System.out.println("\n채널명: " + channel.getChannelName());
             System.out.println("카테고리: " + channel.getCategory());
 
@@ -247,12 +247,12 @@ public class JavaApplication {
 
         System.out.println("\n["+ original.getChannelName() +"] 채널 수정 진행중\n.\n.\n.");
         System.out.println("\n["+ original.getChannelName() +"] 수정 완료(채널 이름): ");
-        System.out.println("수정 전: " + channelService.read(original.getId()));
+        System.out.println("수정 전: " + channelService.find(original.getId()));
 
         //수정한 채널 updated에 저장, 출력(채널명 수정)
         try {
             Channel updatedChannel = channelService.update(original.getId(), new Channel("변경sp03", original.getKeyUser(),original.getCategory(), original.getMembers()));
-            System.out.println("수정 후: " + channelService.read(updatedChannel.getId()));
+            System.out.println("수정 후: " + channelService.find(updatedChannel.getId()));
         } catch (IllegalArgumentException e) {
             System.out.println("!!채널 수정 실패!! " + e.getMessage());
         }
@@ -260,11 +260,11 @@ public class JavaApplication {
         //수정한 채널 updated에 저장, 출력(방장 변경 + member에 추가)
         System.out.println("\n["+ original.getChannelName() +"] 채널 수정 진행중\n.\n.\n.");
         System.out.println("\n["+ original.getChannelName() +"] 수정 완료(새 유저로 방장 변경): ");
-        System.out.println("수정 전: " + channelService.read(original.getId()));
+        System.out.println("수정 전: " + channelService.find(original.getId()));
 
         try {
             Channel updatedChannel = channelService.update(original.getId(), new Channel(original.getChannelName(), users.get(1), original.getCategory(), original.getMembers()));
-            System.out.println("수정 후: " + channelService.read(updatedChannel.getId()));
+            System.out.println("수정 후: " + channelService.find(updatedChannel.getId()));
         } catch (IllegalArgumentException e) {
             System.out.println("!!채널 수정 실패!! " + e.getMessage());
         }
@@ -274,11 +274,11 @@ public class JavaApplication {
         original = channels.get(0);
         System.out.println("\n["+ original.getChannelName() +"] 채널 수정 진행중\n.\n.\n.");
         System.out.println("\n["+ original.getChannelName() +"] 수정 완료(기존 유저로 방장 변경): ");
-        System.out.println("수정 전: " + channelService.read(original.getId()));
+        System.out.println("수정 전: " + channelService.find(original.getId()));
 
         try {
             Channel updatedChannel = channelService.update(original.getId(), new Channel(original.getChannelName(), users.get(0), original.getCategory(), original.getMembers()));
-            System.out.println("수정 후: " + channelService.read(updatedChannel.getId()));
+            System.out.println("수정 후: " + channelService.find(updatedChannel.getId()));
         } catch (IllegalArgumentException e) {
             System.out.println("!!채널 수정 실패!! " + e.getMessage());
         }
@@ -288,7 +288,7 @@ public class JavaApplication {
         System.out.println("\n------------------------ DeleteChannel ------------------------");
 
         System.out.print("\n전체 채널 목록: \n");
-        channelService.readAll().forEach(System.out::println);
+        channelService.findAllByUserId().forEach(System.out::println);
 
         //채널 삭제 실패
         System.out.println("\n["+ channels.get(2).getChannelName() +"] 채널 삭제 진행중..\n.\n.\n");
@@ -300,7 +300,7 @@ public class JavaApplication {
 
         //삭제 후 전체 유저 조회
         System.out.print("\n전체 채널 목록: \n");
-        channelService.readAll().forEach(System.out::println);
+        channelService.findAllByUserId().forEach(System.out::println);
 
     }
 

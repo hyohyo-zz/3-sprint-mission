@@ -17,25 +17,26 @@ import java.util.UUID;
 * 나중에 메소드 추가를 위해? 분리하는 것이 좋다?*/
 @Getter
 public class UserStatus {
-    private UUID id;
     private UUID userId;    //User에서도 userId로 변경하는게 좋을까?
     private Instant lastOnlineTime;
 
     private Instant createdAt;
     private Instant updatedAt;
 
-    public UserStatus(UUID userId, Instant lastOnlineTime) {
-        this.id = UUID.randomUUID();
+    private boolean online;
+
+    public UserStatus(UUID userId, boolean online) {
         this.userId = userId;
-        this.lastOnlineTime = lastOnlineTime;
         this.createdAt = Instant.now();
-        this.updatedAt = createdAt;
+        this.updatedAt = this.createdAt;
+        this.online = isOnlineNow();
     }
 
     //lastOnlineTime update
     public void updatelastOnline() {
         this.lastOnlineTime = Instant.now();
         this.updatedAt = Instant.now();
+        this.online = isOnline();
     }
 
     //지금 온라인 상태인지?(5분 이내 인지)
@@ -43,7 +44,6 @@ public class UserStatus {
         if (lastOnlineTime == null) {
             return false;
         }
-
         Duration duration = Duration.between(lastOnlineTime, Instant.now());
 
         return duration.toMinutes() <= 5;

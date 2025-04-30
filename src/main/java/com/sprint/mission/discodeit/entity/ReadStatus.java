@@ -18,7 +18,7 @@ public class ReadStatus {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public ReadStatus(UUID userId, UUID channelId, Instant createdAt, Instant updatedAt) {
+    public ReadStatus(UUID userId, UUID channelId, Instant createdAt) {
         this.id = UUID.randomUUID();
         this.userId = userId;
         this.channelId = channelId;

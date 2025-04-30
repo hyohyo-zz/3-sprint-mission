@@ -41,13 +41,13 @@ public class FileUserService implements UserService {
 
     //유저 아이디 조회
     @Override
-    public User read(UUID id) {
+    public User find(UUID id) {
         return this.data.get(id);
     }
 
     //유저 이름으로 조회
     @Override
-    public List<User> readByName(String name) {
+    public List<User> findByName(String name) {
         List<User> result = data.values().stream()
                 .filter(user -> user.getName().contains(name))
                 .collect(Collectors.toList());
@@ -60,7 +60,7 @@ public class FileUserService implements UserService {
 
     //유저 전체 조회
     @Override
-    public List<User> readAll() {
+    public List<User> findAll() {
         return new ArrayList<>(data.values());
     }
 
@@ -96,7 +96,7 @@ public class FileUserService implements UserService {
 
     //채널 전체에서 해당 유저 삭제
     public void removeUserFromChannels(User user) {
-        for (Channel channel : channelService.readAll()) {
+        for (Channel channel : channelService.findAllByUserId()) {
             Set<User> members = new HashSet<>(channel.getMembers());
             if (members.remove(user)) {
                 Channel updatedChannel = new Channel(

@@ -28,7 +28,6 @@ public class BasicUserService implements UserService {
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
 
-
     public UserResponse create(UserCreateRequest request) {
         // 중복 name, email 검사
         existsByUserName(request.name());
@@ -58,7 +57,7 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserResponse find(UUID userId) {
-        User user = userRepository.read(userId).orElseThrow();
+        User user = userRepository.find(userId).orElseThrow();
 
         UserStatus status = userStatusRepository.readByUserId(userId)
                 .orElse(new UserStatus(userId, false));
@@ -68,7 +67,7 @@ public class BasicUserService implements UserService {
 
     @Override
     public List<UserResponse> findAll() {
-        List<User> users = userRepository.readAll();
+        List<User> users = userRepository.findAll();
 
         return users.stream()
                 .map(user -> {
@@ -81,8 +80,8 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public List<UserResponse> findByName(String name) {
-        List<User> users = userRepository.readByName(name);
+    public List<UserResponse> findByUserName(String name) {
+        List<User> users = userRepository.findByUserName(name).orElseThrow();
 
         return users.stream()
                 .map(user -> {
@@ -97,7 +96,7 @@ public class BasicUserService implements UserService {
     @Override
     public UserResponse update(UserUpdateRequest request) {
         //1. 수정할 엔티티 조회
-        User user = userRepository.read(request.id()).orElseThrow();
+        User user = userRepository.find(request.id()).orElseThrow();
 
         //2. username/email 변경 시 중복 체크
         if (request.username() != null && !request.username().equals(user.getName())) {
@@ -133,7 +132,7 @@ public class BasicUserService implements UserService {
 
     @Override
     public boolean delete(UUID userId, String password) {
-        User user = userRepository.read(userId).orElseThrow();
+        User user = userRepository.find(userId).orElseThrow();
         if (user == null) {
             throw new IllegalArgumentException(" --해당 유저를 찾을 수 없습니다.");
         }
@@ -157,7 +156,7 @@ public class BasicUserService implements UserService {
 
     @Override
     public void removeUserFromChannels(User user) {
-        for (Channel channel : channelRepository.readAll()) {
+        for (Channel channel : channelRepository.findAll()) {
             Set<User> members = new HashSet<>(channel.getMembers());
             if (members.remove(user)) {
                 channel.setMembers(members);
@@ -168,7 +167,7 @@ public class BasicUserService implements UserService {
     }
 
     private void existsByEmail(String email) {
-        List<User> users = userRepository.readAll();
+        List<User> users = userRepository.findAll();
         boolean exists = users.stream()
                 .anyMatch((u -> u.getEmail().equals(email)));
         if(exists) {
@@ -177,7 +176,7 @@ public class BasicUserService implements UserService {
     }
 
     private void existsByUserName(String userName) {
-        List<User> users = userRepository.readAll();
+        List<User> users = userRepository.findAll();
         boolean exists = users.stream()
                 .anyMatch((u -> u.getName().equals(userName)));
         if(exists) {

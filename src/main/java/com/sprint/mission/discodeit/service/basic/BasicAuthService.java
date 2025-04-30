@@ -4,12 +4,10 @@ import com.sprint.mission.discodeit.dto.LoginRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class BasicAuthService implements AuthService {
     private final UserRepository userRepository;
 
-    @Autowired
     public BasicAuthService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
