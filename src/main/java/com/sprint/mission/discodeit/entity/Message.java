@@ -13,29 +13,25 @@ public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private UUID id;
-    private User sender;        //보낸사람
-    private Channel channel;
+    private UUID senderId;        //보낸사람
+    private UUID channelId;
     private String category;
     private String content;     //내용
     private Instant createdAt;
     private Instant updatedAt;
 
-    private UUID fileAtttachedId;
-
-    public Message(User sender,Channel channel, String category, String content) {
+    public Message(UUID senderId, UUID channelId, String category, String content) {
         this.id = UUID.randomUUID();
-        this.sender = sender;
-        this.channel = channel;
+        this.senderId = senderId;
+        this.channelId = channelId;
         this.category = category;
         this.content = content;
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
-
-        this.fileAtttachedId = null;
     }
 
-    public void update(Message updateMessageData) {
-        this.content = updateMessageData.content;
+    public void update(String content) {
+        this.content = content;
         this.updatedAt = Instant.now();
     }
 
@@ -60,8 +56,8 @@ public class Message implements Serializable {
     public String toString() {
         return "Message{" +
                 "id= '" + id + '\'' +
-                ", sender= '" + sender.getName() + '\'' +
-                ", channel= '" + channel.getChannelName() + '\'' +
+                ", sender= '" + senderId + '\'' +
+                ", channel= '" + channelId + '\'' +
                 ", category= '" + category + '\'' +
                 ", content= '" + content + '\'' +
                 '}';

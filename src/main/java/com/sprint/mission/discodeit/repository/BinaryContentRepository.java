@@ -6,16 +6,18 @@ import java.util.List;
 import java.util.UUID;
 
 public interface BinaryContentRepository {
-    public void save(BinaryContent binaryContent);
+    public BinaryContent save(UUID messageId, BinaryContent binaryContent);
 
-    public BinaryContent read(UUID id);
+    public BinaryContent find(UUID id);
 
-    public List<BinaryContent> readAll();
+    public List<BinaryContent> findAll();
 
     public void delete(UUID id);
 
     //특정 유저의 (프로필 이미지 등) 바이너리 조회
-    public List<BinaryContent> readByUserId(UUID userId);\
+    public List<BinaryContent> readByUserId(UUID userId);
 
     public void deleteByUserId(UUID userId);
+
+    public void deleteByMessageId(UUID messageId);
 }

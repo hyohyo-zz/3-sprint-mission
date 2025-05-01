@@ -8,11 +8,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface MessageRepository {
-    public void create(Message message);
+    public Message create(Message message);
 
-    public Message read(UUID id);
+    public Message find(UUID id);
 
-    public List<Message> readAll();
+    public List<Message> findAll();
 
     public Message update(UUID id, Message update);
 

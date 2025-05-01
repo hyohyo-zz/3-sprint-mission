@@ -16,13 +16,13 @@ public class JCFMessageRepository implements MessageRepository {
 
     //메시지 조회
     @Override
-    public Message read(UUID id) {
+    public Message find(UUID id) {
         return this.data.get(id);
     }
 
     //메시지 전체조회
     @Override
-    public List<Message> readAll() {
+    public List<Message> findAll() {
         return new ArrayList<>(this.data.values());
     }
 

@@ -316,12 +316,12 @@ public class JavaApplication {
         System.out.println("------------------------- ReadMessage -------------------------");
         //메시지 전체조회(다건 조회)
         System.out.println("\n전체 메시지");
-        messageService.readAll().forEach(System.out::println);
+        messageService.findAll().forEach(System.out::println);
 
         //메시지3 조회(단건 조회)
         try{
             System.out.println("\n메시지 조회");
-            System.out.println(messageService.read(messageService.readAll().get(2).getId()));
+            System.out.println(messageService.find(messageService.findAll().get(2).getId()));
 
         } catch (IllegalArgumentException e) {
             System.out.println("\n!!메시지 조회 실패!!" + e.getMessage());
@@ -331,7 +331,7 @@ public class JavaApplication {
         //존재하지 않는 메시지 조회
         try{
             System.out.println("\n메시지 조회");
-            System.out.println(messageService.read(UUID.randomUUID()));
+            System.out.println(messageService.find(UUID.randomUUID()));
         } catch (IllegalArgumentException e) {
             System.out.println("\n!!메시지 조회 실패!!" + e.getMessage());
         }
@@ -339,29 +339,29 @@ public class JavaApplication {
     private static void updateMessages(MessageService messageService) {
         System.out.println("\n------------------------- UpdateMessage ------------------------");
         //수정할 메시지 original변수에 저장
-        Message original = messageService.read(messageService.readAll().get(0).getId());
-        System.out.println("\n메시지1 수정 전: \n" + messageService.read(original.getId()));
+        Message original = messageService.find(messageService.findAll().get(0).getId());
+        System.out.println("\n메시지1 수정 전: \n" + messageService.find(original.getId()));
 
         //변경 메시지 updated변수에 저장
         Message updated = new Message(original.getSender(), original.getChannel(), original.getCategory(), "공지 수정합니다~~~~");
 
         //메시지 수정
         messageService.update(original.getId(), updated);
-        System.out.println("\n메시지1 수정 후: \n" + messageService.read(original.getId()));
+        System.out.println("\n메시지1 수정 후: \n" + messageService.find(original.getId()));
 
         //수정후 전체 메시지
         System.out.println("\n전체 메시지");
-        messageService.readAll().forEach(System.out::println);
+        messageService.findAll().forEach(System.out::println);
     }
     private static void deleteMessages(MessageService messageService) {
         System.out.println("\n------------------------ DeleteMessage ------------------------");
         //메시지 삭제
         System.out.println("\n.\n.\n<<메시지4 삭제 완료>>\n");
-        messageService.delete(messageService.readAll().get(3).getId());
+        messageService.delete(messageService.findAll().get(3).getId());
 
         //메시지 삭제 후 재조회
         System.out.print("삭제 후 전체 메시지: \n");
-        messageService.readAll().forEach(System.out::println);
+        messageService.findAll().forEach(System.out::println);
     }
 
 }

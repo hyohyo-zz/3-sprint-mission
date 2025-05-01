@@ -12,14 +12,16 @@ import java.util.UUID;
 @Getter
 public class BinaryContent {
     private final UUID id;
+    private final UUID messageId;
     private final byte[] content;
     private final String contentType;
     private final String originalFilename;
     private final String url;
     private final Instant createdAt;
 
-    public BinaryContent(byte[] content, String contentType, String originalFilename, String url, Instant createdAt) {
+    public BinaryContent(UUID messageId, byte[] content, String contentType, String originalFilename, String url, Instant createdAt) {
         this.id = UUID.randomUUID();
+        this.messageId = messageId;
         this.content = content;
         this.contentType = contentType;
         this.originalFilename = originalFilename;
