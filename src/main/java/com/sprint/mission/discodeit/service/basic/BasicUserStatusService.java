@@ -1,11 +1,10 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.Response.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.request.create.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -24,7 +23,7 @@ public class BasicUserStatusService implements UserStatusService {
 
 
     @Override
-    public UserStatus create(UserStatusCreateRequest request) {
+    public UserStatusResponse create(UserStatusCreateRequest request) {
         User user = userRepository.find(request.userId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
 
@@ -35,36 +34,39 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus status = new UserStatus(request.userId(), request.isOnline());
         userStatusRepository.create(status);
-        return status;
+        return toUserStatusResponse(status);
     }
 
     @Override
-    public UserStatus find(UUID id) {
+    public UserStatusResponse find(UUID id) {
         UserStatus userStatus = userStatusRepository.find(id);
         if(userStatus == null) {
             throw new IllegalArgumentException("해당 Id의 UserStatus를 찾을 수 없습니다.");
         }
-        return userStatus;
+        return toUserStatusResponse(userStatus);
     }
 
     @Override
-    public List<UserStatus> findAll() {
-        return userStatusRepository.findAll();
+    public List<UserStatusResponse> findAll() {
+        return userStatusRepository.findAll().stream()
+                .map(this::toUserStatusResponse)
+                .toList();
     }
 
     @Override
-    public UserStatus update(UserStatusUpdateRequest request) {
+    public UserStatusResponse update(UserStatusUpdateRequest request) {
         UserStatus userStatus = userStatusRepository.find(request.id());
         if(userStatus == null) {
             throw new IllegalArgumentException("수정할 UserStatus가 존재하지 않습니다.");
         }
 
         userStatus.updateOnlineStatus(request.newOnlineStatus());
-        return userStatusRepository.update(userStatus);
+        UserStatus updateUserStatus = userStatusRepository.update(userStatus);
+        return toUserStatusResponse(updateUserStatus);
     }
 
     @Override
-    public UserStatus updateByUserId(UUID userId, UserStatusUpdateRequest request) {
+    public UserStatusResponse updateByUserId(UUID userId, UserStatusUpdateRequest request) {
         Optional<UserStatus> optionalUserStatus = userStatusRepository.findByUserId(userId);
 
         if (optionalUserStatus.isEmpty()) {
@@ -73,8 +75,8 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus userStatus = optionalUserStatus.get();
         userStatus.updateOnlineStatus(request.newOnlineStatus());
-        return userStatusRepository.update(userStatus);
-
+        UserStatus updateUserStatus = userStatusRepository.update(userStatus);
+        return toUserStatusResponse(updateUserStatus);
     }
 
     @Override
@@ -85,5 +87,13 @@ public class BasicUserStatusService implements UserStatusService {
         }
         userStatusRepository.delete(id);
         return true;
+    }
+
+    private UserStatusResponse toUserStatusResponse(UserStatus status) {
+        return new UserStatusResponse(
+                status.getUserId(),
+                status.isOnline(),
+                status.getLastOnlineTime()
+        );
     }
 }
