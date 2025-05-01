@@ -9,9 +9,9 @@ import java.util.UUID;
 public interface UserStatusRepository {
     public void create(UserStatus userstatus);
 
-    public UserStatus read(UUID id);
+    public UserStatus find(UUID id);
 
-    public List<UserStatus> readAll();
+    public List<UserStatus> findAll();
 
     public UserStatus update(UserStatus userstatus);
 
@@ -19,5 +19,5 @@ public interface UserStatusRepository {
 
     public void deleteByUserId(UUID userId);
 
-    public Optional<UserStatus> readByUserId(UUID userId);
+    public Optional<UserStatus> findByUserId(UUID userId);
 }

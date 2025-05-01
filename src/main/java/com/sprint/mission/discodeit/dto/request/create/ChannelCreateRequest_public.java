@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.channel;
+package com.sprint.mission.discodeit.dto.request.create;
 
 import java.util.List;
 import java.util.Set;

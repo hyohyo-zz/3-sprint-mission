@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.channel;
+package com.sprint.mission.discodeit.dto.Response;
 
 import java.time.Instant;
 import java.util.List;

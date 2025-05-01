@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.user;
+package com.sprint.mission.discodeit.dto.request.create;
 
 import org.springframework.web.multipart.MultipartFile;
 

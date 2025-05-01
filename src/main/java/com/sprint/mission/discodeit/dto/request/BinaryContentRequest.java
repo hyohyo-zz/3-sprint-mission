@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.binarycontent;
+package com.sprint.mission.discodeit.dto.request;
 
 public record BinaryContentRequest(
         byte[] content,

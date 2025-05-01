@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -13,9 +14,9 @@ import java.util.UUID;
 * 헷갈린다 updateAt을 마지막 접속시간으로 쓰면 안되는 것??
 *
 * updatedAt은 객체의 마지막 수정 시간(상태메시지, 로그인 등)
-* lastOnlineTime은 사용자가 언제 마지막으로 접속했는가??
+ * lastOnlineTime은 사용자가 언제 마지막으로 접속했는가??
 * 나중에 메소드 추가를 위해? 분리하는 것이 좋다?*/
-@Getter
+@Getter @Setter
 public class UserStatus {
     private UUID userId;    //User에서도 userId로 변경하는게 좋을까?
     private Instant lastOnlineTime;
@@ -29,23 +30,27 @@ public class UserStatus {
         this.userId = userId;
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
-        this.online = isOnlineNow();
+        this.lastOnlineTime = online ? Instant.now() : null;
+        this.online = online;
     }
 
     //lastOnlineTime update
     public void updatelastOnline() {
         this.lastOnlineTime = Instant.now();
         this.updatedAt = Instant.now();
-        this.online = isOnline();
+        this.online = isOnlineNow();
     }
 
     //지금 온라인 상태인지?(5분 이내 인지)
     public boolean isOnlineNow() {
-        if (lastOnlineTime == null) {
-            return false;
-        }
-        Duration duration = Duration.between(lastOnlineTime, Instant.now());
+        return lastOnlineTime != null &&
+                Duration.between(lastOnlineTime, Instant.now()).toMinutes() <= 5;
+    }
 
-        return duration.toMinutes() <= 5;
+    //온라인상태 수동변경
+    public void updateOnlineStatus(boolean online) {
+        this.online = online;
+        this.lastOnlineTime = Instant.now();
+        this.updatedAt = Instant.now();
     }
 }

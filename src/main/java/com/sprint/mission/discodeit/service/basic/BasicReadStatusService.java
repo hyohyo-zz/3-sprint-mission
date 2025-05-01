@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.create.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.request.update.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
@@ -51,7 +51,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public ReadStatus find(UUID id) {
-        ReadStatus readStatus = readStatusRepository.read(id);
+        ReadStatus readStatus = readStatusRepository.find(id);
         if (readStatus == null) {
             throw new IllegalArgumentException("해당 Id의 Readstatus를 찾을 수 없습니다.");
         }
@@ -65,7 +65,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public ReadStatus update(ReadStatusUpdateRequest request) {
-        ReadStatus readStatus = readStatusRepository.read(request.id());
+        ReadStatus readStatus = readStatusRepository.find(request.id());
         if (readStatus == null) {
             throw new IllegalArgumentException("수정할 ReadStatus가 존재하지 않습니다.");
         }
@@ -76,7 +76,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public boolean delete(UUID id) {
-        ReadStatus readStatus = readStatusRepository.read(id);
+        ReadStatus readStatus = readStatusRepository.find(id);
         if (readStatus == null) {
             throw new IllegalArgumentException("삭제할 ReadStaus가 존재하지 않습니다.");
         }

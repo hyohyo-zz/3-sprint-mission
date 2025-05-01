@@ -1,6 +1,4 @@
-package com.sprint.mission.discodeit.dto.message;
-
-import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentResponse;
+package com.sprint.mission.discodeit.dto.Response;
 
 import java.time.Instant;
 import java.util.List;

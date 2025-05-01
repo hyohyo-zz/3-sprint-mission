@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.user.UserResponse;
-import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.Response.UserResponse;
+import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
@@ -59,7 +59,7 @@ public class BasicUserService implements UserService {
     public UserResponse find(UUID userId) {
         User user = userRepository.find(userId).orElseThrow();
 
-        UserStatus status = userStatusRepository.readByUserId(userId)
+        UserStatus status = userStatusRepository.findByUserId(userId)
                 .orElse(new UserStatus(userId, false));
 
         return toUserResponse(user, status);
@@ -72,7 +72,7 @@ public class BasicUserService implements UserService {
         return users.stream()
                 .map(user -> {
                     UserStatus status =
-                            userStatusRepository.readByUserId(user.getId())
+                            userStatusRepository.findByUserId(user.getId())
                        .orElse(new UserStatus(user.getId(), false));
                     return toUserResponse(user,status);
                 })
@@ -86,7 +86,7 @@ public class BasicUserService implements UserService {
         return users.stream()
                 .map(user -> {
                     UserStatus status =
-                            userStatusRepository.readByUserId(user.getId())
+                            userStatusRepository.findByUserId(user.getId())
                                     .orElse(new UserStatus(user.getId(), false));
                     return toUserResponse(user,status);
                 })
@@ -123,7 +123,7 @@ public class BasicUserService implements UserService {
         userRepository.create(user);
 
         //6. UserStatus 조회 ( 없으면 기본값)
-        UserStatus status = userStatusRepository.readByUserId(user.getId())
+        UserStatus status = userStatusRepository.findByUserId(user.getId())
                 .orElse(new UserStatus(user.getId(), false));
 
         //dto로 변환해서 반환

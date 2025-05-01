@@ -8,9 +8,9 @@ import java.util.UUID;
 public interface ReadStatusRepository {
     public void create(ReadStatus readStatus);
 
-    public ReadStatus read(UUID id);
+    public ReadStatus find(UUID id);
 
-    public List<ReadStatus> readAll();
+    public List<ReadStatus> findAll();
 
     public ReadStatus update(ReadStatus readStatus);
 
