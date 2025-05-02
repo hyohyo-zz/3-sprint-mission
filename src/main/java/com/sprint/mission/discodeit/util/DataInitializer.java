@@ -9,11 +9,14 @@ public class DataInitializer {
     public static final String CHANNEL_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/channel.ser";
     public static final String USER_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/user.ser";
     public static final String MESSAGE_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/message.ser";
+    public static final String BINARYCONTENT_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/binarycontent.ser";
+
 
     private static final List<String> FILE_PATHS = List.of(
             CHANNEL_FILE_PATH,
             USER_FILE_PATH,
-            MESSAGE_FILE_PATH
+            MESSAGE_FILE_PATH,
+            BINARYCONTENT_FILE_PATH
     );
 
     public static void clearSerializedData() {
