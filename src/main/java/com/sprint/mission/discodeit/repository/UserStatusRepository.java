@@ -15,7 +15,7 @@ public interface UserStatusRepository {
 
     public Optional<UserStatus> findByUserId(UUID userId);
 
-    public UserStatus update(UserStatus userstatus);
+    public UserStatus update(UserStatus update);
 
     public boolean delete(UUID id);
 

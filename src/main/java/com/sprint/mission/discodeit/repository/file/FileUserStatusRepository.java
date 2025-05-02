@@ -38,12 +38,12 @@ public class FileUserStatusRepository implements UserStatusRepository {
     }
 
     @Override
-    public UserStatus update(UserStatus userstatus) {
-        UserStatus userStatus = data.get(userstatus.getUserId());
+    public UserStatus update(UserStatus update) {
+        UserStatus userStatus = data.get(update.getUserId());
         userStatus.updateOnlineStatus(userStatus.isOnline());
         userStatus.updatelastOnline();;
         saveData();
-        return userstatus;
+        return update;
     }
 
     @Override
