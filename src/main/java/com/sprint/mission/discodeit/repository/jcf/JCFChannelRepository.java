@@ -13,14 +13,15 @@ public class JCFChannelRepository implements ChannelRepository {
 
     //채널 생성
     @Override
-    public void create(Channel channel) {
+    public Channel create(Channel channel) {
         data.put(channel.getId(), channel);
+        return channel;
     }
 
     //채널 조회
     @Override
-    public Channel find(UUID id) {
-        return data.get(id);
+    public Optional<Channel> find(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     //채널 전체 조회
