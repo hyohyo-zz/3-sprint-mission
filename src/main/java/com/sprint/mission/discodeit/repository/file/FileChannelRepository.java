@@ -19,15 +19,16 @@ public class FileChannelRepository implements ChannelRepository {
 
     //채널 생성
     @Override
-    public void create(Channel channel) {
+    public Channel create(Channel channel) {
         data.put(channel.getId(), channel);
         saveData();
+        return channel;
     }
 
     //채널 조회
     @Override
-    public Channel find(UUID id) {
-        return this.data.get(id);
+    public Optional<Channel> find(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     //채널 전체 조회
@@ -49,6 +50,7 @@ public class FileChannelRepository implements ChannelRepository {
     public Channel update(UUID id, Channel update) {
         Channel channel = this.data.get(id);
         channel.update(update);
+        saveData();
         return channel;
     }
 
