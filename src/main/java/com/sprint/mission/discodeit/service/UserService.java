@@ -12,7 +12,7 @@ public interface UserService {
 
     public UserResponse find(UUID id);
 
-    public List<UserResponse> findByUserName(String name);
+    public UserResponse findByUserName(String name);
 
     public List<UserResponse> findAll();
 

@@ -22,7 +22,6 @@ public class User implements Serializable {
     private Instant updatedAt;
 
     private UUID profileImageId;
-    private String profileImageUrl;
 
     public User(String name, String email, String phone, String password) {
         this.id = UUID.randomUUID();
@@ -56,7 +55,10 @@ public class User implements Serializable {
         this.updatedAt = Instant.now();
 
         this.profileImageId = updateUserData.profileImageId;
-        this.profileImageUrl = updateUserData.profileImageUrl;
+    }
+
+    public String getProfileImageUrl() {
+        return (profileImageId != null) ? "/files/" + profileImageId : null;
     }
 
     public String toString() {

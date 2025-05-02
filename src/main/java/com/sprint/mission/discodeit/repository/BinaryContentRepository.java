@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface BinaryContentRepository {
-    public BinaryContent save(UUID messageId, BinaryContent binaryContent);
+    public BinaryContent save(BinaryContent binaryContent);
 
     public BinaryContent find(UUID id);
 

@@ -7,6 +7,7 @@ public record UserResponse(
         UUID id,
         String userName,
         String email,
+        UUID profileImageId,
         String profileImageUrl,
         boolean online
 ) {

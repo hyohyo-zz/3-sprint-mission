@@ -58,14 +58,13 @@ public class BasicMessageService implements MessageService {
         if(request.attachments() != null && !request.attachments().isEmpty()) {
             for(BinaryContentRequest file : request.attachments()) {
                 BinaryContent attachment = new BinaryContent(
+                        null,
                         savedMessage.getId(),
                         file.content(),
                         file.contentType(),
-                        file.originalFilename(),
-                        "/files/" + file.originalFilename(), // 또는 URL 생성기 따로
-                        Instant.now()
+                        file.originalFilename()
                 );
-                savedAttachments.add(binaryContentRepository.save(savedMessage.getId(), attachment));
+                savedAttachments.add(binaryContentRepository.save(attachment));
             }
         }
 

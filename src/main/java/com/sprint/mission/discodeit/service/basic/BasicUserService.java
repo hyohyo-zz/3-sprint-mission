@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.Response.UserResponse;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
@@ -33,21 +34,22 @@ public class BasicUserService implements UserService {
         existsByUserName(request.name());
         existsByEmail(request.email());
 
-       UUID profileImageId = null;
+        User user = new User(request.name(), request.email(), request.phone(), request.password());
+        User savedUser = userRepository.create(user);
+
+        //프로필 이미지 생성
        if(request.profileImage() != null && !request.profileImage().isEmpty()) {
-           BinaryContent binaryContent = binaryContentRepository.save(new BinaryContent(
+           BinaryContent profileImage = new BinaryContent(
+                   savedUser.getId(),
                    null,
-                   request.profileImage().getContentType(),
                    request.profileImage().getBytes(),
-                   Instant.now()
-           ));
-
-           profileImageId = binaryContent.getId();
+                   request.profileImage().getContentType(),
+                   request.profileImage().getOriginalFilename()
+           );
+           BinaryContent savedImage = binaryContentRepository.save(profileImage);
+           user.setProfileImageId(savedImage.getId());
+           userRepository.update(savedUser);
        }
-
-       User user = new User(request.name(), request.email(), request.phone(), request.password());
-       user.setProfileImageId(profileImageId);
-       User savedUser = Objects.requireNonNull(userRepository.create(user));
 
        UserStatus status = new UserStatus(savedUser.getId(), false);
        userStatusRepository.create(status);
@@ -80,17 +82,14 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public List<UserResponse> findByUserName(String name) {
-        List<User> users = userRepository.findByUserName(name).orElseThrow();
+    public UserResponse findByUserName(String name) {
+        User user = userRepository.findByUserName(name)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이름의 유저가 없습니다."));
 
-        return users.stream()
-                .map(user -> {
-                    UserStatus status =
-                            userStatusRepository.findByUserId(user.getId())
-                                    .orElse(new UserStatus(user.getId(), false));
-                    return toUserResponse(user,status);
-                })
-                .collect(Collectors.toList());
+        UserStatus status = userStatusRepository.findByUserId(user.getId())
+                .orElse(new UserStatus(user.getId(), false));
+
+        return toUserResponse(user, status);
     }
 
     @Override
@@ -113,8 +112,9 @@ public class BasicUserService implements UserService {
         if(request.password() != null) user.setPassword(request.password());
 
         //4. 프로필 이미지 대체( 있으면 새로 저장)
-        if(request.username() != null && ! request.profileImage().isEmpty()) {
-            BinaryContent binaryContent = binaryContentRepository.save(request.profileImage().getBytes(),
+        if(request.profileImage() != null && ! request.profileImage().isEmpty()) {
+            BinaryContent binaryContent = binaryContentRepository.save(
+                    request.profileImage().getBytes(),
                     request.profileImage().getOriginalFilename());
             user.setProfileImageId(binaryContent.getId());
         }
@@ -190,8 +190,8 @@ public class BasicUserService implements UserService {
                 user.getName(),
                 user.getEmail(),
                 user.getProfileImageId(),
-                status.isOnline(),
-                status
+                user.getProfileImageUrl(),
+                status.isOnline()
         );
     }
 }

@@ -8,7 +8,6 @@ import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -20,16 +19,20 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     @Override
     public BinaryContentResponse create(BinaryContentCreateRequest request) {
+        if ((request.userId() == null && request.messageId() == null)
+            || request.messageId() == null || request.content().length == 0) {
+            throw new IllegalArgumentException("파일 업로드 대상 또는 내용이 잘못되었습니다.");
+        }
+
         BinaryContent file = new BinaryContent(
+                request.userId(),
                 request.messageId(),
                 request.content(),
                 request.contentType(),
-                request.originalFilename(),
-                "/files/" + request.originalFilename(),
-                Instant.now()
+                request.originalFilename()
         );
 
-        binaryContentRepository.save(request.messageId(), file);
+        binaryContentRepository.save(file);
         return toBinaryContentResponse(file);
     }
 

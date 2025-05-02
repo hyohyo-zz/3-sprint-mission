@@ -15,7 +15,7 @@ public interface UserRepository {
 
     public List<User> findAll();
 
-    public User update(UUID id, User update);
+    public User update(User update);
 
     public boolean delete(UUID id);
 
