@@ -57,7 +57,7 @@ public class BasicChannelService implements ChannelService {
         }
 
         //참여자 id추출
-        List<UUID> memberIds = readStatusRepository.readByChannelId(savedChannel.getId()).stream()
+        List<UUID> memberIds = readStatusRepository.findByChannelId(savedChannel.getId()).stream()
                 .map(ReadStatus::getUserId).toList();
 
         return toChannelResponse(savedChannel, lastMessageTime(savedChannel.getId()), memberIds);
@@ -99,7 +99,7 @@ public class BasicChannelService implements ChannelService {
 
         List<UUID> memberIds = new ArrayList<>();
         if (channel.isPrivate()) {
-            List<ReadStatus> readStatuses = readStatusRepository.readByChannelId(channelId);
+            List<ReadStatus> readStatuses = readStatusRepository.findByChannelId(channelId);
             for (ReadStatus readStatus : readStatuses) {
                 memberIds.add(readStatus.getUserId());
             }
@@ -120,7 +120,7 @@ public class BasicChannelService implements ChannelService {
 
        for (Channel channel : channels) {
            if(channel.isPrivate()) {
-               List<ReadStatus> readStatuses = readStatusRepository.readByChannelId(channel.getId());
+               List<ReadStatus> readStatuses = readStatusRepository.findByChannelId(channel.getId());
 
                // 해당 유저가 참여자인지
                 boolean isMember = readStatuses.stream()
@@ -155,11 +155,11 @@ public class BasicChannelService implements ChannelService {
 
         for (Channel channel : channels) {
             List<UUID> memberIds = channel.isPrivate()
-                    ? readStatusRepository.readByChannelId(channel.getId()).stream()
+                    ? readStatusRepository.findByChannelId(channel.getId()).stream()
                     .map(ReadStatus::getUserId).toList()
                     :List.of();
             if (channel.isPrivate()) {
-                List<ReadStatus> readStatuses = readStatusRepository.readByChannelId(channel.getId());
+                List<ReadStatus> readStatuses = readStatusRepository.findByChannelId(channel.getId());
                 for (ReadStatus readStatus : readStatuses) {
                     memberIds.add(readStatus.getUserId());
                 }

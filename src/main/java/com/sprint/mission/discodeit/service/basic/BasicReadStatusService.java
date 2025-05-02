@@ -32,7 +32,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
 
         //가장 최근에 읽은 시간 하나만 두기위해 중복 체크
-        boolean alreadyExists = readStatusRepository.readByUserId(request.userId()).stream()
+        boolean alreadyExists = readStatusRepository.findByUserId(request.userId()).stream()
                 .anyMatch(rs -> rs.getChannelId().equals(request.channelId()));
 
         if (alreadyExists) {
@@ -60,7 +60,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public List<ReadStatus> findAllByUserId(UUID userId) {
-        return readStatusRepository.readByUserId(userId);
+        return readStatusRepository.findByUserId(userId);
     }
 
     @Override
