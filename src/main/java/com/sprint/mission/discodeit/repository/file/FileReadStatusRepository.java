@@ -96,7 +96,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
         } catch (IOException e) {
-            System.err.println("[binaryContent] 데이터 저장 중 오류 발생: " + e.getMessage());
+            System.err.println("[readStatus] 데이터 저장 중 오류 발생: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -107,9 +107,9 @@ public class FileReadStatusRepository implements ReadStatusRepository {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
             return (Map<UUID, ReadStatus>) ois.readObject();
         } catch (FileNotFoundException e) {
-            System.out.println("[binaryContent] 저장된 파일이 없습니다. 새 데이터를 시작합니다.");
+            System.out.println("[readStatus] 저장된 파일이 없습니다. 새 데이터를 시작합니다.");
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("[binaryCotent] 데이터 불러오기 중 오류 발생: " + e.getMessage());
+            System.out.println("[readStatus] 데이터 불러오기 중 오류 발생: " + e.getMessage());
             e.printStackTrace();
         }
         // 실패 시 빈 Map 반환
