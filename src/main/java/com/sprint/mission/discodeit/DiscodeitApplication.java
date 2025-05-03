@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit;
 
+import com.sprint.mission.discodeit.config.DiscodeitProperties;
 import com.sprint.mission.discodeit.dto.Response.ChannelResponse;
 import com.sprint.mission.discodeit.dto.Response.MessageResponse;
 import com.sprint.mission.discodeit.dto.Response.UserResponse;
@@ -17,19 +18,24 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.util.DataInitializer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
+@EnableConfigurationProperties(DiscodeitProperties.class)
 public class DiscodeitApplication {
 
 	public static void main(String[] args) {
-		//초기화
-		DataInitializer.clearSerializedData();
-
 		ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
+		//초기화
+		DataInitializer initializer = context.getBean(DataInitializer.class);
+		initializer.clearSerializedData();
+
+		context.close();
+		context = SpringApplication.run(DiscodeitApplication.class, args);
 
 		//콩받기
 		UserService userService = context.getBean(UserService.class);
