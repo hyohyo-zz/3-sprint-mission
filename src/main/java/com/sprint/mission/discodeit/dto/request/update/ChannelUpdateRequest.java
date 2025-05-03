@@ -6,6 +6,7 @@ import java.util.UUID;
 public record ChannelUpdateRequest(
         UUID channelId,
         String newChannelName,
-        List<String> newCategories
+        List<String> newCategories,
+        UUID newKeyUserId
 ) {
 }

@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -11,7 +12,8 @@ import java.util.UUID;
 * 수정불가한 도메인
 * */
 @Getter
-public class BinaryContent {
+public class BinaryContent  implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final UUID id;
 
     private final UUID userId;      //프로필이미지

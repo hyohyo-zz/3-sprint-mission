@@ -6,11 +6,10 @@ import java.util.UUID;
 
 public record UserCreateRequest(
         String name,
-        String gender,
         String email,
         String phone,
         String password,
-        UUID profileImageId,
-        MultipartFile profileImage
+        UUID profileImageId,    //선택, 없으면 null
+        BinaryContentCreateRequest profileImage      //선택, 없으면 null
 ) {
 }

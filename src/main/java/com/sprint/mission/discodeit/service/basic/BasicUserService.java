@@ -1,8 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.Response.UserResponse;
+import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -16,8 +15,11 @@ import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.*;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,17 +40,17 @@ public class BasicUserService implements UserService {
         User savedUser = userRepository.create(user);
 
         //프로필 이미지 생성
-       if(request.profileImage() != null && !request.profileImage().isEmpty()) {
+        if (request.profileImage() != null && request.profileImage().content() != null && request.profileImage().content().length > 0) {
            BinaryContent profileImage = new BinaryContent(
                    savedUser.getId(),
                    null,
-                   request.profileImage().getBytes(),
-                   request.profileImage().getContentType(),
-                   request.profileImage().getOriginalFilename()
+                   request.profileImage().content(),
+                   request.profileImage().contentType(),
+                   request.profileImage().originalFilename()
            );
            BinaryContent savedImage = binaryContentRepository.save(profileImage);
            user.setProfileImageId(savedImage.getId());
-           userRepository.update(savedUser);
+           userRepository.update(user);
        }
 
        UserStatus status = new UserStatus(savedUser.getId(), false);
@@ -110,13 +112,25 @@ public class BasicUserService implements UserService {
         if(request.username() != null) user.setName(request.username());
         if(request.email() != null ) user.setEmail(request.email());
         if(request.password() != null) user.setPassword(request.password());
+        if(request.phone() != null) user.setPhone(request.phone());
 
         //4. 프로필 이미지 대체( 있으면 새로 저장)
-        if(request.profileImage() != null && ! request.profileImage().isEmpty()) {
-            BinaryContent binaryContent = binaryContentRepository.save(
-                    request.profileImage().getBytes(),
-                    request.profileImage().getOriginalFilename());
-            user.setProfileImageId(binaryContent.getId());
+        if (request.profileImage() != null && !request.profileImage().isEmpty()) {
+            try {
+                BinaryContent binaryContent = new BinaryContent(
+                        user.getId(),
+                        null,
+                        request.profileImage().getBytes(),
+                        request.profileImage().getContentType(),
+                        request.profileImage().getOriginalFilename()
+                );
+
+                binaryContentRepository.save(binaryContent);
+                user.setProfileImageId(binaryContent.getId());
+
+            } catch (IOException e) {
+                throw new RuntimeException("프로필 이미지 저장 중 오류 발생", e);
+            }
         }
 
         //5. 변경된 User 엔티티 저장
@@ -189,9 +203,22 @@ public class BasicUserService implements UserService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
+                user.getPhone(),
+                user.getPassword(),
                 user.getProfileImageId(),
                 user.getProfileImageUrl(),
                 status.isOnline()
         );
+    }
+
+    public List<UserResponse> findByUserNameKeyWords(String keyword) {
+        return userRepository.findAll().stream()
+                .filter(user -> user.getName().contains(keyword))
+                .map(user -> {
+                    UserStatus status = userStatusRepository.findByUserId(user.getId())
+                            .orElse(new UserStatus(user.getId(), false));
+                    return toUserResponse(user, status);
+                })
+                .toList();
     }
 }

@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -10,7 +11,8 @@ import java.util.UUID;
 * 사용자별 각 채널에 읽지 않은 메시지 확인하기
 * 메시지를 읽음 -> updatedAt 시간이 현재 시간으로*/
 @Getter @Setter
-public class ReadStatus {
+public class ReadStatus  implements Serializable {
+    private static final long serialVersionUID = 1L;
     private UUID id;
     private UUID userId;
     private UUID channelId;

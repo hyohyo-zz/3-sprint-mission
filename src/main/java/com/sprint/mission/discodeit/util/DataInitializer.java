@@ -6,12 +6,12 @@ import java.util.List;
 
 //초기화
 public class DataInitializer {
-    public static final String CHANNEL_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/channel.ser";
-    public static final String USER_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/user.ser";
-    public static final String MESSAGE_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/message.ser";
-    public static final String BINARYCONTENT_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/binarycontent.ser";
-    public static final String READSTATUS_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/readstatus.ser";
-    public static final String USERSTATUS_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/userstatus.ser";
+    public static final String CHANNEL_FILE_PATH = "src/main/resources/data/channel.ser";
+    public static final String USER_FILE_PATH = "src/main/resources/data/user.ser";
+    public static final String MESSAGE_FILE_PATH = "src/main/resources/data/message.ser";
+    public static final String BINARYCONTENT_FILE_PATH = "src/main/resources/data/binarycontent.ser";
+    public static final String READSTATUS_FILE_PATH = "src/main/resources/data/readstatus.ser";
+    public static final String USERSTATUS_FILE_PATH = "src/main/resources/data/userstatus.ser";
 
     private static final List<String> FILE_PATHS = List.of(
             CHANNEL_FILE_PATH,

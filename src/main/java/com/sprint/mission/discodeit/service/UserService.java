@@ -22,4 +22,6 @@ public interface UserService {
 
     public void removeUserFromChannels(User user);
 
+    public List<UserResponse> findByUserNameKeyWords(String keyword);
+
 }

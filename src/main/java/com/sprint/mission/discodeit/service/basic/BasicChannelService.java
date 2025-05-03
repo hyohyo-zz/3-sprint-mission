@@ -180,6 +180,8 @@ public class BasicChannelService implements ChannelService {
         }
 
         channel.update(request.newChannelName(), request.newCategories());
+        User newCreator = findUserById(request.newKeyUserId());
+        channel.setCreator(newCreator);
 
         List<UUID> memberIds = List.of();
 
@@ -187,16 +189,18 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public boolean delete(UUID id, User user, String password) {
-        Channel channel = channelRepository.find(id).orElseThrow();;
-        if (channel == null) {
-            throw new IllegalArgumentException(" --해당 채널을 찾을 수 없습니다.");
+    public boolean delete(UUID id, UUID userId, String password) {
+        Channel channel = channelRepository.find(id)
+                .orElseThrow(() -> new IllegalArgumentException(" --해당 채널을 찾을 수 없습니다."));
+
+        if (!channel.getCreator().getPassword().equals(password)) {
+            throw new IllegalArgumentException("비밀번호 불일치로 삭제 실패");
         }
 
         messageRepository.deleteByChannelId(id);
         readStatusRepository.deleteByChannelId(id);
 
-        return channelRepository.delete(id, user, password);
+        return channelRepository.delete(id, userId, password);
     }
 
     @Override
@@ -206,7 +210,7 @@ public class BasicChannelService implements ChannelService {
 
     private void validateDuplicateChannelName(Channel channel) {
         List<Channel> channels = channelRepository.findByChannelName(channel.getChannelName());
-        if (channels.stream().anyMatch(c -> c.getKeyUser().equals(channel.getKeyUser())
+        if (channels.stream().anyMatch(c -> c.getCreator().equals(channel.getCreator())
                 && c.getChannelName().equals(channel.getChannelName()))) {
             throw new IllegalArgumentException(" --- 이미 등록된 채널입니다.");
         }
@@ -230,8 +234,8 @@ public class BasicChannelService implements ChannelService {
                 channel.getCategories(),
                 channel.isPrivate(),
                 lastMessageTime,
-                memberIds
+                memberIds,
+                channel.getCreator().getId()
         );
     }
-
 }

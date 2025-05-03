@@ -1,19 +1,20 @@
 package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Getter
+@Getter @Setter
 public class Channel implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private UUID id;
     private String channelName;
-    private User keyUser;
+    private User creator;
     private List<String> categories;
     private Set<User> members;
 
@@ -22,14 +23,14 @@ public class Channel implements Serializable {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Channel(String channelName, User keyUser, List<String> categories, Set<User> members , boolean isPrivate) {
+    public Channel(String channelName, User creator, List<String> categories, Set<User> members , boolean isPrivate) {
         this.id = UUID.randomUUID();
         this.channelName = channelName != null ? channelName : "";
         this.categories = categories  != null ? categories : new ArrayList<>();
 
-        this.keyUser = keyUser;
+        this.creator = creator;
         this.members = new HashSet<>(members);
-        this.members.add(keyUser);
+        this.members.add(creator);
 
         this.isPrivate = isPrivate;
 
@@ -39,7 +40,7 @@ public class Channel implements Serializable {
 
     public void update(Channel updateChannelData) {
         this.channelName = updateChannelData.channelName;
-        this.keyUser = updateChannelData.keyUser;
+        this.creator = updateChannelData.creator;
         this.categories = new ArrayList<>(updateChannelData.categories);
         this.members = new HashSet<>(updateChannelData.members);
         this.updatedAt = Instant.now();
@@ -65,9 +66,11 @@ public class Channel implements Serializable {
 
     //카테고리 중복 확인
     public void validateUniqueCategory() {
-        Set<String> categorySet = new HashSet<>(this.categories);
-        if (categorySet.size() != this.categories.size()) {
-            throw new IllegalArgumentException(" --- 중복된 카테고리가 포함되어 있습니다.");
+        Set<String> unique = new HashSet<>();
+        for (String category : this.categories) {
+            if (!unique.add(category)) {
+                throw new IllegalArgumentException(" --- 중복된 카테고리가 포함되어 있습니다.");
+            }
         }
     }
 
@@ -80,7 +83,7 @@ public class Channel implements Serializable {
     }
 
     public void addKeyUserToMembers() {
-        this.members.add(this.keyUser);
+        this.members.add(this.creator);
     }
 
     @Override
@@ -98,7 +101,7 @@ public class Channel implements Serializable {
     public String toString() {
         return "Channel{" +
                 "ChannelName= '" + channelName + '\'' +
-                ", KeyUser= '" + keyUser.getName() + '\'' +
+                ", KeyUser= '" + creator.getName() + '\'' +
                 ", Category= '" + categories + '\'' +
                 ", Members= '" + members.stream().map(User::getName).collect(Collectors.toList()) +
                 "'}";

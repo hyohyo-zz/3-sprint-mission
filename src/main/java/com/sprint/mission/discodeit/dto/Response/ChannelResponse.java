@@ -10,6 +10,7 @@ public record ChannelResponse(
         List<String> categories,
         boolean isPrivate,
         Instant lastMessageTime,
-        List<UUID> memberIds
+        List<UUID> memberIds,
+        UUID creatorId
 ) {
 }

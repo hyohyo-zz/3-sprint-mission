@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
@@ -17,7 +18,8 @@ import java.util.UUID;
  * lastOnlineTime은 사용자가 언제 마지막으로 접속했는가??
 * 나중에 메소드 추가를 위해? 분리하는 것이 좋다?*/
 @Getter @Setter
-public class UserStatus {
+public class UserStatus  implements Serializable {
+    private static final long serialVersionUID = 1L;
     private UUID userId;    //User에서도 userId로 변경하는게 좋을까?
     private Instant lastOnlineTime;
 

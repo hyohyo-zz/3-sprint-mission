@@ -1,9 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
 import com.sprint.mission.discodeit.dto.Response.BinaryContentResponse;
-import com.sprint.mission.discodeit.dto.request.create.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.Response.MessageResponse;
+import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.request.create.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -17,7 +17,6 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;

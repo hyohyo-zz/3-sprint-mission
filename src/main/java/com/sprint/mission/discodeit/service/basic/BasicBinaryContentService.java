@@ -20,7 +20,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public BinaryContentResponse create(BinaryContentCreateRequest request) {
         if ((request.userId() == null && request.messageId() == null)
-            || request.messageId() == null || request.content().length == 0) {
+                || request.content() == null || request.content().length == 0) {
             throw new IllegalArgumentException("파일 업로드 대상 또는 내용이 잘못되었습니다.");
         }
 

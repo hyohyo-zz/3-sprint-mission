@@ -18,9 +18,17 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 
     @Override
     public BinaryContent save(BinaryContent binaryContent) {
-        data.put(binaryContent.getId(), binaryContent);
-        saveData();
-        return binaryContent;
+        BinaryContent content = new BinaryContent(
+                binaryContent.getUserId(),
+                binaryContent.getMessageId(),
+                binaryContent.getContent(),
+                binaryContent.getContentType(),
+                binaryContent.getOriginalFilename()
+        );
+        data.put(content.getId(), content);  // ID 기준으로 저장
+        saveData();  // 파일 저장 등
+
+        return content;
     }
 
     @Override

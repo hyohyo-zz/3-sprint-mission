@@ -47,7 +47,7 @@ public class JCFChannelRepository implements ChannelRepository {
 
     //채널 삭제
     @Override
-    public boolean delete(UUID id, User user, String password) {
+    public boolean delete(UUID id, UUID userId, String password) {
         return this.data.remove(id) != null;
     }
 
