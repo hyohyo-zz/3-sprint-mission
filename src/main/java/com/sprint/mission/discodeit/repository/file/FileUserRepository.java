@@ -1,27 +1,35 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import com.sprint.mission.discodeit.config.DiscodeitProperties;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import org.springframework.stereotype.Repository;
+import jakarta.annotation.PostConstruct;
 
 import java.io.*;
 import java.util.*;
 
-import static com.sprint.mission.discodeit.util.DataInitializer.USER_FILE_PATH;
 
-@Repository
 public class FileUserRepository implements UserRepository {
     private static final long serialVersionUID = 1L;
 
-    private final String FILE_PATH = USER_FILE_PATH;
-
+    private final String filePath;
     private ChannelRepository channelRepository;
+    private Map<UUID, User> data;
 
-    private Map<UUID, User> data = loadData();
-
-    public FileUserRepository(ChannelRepository channelRepository) {
+    public FileUserRepository(DiscodeitProperties properties, ChannelRepository channelRepository) {
+        if (properties.getFilePath() == null) {
+            throw new IllegalStateException("filePath 설정이 null입니다. application.yaml 설정 확인 필요");
+        }
+        this.filePath = properties.getFilePath() + "/user.ser";
         this.channelRepository = channelRepository;
+        this.data = new HashMap<>();
+    }
+
+    // 파일 있으면 불러오기
+    @PostConstruct
+    public void init() {
+        this.data = loadData();
     }
 
     @Override
@@ -67,7 +75,7 @@ public class FileUserRepository implements UserRepository {
     }
 
     private void saveData() {
-        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
+        try (FileOutputStream fos = new FileOutputStream(filePath);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
         } catch (IOException e) {
@@ -79,7 +87,7 @@ public class FileUserRepository implements UserRepository {
     // 불러오기 메서드
     @SuppressWarnings("unchecked")
     private Map<UUID, User> loadData() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             return (Map<UUID, User>) ois.readObject();
         } catch (FileNotFoundException e) {
             System.out.println("[유저] 저장된 파일이 없습니다. 새 데이터를 시작합니다.");

@@ -1,20 +1,25 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import com.sprint.mission.discodeit.config.DiscodeitProperties;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import org.springframework.stereotype.Repository;
+import jakarta.annotation.PostConstruct;
 
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.sprint.mission.discodeit.util.DataInitializer.BINARYCONTENT_FILE_PATH;
 
-@Repository
 public class FileBinaryContentRepository implements BinaryContentRepository {
-    private final String FILE_PATH = BINARYCONTENT_FILE_PATH;
+    private static final long serialVersionUID = 1L;
 
-    private Map<UUID, BinaryContent> data = loadData();
+    private final String filePath;
+    private Map<UUID, BinaryContent> data;
+
+    public FileBinaryContentRepository(DiscodeitProperties properties) {
+        this.filePath = properties.getFilePath() + "/binarycontent.ser";
+        this.data = loadData();
+    }
 
     @Override
     public BinaryContent save(BinaryContent binaryContent) {
@@ -84,7 +89,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     }
 
     private void saveData() {
-        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
+        try (FileOutputStream fos = new FileOutputStream(filePath);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
         } catch (IOException e) {
@@ -96,7 +101,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     // 불러오기 메서드
     @SuppressWarnings("unchecked")
     private Map<UUID, BinaryContent> loadData() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             return (Map<UUID, BinaryContent>) ois.readObject();
         } catch (FileNotFoundException e) {
             System.out.println("[binaryContent] 저장된 파일이 없습니다. 새 데이터를 시작합니다.");
