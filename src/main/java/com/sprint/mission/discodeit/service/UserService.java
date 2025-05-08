@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service;
 
+import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.Response.UserResponse;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
@@ -8,7 +9,7 @@ import java.util.*;
 
 public interface UserService {
 
-    public UserResponse create(UserCreateRequest request);
+    public UserResponse create(UserCreateRequest request, Optional<BinaryContentCreateRequest> profileCreateRequest);
 
     public UserResponse find(UUID id);
 
