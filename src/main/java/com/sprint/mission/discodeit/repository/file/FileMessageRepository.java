@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.config.DiscodeitProperties;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -13,8 +14,6 @@ import java.util.*;
 
 
 public class FileMessageRepository implements MessageRepository {
-    private static final long serialVersionUID = 1L;
-
     private final String filePath;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
@@ -22,7 +21,7 @@ public class FileMessageRepository implements MessageRepository {
 
     public FileMessageRepository(DiscodeitProperties properties, UserRepository userRepository, ChannelRepository channelRepository) {
         if (properties.getFilePath() == null) {
-            throw new IllegalStateException("filePath 설정이 null입니다. application.yaml 설정 확인 필요");
+            System.out.println(ErrorMessages.format("[Message]", ErrorMessages.ERROR_FILE_PATH_NULL));
         }
         this.filePath = properties.getFilePath() + "/message.ser";
         this.userRepository = userRepository;
@@ -99,7 +98,7 @@ public class FileMessageRepository implements MessageRepository {
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
         } catch (IOException e) {
-            System.err.println("[메시지] 데이터 저장 중 오류 발생: " + e.getMessage());
+            System.out.println(ErrorMessages.format("[Message]", ErrorMessages.ERROR_SAVE));
             e.printStackTrace();
         }
     }
@@ -110,9 +109,11 @@ public class FileMessageRepository implements MessageRepository {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             return (Map<UUID, Message>) ois.readObject();
         } catch (FileNotFoundException e) {
-            System.out.println("[메시지] 저장된 파일이 없습니다. 새 데이터를 시작합니다.");
+            System.out.println(ErrorMessages.format("[Message]", ErrorMessages.ERROR_NOT_FOUND));
+            System.out.println("새 데이터를 시작합니다.");
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("[메시지] 데이터 불러오기 중 오류 발생: " + e.getMessage());
+            System.out.println(ErrorMessages.format("[Message]", ErrorMessages.ERROR_LOAD));
+
             e.printStackTrace();
         }
         // 실패 시 빈 Map 반환

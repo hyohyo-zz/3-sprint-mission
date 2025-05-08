@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import lombok.Getter;
 
 import java.io.Serializable;
@@ -35,7 +36,9 @@ public class Message implements Serializable {
 
     public void validateContent() {
         if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("메시지 내용은 비어있을 수 없습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("MessageContent", ErrorMessages.ERROR_EMPTY)
+            );
         }
     }
 

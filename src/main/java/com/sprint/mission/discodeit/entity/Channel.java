@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -60,7 +61,7 @@ public class Channel implements Serializable {
     public void validateMembership(User sender) {
         if (!members.contains(sender)) {
             throw new IllegalArgumentException(
-                    " ---" + sender.getName() + "(은/는) [" + channelName + "]채널 멤버가 아닙니다.");
+                    ErrorMessages.format("Sender", ErrorMessages.ERROR_NOT_FOUND));
         }
     }
 
@@ -69,7 +70,9 @@ public class Channel implements Serializable {
         Set<String> unique = new HashSet<>();
         for (String category : this.categories) {
             if (!unique.add(category)) {
-                throw new IllegalArgumentException(" --- 중복된 카테고리가 포함되어 있습니다.");
+                throw new IllegalArgumentException(
+                        ErrorMessages.format("Category", ErrorMessages.ERROR_EXISTS)
+                );
             }
         }
     }
@@ -78,11 +81,12 @@ public class Channel implements Serializable {
     public void validateCategory(String category){
         if (!categories.contains(category)) {
             throw new IllegalArgumentException(
-                    " ---"+ category + "(은/는) [" +channelName + "]채널에 존재 하지 않는 카테고리입니다.");
+                    ErrorMessages.format("Category", ErrorMessages.ERROR_NOT_FOUND)
+            );
         }
     }
 
-    public void addKeyUserToMembers() {
+    public void addCreatorToMembers() {
         this.members.add(this.creator);
     }
 

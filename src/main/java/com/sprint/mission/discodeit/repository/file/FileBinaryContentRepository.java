@@ -1,18 +1,19 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.config.DiscodeitProperties;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-
+@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
+@Repository
 public class FileBinaryContentRepository implements BinaryContentRepository {
-    private static final long serialVersionUID = 1L;
-
     private final String filePath;
     private Map<UUID, BinaryContent> data;
 
@@ -93,7 +94,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
         } catch (IOException e) {
-            System.err.println("[binaryContent] 데이터 저장 중 오류 발생: " + e.getMessage());
+            System.out.println(ErrorMessages.format("[binaryContent]", ErrorMessages.ERROR_SAVE));
             e.printStackTrace();
         }
     }
@@ -104,9 +105,10 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             return (Map<UUID, BinaryContent>) ois.readObject();
         } catch (FileNotFoundException e) {
-            System.out.println("[binaryContent] 저장된 파일이 없습니다. 새 데이터를 시작합니다.");
+            System.out.println(ErrorMessages.format("[binaryContent]", ErrorMessages.ERROR_NOT_FOUND));
+            System.out.println("새 데이터를 시작합니다.");
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("[binaryCotent] 데이터 불러오기 중 오류 발생: " + e.getMessage());
+            System.out.println(ErrorMessages.format("[binaryContent]", ErrorMessages.ERROR_LOAD));
             e.printStackTrace();
         }
         // 실패 시 빈 Map 반환

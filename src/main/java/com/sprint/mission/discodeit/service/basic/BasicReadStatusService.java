@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.request.create.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -25,10 +26,14 @@ public class BasicReadStatusService implements ReadStatusService {
     @Override
     public ReadStatus create(ReadStatusCreateRequest request) {
         User user = userRepository.find(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)
+                ));
 
         Channel channel = channelRepository.find(request.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)
+                ));
 
 
         //가장 최근에 읽은 시간 하나만 두기위해 중복 체크
@@ -36,7 +41,9 @@ public class BasicReadStatusService implements ReadStatusService {
                 .anyMatch(rs -> rs.getChannelId().equals(request.channelId()));
 
         if (alreadyExists) {
-            throw new IllegalStateException("이미 해당 채널에 대한 ReadStatus가 존재합니다.");
+            throw new IllegalStateException(
+                    ErrorMessages.format("Message", ErrorMessages.ERROR_EXISTS)
+            );
         }
 
         ReadStatus readStatus = new ReadStatus(
@@ -53,7 +60,8 @@ public class BasicReadStatusService implements ReadStatusService {
     public ReadStatus find(UUID id) {
         ReadStatus readStatus = readStatusRepository.find(id);
         if (readStatus == null) {
-            throw new IllegalArgumentException("해당 Id의 Readstatus를 찾을 수 없습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND));
         }
         return readStatus;
     }
@@ -67,7 +75,9 @@ public class BasicReadStatusService implements ReadStatusService {
     public ReadStatus update(ReadStatusUpdateRequest request) {
         ReadStatus readStatus = readStatusRepository.find(request.id());
         if (readStatus == null) {
-            throw new IllegalArgumentException("수정할 ReadStatus가 존재하지 않습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)
+            );
         }
 
         readStatus.setLastReadTime(request.newReadTime());
@@ -78,7 +88,9 @@ public class BasicReadStatusService implements ReadStatusService {
     public boolean delete(UUID id) {
         ReadStatus readStatus = readStatusRepository.find(id);
         if (readStatus == null) {
-            throw new IllegalArgumentException("삭제할 ReadStaus가 존재하지 않습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)
+            );
         }
         readStatusRepository.delete(id);
         return true;

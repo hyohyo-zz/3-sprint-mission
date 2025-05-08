@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.Response.UserResponse;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
@@ -86,7 +87,8 @@ public class BasicUserService implements UserService {
     @Override
     public UserResponse findByUserName(String name) {
         User user = userRepository.findByUserName(name)
-                .orElseThrow(() -> new IllegalArgumentException("해당 이름의 유저가 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)));
 
         UserStatus status = userStatusRepository.findByUserId(user.getId())
                 .orElse(new UserStatus(user.getId(), false));
@@ -129,7 +131,8 @@ public class BasicUserService implements UserService {
                 user.setProfileImageId(binaryContent.getId());
 
             } catch (IOException e) {
-                throw new RuntimeException("프로필 이미지 저장 중 오류 발생", e);
+                throw new RuntimeException(
+                        ErrorMessages.format("ProfileImage", ErrorMessages.ERROR_SAVE));
             }
         }
 
@@ -148,11 +151,14 @@ public class BasicUserService implements UserService {
     public boolean delete(UUID userId, String password) {
         User user = userRepository.find(userId).orElseThrow();
         if (user == null) {
-            throw new IllegalArgumentException(" --해당 유저를 찾을 수 없습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)
+            );
         }
 
         if (!user.getPassword().equals(password)) {
-            System.out.println("!!유저 탈퇴 실패!! --- 비밀번호 불일치");
+            System.out.println(
+                    ErrorMessages.format("User", ErrorMessages.ERROR_MISMATCH));
             return false;
         }
 
@@ -185,7 +191,8 @@ public class BasicUserService implements UserService {
         boolean exists = users.stream()
                 .anyMatch((u -> u.getEmail().equals(email)));
         if(exists) {
-            throw new IllegalArgumentException(" --- 이미 등록된 이메일입니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
         }
     }
 
@@ -194,7 +201,8 @@ public class BasicUserService implements UserService {
         boolean exists = users.stream()
                 .anyMatch((u -> u.getName().equals(userName)));
         if(exists) {
-            throw new IllegalArgumentException(" --- 이미 등록된 이름입니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
         }
     }
 

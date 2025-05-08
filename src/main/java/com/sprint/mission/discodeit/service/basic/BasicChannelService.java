@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.request.create.ChannelCreateRequest_private;
 import com.sprint.mission.discodeit.dto.request.create.ChannelCreateRequest_public;
 import com.sprint.mission.discodeit.dto.Response.ChannelResponse;
@@ -83,7 +84,7 @@ public class BasicChannelService implements ChannelService {
 
         validateDuplicateChannelName(channel);
         channel.validateUniqueCategory();
-        channel.addKeyUserToMembers();
+        channel.addCreatorToMembers();
 
         Channel savedChannel = channelRepository.create(channel);
 
@@ -94,7 +95,8 @@ public class BasicChannelService implements ChannelService {
     public ChannelResponse find(UUID channelId) {
         Channel channel = channelRepository.find(channelId).orElseThrow();
         if (channel == null) {
-            throw new IllegalArgumentException(" --해당 ID의 채널을 찾을 수 없습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         List<UUID> memberIds = new ArrayList<>();
@@ -120,25 +122,9 @@ public class BasicChannelService implements ChannelService {
 
        for (Channel channel : channels) {
            if(channel.isPrivate()) {
-               List<ReadStatus> readStatuses = readStatusRepository.findByChannelId(channel.getId());
-
-               // 해당 유저가 참여자인지
-                boolean isMember = readStatuses.stream()
-                        .anyMatch(readStatus -> readStatus.getUserId().equals(userId));
-
-                //아니라면 조회 대상제외
-                if(!isMember) continue;
-
-                //참여자 id리스트
-                List<UUID> memberIds = readStatuses.stream()
-                        .map(ReadStatus::getUserId)
-                        .toList();
-
-               responses.add(toChannelResponse(channel, lastMessageTime(channel.getId()), memberIds));
+               processPrivateChannel(channel, userId, responses);
            } else {
-               //public
-               List<UUID> memberIds = List.of();
-               responses.add(toChannelResponse(channel, lastMessageTime(channel.getId()), memberIds));
+               processPublicChannel(channel, responses);
            }
        }
        return responses;
@@ -148,7 +134,9 @@ public class BasicChannelService implements ChannelService {
     public List<ChannelResponse> findByChannelName(String channelName) {
         List<Channel> channels = channelRepository.findByChannelName(channelName);
         if (channels.isEmpty()) {
-            throw new IllegalArgumentException(" --해당 이름의 채널을 찾을 수 없습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
+
         }
 
         List<ChannelResponse> responses = new ArrayList<>();
@@ -173,10 +161,12 @@ public class BasicChannelService implements ChannelService {
     public ChannelResponse update(ChannelUpdateRequest request) {
         Channel channel = channelRepository.find(request.channelId()).orElseThrow();
         if (channel == null) {
-            throw new IllegalArgumentException(" --해당 ID의 채널을 찾을 수 없습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
         }
         if(channel.isPrivate()) {
-            throw new IllegalArgumentException(" --private 채널은 수정할 수 없습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("Channel", ErrorMessages.ERROR_PRIVATE_CHANNEL_NOT_UPDATE));
         }
 
         channel.update(request.newChannelName(), request.newCategories());
@@ -191,10 +181,13 @@ public class BasicChannelService implements ChannelService {
     @Override
     public boolean delete(UUID id, UUID userId, String password) {
         Channel channel = channelRepository.find(id)
-                .orElseThrow(() -> new IllegalArgumentException(" --해당 채널을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
 
         if (!channel.getCreator().getPassword().equals(password)) {
-            throw new IllegalArgumentException("비밀번호 불일치로 삭제 실패");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("password", ErrorMessages.ERROR_MISMATCH)
+            );
         }
 
         messageRepository.deleteByChannelId(id);
@@ -212,19 +205,44 @@ public class BasicChannelService implements ChannelService {
         List<Channel> channels = channelRepository.findByChannelName(channel.getChannelName());
         if (channels.stream().anyMatch(c -> c.getCreator().equals(channel.getCreator())
                 && c.getChannelName().equals(channel.getChannelName()))) {
-            throw new IllegalArgumentException(" --- 이미 등록된 채널입니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
         }
     }
 
     private User findUserById(UUID userId) {
         User user = userRepository.find(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자"));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)));
         return user;
     }
 
     private Instant lastMessageTime(UUID channelId) {
         return messageRepository.findLastMessageTimeByChannelId(channelId)
                 .orElse(null);
+    }
+
+    private void processPrivateChannel(Channel channel, UUID userId, List<ChannelResponse> responses) {
+        List<ReadStatus> readStatuses = readStatusRepository.findByChannelId(channel.getId());
+
+        // 해당 유저가 참여자인지
+        boolean isMember = readStatuses.stream()
+                .anyMatch(readStatus -> readStatus.getUserId().equals(userId));
+
+        //아니라면 조회 대상제외
+        if(!isMember) return;
+
+        //참여자 id리스트
+        List<UUID> memberIds = readStatuses.stream()
+                .map(ReadStatus::getUserId)
+                .toList();
+
+        responses.add(toChannelResponse(channel, lastMessageTime(channel.getId()), memberIds));
+    }
+
+    public void processPublicChannel(Channel channel, List<ChannelResponse> responses) {
+        // Public 채널은 멤버 리스트 없이 응답
+        responses.add(toChannelResponse(channel, lastMessageTime(channel.getId()), List.of()));
     }
 
     private ChannelResponse toChannelResponse(Channel channel, Instant lastMessageTime, List<UUID> memberIds) {

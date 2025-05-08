@@ -30,7 +30,7 @@ public class User implements Serializable {
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
 
-        this.profileImageId = null;   // 나중에 등록하는 경우가 대부분??
+        this.profileImageId = null;
     }
 
     @Override

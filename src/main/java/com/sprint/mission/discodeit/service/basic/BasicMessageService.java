@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.Response.BinaryContentResponse;
 import com.sprint.mission.discodeit.dto.Response.MessageResponse;
 import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
@@ -37,7 +38,7 @@ public class BasicMessageService implements MessageService {
         Channel channel = channelRepository.find(request.channelId()).orElseThrow();
 
         if(channel == null) {
-            throw new IllegalArgumentException("존재하지 않는 채널");
+            System.out.println(ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         Message message = new Message(
@@ -74,11 +75,12 @@ public class BasicMessageService implements MessageService {
     public MessageResponse find(UUID id) {
         Message message = messageRepository.find(id);
         if (message == null) {
-            throw new IllegalArgumentException(" --해당 메시지를 찾을 수 없습니다.");
+            System.out.println(ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         User sender= userRepository.find(message.getSenderId())
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)));
 
         List<BinaryContent> attachmemts = binaryContentRepository.findAll().stream()
                 .filter(file -> file.getMessageId().equals(message.getId()))
@@ -91,7 +93,8 @@ public class BasicMessageService implements MessageService {
     public List<MessageResponse> findAllByChannelId(UUID channelId) {
         Channel channel = channelRepository.find(channelId).orElseThrow();
         if(channel == null) {
-            throw new IllegalArgumentException("존재하지 않는 채널");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         List<Message> messages = messageRepository.findAll().stream()
@@ -103,7 +106,9 @@ public class BasicMessageService implements MessageService {
 
         for (Message message : messages) {
             User sender = userRepository.find(message.getSenderId())
-                    .orElseThrow(() -> new IllegalArgumentException(("작성자를 찾을 수 없습니다.")));
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            ErrorMessages.format("Seder", ErrorMessages.ERROR_NOT_FOUND)
+                    ));
 
             List<BinaryContent> attachments = binaryContentRepository.findAll().stream()
                     .filter(file -> file.getMessageId().equals(message.getId()))
@@ -118,7 +123,8 @@ public class BasicMessageService implements MessageService {
     public MessageResponse update(MessageUpdateRequest request) {
         Message message = messageRepository.find(request.messageId());
         if(message == null) {
-            throw new IllegalArgumentException("해당 메시지를 찾을 수 없습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         message.update(request.newContent());
@@ -126,7 +132,9 @@ public class BasicMessageService implements MessageService {
         Message updatedMessage = messageRepository.update(request.messageId(), message);
 
         User sender = userRepository.find(updatedMessage.getSenderId())
-                .orElseThrow(() -> new IllegalArgumentException("작성자 조회 실패"));
+                .orElseThrow(() -> new IllegalArgumentException(
+                        ErrorMessages.format("Sender", ErrorMessages.ERROR_NOT_FOUND)
+                ));
 
         List<BinaryContent> attachments = binaryContentRepository.findAll().stream()
                 .filter(file -> file.getMessageId().equals(updatedMessage.getId()))
@@ -139,7 +147,8 @@ public class BasicMessageService implements MessageService {
     public boolean delete(UUID messageId) {
         Message message = messageRepository.find(messageId);
         if (message == null) {
-            throw new IllegalArgumentException(" --해당 메시지를 찾을 수 없습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         //첨부파일 삭제

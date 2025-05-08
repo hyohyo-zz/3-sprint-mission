@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.config.DiscodeitProperties;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -10,14 +11,12 @@ import java.util.*;
 
 
 public class FileUserStatusRepository implements UserStatusRepository {
-    private static final long serialVersionUID = 1L;
-
     private final String filePath;
     private Map<UUID, UserStatus> data;
 
     public FileUserStatusRepository(DiscodeitProperties properties) {
         if (properties.getFilePath() == null) {
-            throw new IllegalStateException("filePath 설정이 null입니다. application.yaml 설정 확인 필요");
+            System.out.println(ErrorMessages.format("[UserStatus]", ErrorMessages.ERROR_FILE_PATH_NULL));
         }
         this.filePath = properties.getFilePath() + "/userstatus.ser";
         this.data = new HashMap<>();
@@ -87,7 +86,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
         } catch (IOException e) {
-            System.err.println("[userStatus] 데이터 저장 중 오류 발생: " + e.getMessage());
+            System.out.println(ErrorMessages.format("[UserStatus]", ErrorMessages.ERROR_SAVE));
             e.printStackTrace();
         }
     }
@@ -98,9 +97,10 @@ public class FileUserStatusRepository implements UserStatusRepository {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
             return (Map<UUID, UserStatus>) ois.readObject();
         } catch (FileNotFoundException e) {
-            System.out.println("[userStatus] 저장된 파일이 없습니다. 새 데이터를 시작합니다.");
+            System.out.println(ErrorMessages.format("[UserStatus]", ErrorMessages.ERROR_NOT_FOUND));
+            System.out.println("새 데이터를 시작합니다.");
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("[userStatus] 데이터 불러오기 중 오류 발생: " + e.getMessage());
+            System.out.println(ErrorMessages.format("[UserStatus]", ErrorMessages.ERROR_LOAD));
             e.printStackTrace();
         }
         // 실패 시 빈 Map 반환

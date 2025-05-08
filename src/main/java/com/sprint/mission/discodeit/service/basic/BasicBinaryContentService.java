@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.Response.BinaryContentResponse;
 import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
@@ -21,7 +22,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     public BinaryContentResponse create(BinaryContentCreateRequest request) {
         if ((request.userId() == null && request.messageId() == null)
                 || request.content() == null || request.content().length == 0) {
-            throw new IllegalArgumentException("파일 업로드 대상 또는 내용이 잘못되었습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("binaryContent", ErrorMessages.ERROR_FILE_UPLOAD_INVALID));
         }
 
         BinaryContent file = new BinaryContent(
@@ -40,7 +42,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     public BinaryContentResponse find(UUID id) {
         BinaryContent file = binaryContentRepository.find(id);
         if (file == null) {
-            throw new IllegalArgumentException("해당 Id의 파일이 존재하지 않습니다.");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("BinaryContent", ErrorMessages.ERROR_NOT_FOUND));
         }
         return toBinaryContentResponse(file);
     }
