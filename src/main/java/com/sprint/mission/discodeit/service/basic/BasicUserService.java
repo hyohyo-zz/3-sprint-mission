@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.Response.UserResponse;
+import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
 import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
@@ -30,7 +31,7 @@ public class BasicUserService implements UserService {
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
 
-    public UserResponse create(UserCreateRequest request, Optional<BinaryContentCreateRequest> profileCreateRequest) {
+    public UserResponse create(UserCreateRequest request, Optional<BinaryContentRequest> profileCreateRequest) {
         // 중복 name, email 검사
         existsByUserName(request.name());
         existsByEmail(request.email());
