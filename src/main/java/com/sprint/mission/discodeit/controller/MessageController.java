@@ -31,7 +31,7 @@ public class MessageController {
     )
     @ResponseBody
     public ResponseEntity<MessageResponse> create(
-            @RequestParam("userCreateRequest") MessageCreateRequest messageCreateRequest,
+            @RequestParam("messageCreateRequest") MessageCreateRequest messageCreateRequest,
             @RequestPart(value = "attachment", required = false) MultipartFile attachment
     ) {
 
