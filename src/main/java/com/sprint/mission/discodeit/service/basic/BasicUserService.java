@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.Response.UserResponse;
 import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
-import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
@@ -61,7 +60,9 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserResponse find(UUID userId) {
-        User user = userRepository.find(userId).orElseThrow();
+        User user = userRepository.find(userId).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
+        );
 
         UserStatus status = userStatusRepository.findByUserId(userId)
                 .orElse(new UserStatus(userId, false));
@@ -98,7 +99,9 @@ public class BasicUserService implements UserService {
     @Override
     public UserResponse update(UserUpdateRequest request) {
         //1. 수정할 엔티티 조회
-        User user = userRepository.find(request.id()).orElseThrow();
+        User user = userRepository.find(request.id()).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
+        );
 
         //2. username/email 변경 시 중복 체크
         if (request.username() != null && !request.username().equals(user.getName())) {
@@ -148,12 +151,9 @@ public class BasicUserService implements UserService {
 
     @Override
     public boolean delete(UUID userId, String password) {
-        User user = userRepository.find(userId).orElseThrow();
-        if (user == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)
-            );
-        }
+        User user = userRepository.find(userId).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
+        );
 
         if (!user.getPassword().equals(password)) {
             System.out.println(
@@ -180,7 +180,6 @@ public class BasicUserService implements UserService {
             if (members.remove(user)) {
                 channel.setMembers(members);
                 channelRepository.update(channel.getId(), channel);
-
             }
         }
     }

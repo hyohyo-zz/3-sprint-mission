@@ -18,10 +18,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -32,14 +29,15 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public MessageResponse create(MessageCreateRequest request) {
+    public MessageResponse create(MessageCreateRequest request, Optional<BinaryContentRequest> attachmentCreateRequest) {
 
-        User sender = userRepository.find(request.senderId()).orElseThrow();
-        Channel channel = channelRepository.find(request.channelId()).orElseThrow();
-
-        if(channel == null) {
-            System.out.println(ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
-        }
+        User sender = userRepository.find(request.senderId()).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
+        );
+        Channel channel = channelRepository.find(request.channelId())
+                .orElseThrow(()-> new IllegalArgumentException(
+                        ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
+                );
 
         Message message = new Message(
                 sender.getId(),
@@ -91,11 +89,9 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public List<MessageResponse> findAllByChannelId(UUID channelId) {
-        Channel channel = channelRepository.find(channelId).orElseThrow();
-        if(channel == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
-        }
+        Channel channel = channelRepository.find(channelId).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
+        );
 
         List<Message> messages = messageRepository.findAll().stream()
                 .filter(msg -> msg.getChannelId().equals(channelId))
