@@ -47,13 +47,6 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     }
 
     @Override
-    public ReadStatus update(ReadStatus update) {
-        ReadStatus readStatus = this.data.get(update.getId());
-        readStatus.updateLastReadTime(update.getLastReadTime());
-        return readStatus;
-    }
-
-    @Override
     public List<ReadStatus> findByUserId(UUID userId) {
         return data.values().stream()
                 .filter(file -> Objects.equals(file.getUserId(), userId))

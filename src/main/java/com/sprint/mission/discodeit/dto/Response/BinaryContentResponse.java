@@ -5,7 +5,6 @@ import java.util.UUID;
 public record BinaryContentResponse(
         UUID id,
         String contentType,
-        String originalFilename,
-        String url
+        String originalFilename
 ) {
 }

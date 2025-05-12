@@ -57,15 +57,6 @@ public class FileChannelRepository implements ChannelRepository {
         return result;
     }
 
-    //채널 수정
-    @Override
-    public Channel update(UUID id, Channel update) {
-        Channel channel = this.data.get(id);
-        channel.update(update);
-        saveData();
-        return channel;
-    }
-
     //채널 삭제
     @Override
     public boolean delete(UUID id, UUID userId, String password) {

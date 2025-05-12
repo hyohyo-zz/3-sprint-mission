@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import jakarta.annotation.PostConstruct;
 
 import java.io.*;
+import java.time.Instant;
 import java.util.*;
 
 
@@ -50,15 +51,6 @@ public class FileUserStatusRepository implements UserStatusRepository {
         return data.values().stream()
                 .filter(file -> Objects.equals(file.getUserId(), userId))
                 .findFirst();
-    }
-
-    @Override
-    public UserStatus update(UserStatus update) {
-        UserStatus userStatus = data.get(update.getUserId());
-        userStatus.updateOnlineStatus(userStatus.isOnline());
-        userStatus.updatelastOnline();;
-        saveData();
-        return update;
     }
 
     @Override

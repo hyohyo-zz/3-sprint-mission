@@ -20,16 +20,13 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     @Override
     public BinaryContentResponse create(BinaryContentCreateRequest request) {
-        if ((request.userId() == null && request.messageId() == null)
-                || request.content() == null || request.content().length == 0) {
+        if (request.bytes() == null || request.bytes().length == 0) {
             throw new IllegalArgumentException(
                     ErrorMessages.format("binaryContent", ErrorMessages.ERROR_FILE_UPLOAD_INVALID));
         }
 
         BinaryContent file = new BinaryContent(
-                request.userId(),
-                request.messageId(),
-                request.content(),
+                request.bytes(),
                 request.contentType(),
                 request.originalFilename()
         );
@@ -66,8 +63,7 @@ public class BasicBinaryContentService implements BinaryContentService {
         return new BinaryContentResponse(
                 file.getId(),
                 file.getContentType(),
-                file.getOriginalFilename(),
-                file.getUrl()
+                file.getOriginalFilename()
         );
     }
 }

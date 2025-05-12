@@ -1,10 +1,9 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.Response.ChannelResponse;
-import com.sprint.mission.discodeit.dto.Response.MessageResponse;
 import com.sprint.mission.discodeit.dto.request.create.ChannelCreateRequest_private;
 import com.sprint.mission.discodeit.dto.request.create.ChannelCreateRequest_public;
-import com.sprint.mission.discodeit.dto.request.update.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.update.ChannelUpdateRequest_public;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -77,9 +76,9 @@ public class ChannelController {
     )
     @ResponseBody
     public ResponseEntity<ChannelResponse> update(
-            @RequestBody ChannelUpdateRequest channelUpdateRequest
+            @RequestBody ChannelUpdateRequest_public channelUpdateRequestPublic
     ) {
-        MessageResponse updatedChannel = channelService.update(channelUpdateRequest);
+        ChannelResponse updatedChannel = channelService.update(channelUpdateRequestPublic);
         return ResponseEntity.ok(updatedChannel);
     }
 

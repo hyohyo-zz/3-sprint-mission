@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.dto.Response;
 
+import java.time.Instant;
 import java.util.UUID;
 
 
@@ -9,8 +10,9 @@ public record UserResponse(
         String email,
         String phone,
         String password,
+        Instant createdAt,
+        boolean online,
         UUID profileImageId,
-        String profileImageUrl,
-        boolean online
+        boolean hasProfileImage
 ) {
 }

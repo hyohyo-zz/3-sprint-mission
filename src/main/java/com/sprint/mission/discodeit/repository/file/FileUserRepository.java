@@ -58,19 +58,22 @@ public class FileUserRepository implements UserRepository {
         return new ArrayList<>(data.values());
     }
 
-    //유저 수정
-    @Override
-    public User update(User update) {
-        User user = this.data.get(update.getId());
-        user.update(update);
-        saveData();
-        return user;
-    }
-
     //유저 삭제
     @Override
     public boolean delete(UUID id) {
         return this.data.remove(id) != null;
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return this.findAll().stream()
+                .anyMatch(user -> user.getEmail().equals(email));
+    }
+
+    @Override
+    public boolean existsByUserName(String userName) {
+        return this.findAll().stream()
+                .anyMatch(user -> user.getName().equals(userName));
     }
 
     private void saveData() {

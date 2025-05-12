@@ -1,9 +1,8 @@
 package com.sprint.mission.discodeit.dto.request.create;
 
-import java.util.UUID;
+import java.time.Instant;
 
 public record UserStatusCreateRequest(
-        UUID userId,
-        boolean isOnline
+        Instant newLastOnlineTime
 ) {
 }

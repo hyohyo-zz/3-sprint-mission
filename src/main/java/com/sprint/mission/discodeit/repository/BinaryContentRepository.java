@@ -10,14 +10,8 @@ public interface BinaryContentRepository {
 
     public BinaryContent find(UUID id);
 
-    public List<BinaryContent> findAll();
+    public List<BinaryContent> findAllByIdIn();
 
     public boolean delete(UUID id);
 
-    //특정 유저의 (프로필 이미지 등) 바이너리 조회
-    public List<BinaryContent> findByUserId(UUID userId);
-
-    public boolean deleteByUserId(UUID userId);
-
-    public boolean deleteByMessageId(UUID messageId);
 }

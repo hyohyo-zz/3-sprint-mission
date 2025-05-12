@@ -9,6 +9,6 @@ public record MessageResponse(
         String content,
         String senderName,
         Instant sentAt,
-        List<BinaryContentResponse> attachments
+        List<UUID> attachmentIds
 ) {
 }

@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -37,7 +38,7 @@ public class BasicUserStatusService implements UserStatusService {
             );
         }
 
-        UserStatus status = new UserStatus(request.userId(), request.isOnline());
+        UserStatus status = new UserStatus(request.userId(), Instant.now());
         userStatusRepository.create(status);
         return toUserStatusResponse(status);
     }
@@ -68,7 +69,7 @@ public class BasicUserStatusService implements UserStatusService {
                     ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
         }
 
-        userStatus.updateOnlineStatus(request.newOnlineStatus());
+        userStatus.updatelastOnline(Instant.now());
         UserStatus updateUserStatus = userStatusRepository.update(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }
@@ -83,7 +84,7 @@ public class BasicUserStatusService implements UserStatusService {
         }
 
         UserStatus userStatus = optionalUserStatus.get();
-        userStatus.updateOnlineStatus(request.newOnlineStatus());
+        userStatus.updatelastOnline(Instant.now());
         UserStatus updateUserStatus = userStatusRepository.update(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }

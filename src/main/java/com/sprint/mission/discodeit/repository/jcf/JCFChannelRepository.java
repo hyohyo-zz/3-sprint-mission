@@ -37,14 +37,6 @@ public class JCFChannelRepository implements ChannelRepository {
                 .collect(Collectors.toList());
     }
 
-    //채널 수정
-    @Override
-    public Channel update(UUID id, Channel update) {
-        Channel channel = this.data.get(id);
-        channel.update(update);
-        return channel;
-    }
-
     //채널 삭제
     @Override
     public boolean delete(UUID id, UUID userId, String password) {

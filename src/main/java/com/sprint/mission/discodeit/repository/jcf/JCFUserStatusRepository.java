@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.repository.jcf;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 
+import java.time.Instant;
 import java.util.*;
 
 public class JCFUserStatusRepository implements UserStatusRepository {
@@ -29,14 +30,6 @@ public class JCFUserStatusRepository implements UserStatusRepository {
         return data.values().stream()
                 .filter(userStatus -> Objects.equals(userStatus.getUserId(), userId))
                 .findFirst();
-    }
-
-    @Override
-    public UserStatus update(UserStatus update) {
-        UserStatus userStatus = this.data.get(update.getUserId());
-        userStatus.updateOnlineStatus(update.isOnline());
-        userStatus.updatelastOnline();
-        return userStatus;
     }
 
     @Override

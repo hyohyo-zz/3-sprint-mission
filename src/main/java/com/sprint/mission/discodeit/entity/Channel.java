@@ -7,7 +7,6 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Getter @Setter
 public class Channel implements Serializable {
@@ -88,26 +87,5 @@ public class Channel implements Serializable {
 
     public void addCreatorToMembers() {
         this.members.add(this.creator);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Channel channel)) return false;
-        return id.equals(channel.id);
-    }
-
-    public String toString() {
-        return "Channel{" +
-                "ChannelName= '" + channelName + '\'' +
-                ", KeyUser= '" + creator.getName() + '\'' +
-                ", Category= '" + categories + '\'' +
-                ", Members= '" + members.stream().map(User::getName).collect(Collectors.toList()) +
-                "'}";
     }
 }

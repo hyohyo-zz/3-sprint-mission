@@ -14,8 +14,6 @@ public interface MessageRepository {
 
     public List<Message> findAll();
 
-    public Message update(UUID id, Message update);
-
     public boolean delete(UUID id);
 
     public Optional<Instant> findLastMessageTimeByChannelId(UUID channelId);

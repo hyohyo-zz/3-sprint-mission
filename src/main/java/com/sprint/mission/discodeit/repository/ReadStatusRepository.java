@@ -16,8 +16,6 @@ public interface ReadStatusRepository {
 
     public List<ReadStatus> findByChannelId(UUID channelId);
 
-    public ReadStatus update(ReadStatus update);
-
     public boolean delete(UUID id);
 
     public boolean deleteByUserId(UUID userId);

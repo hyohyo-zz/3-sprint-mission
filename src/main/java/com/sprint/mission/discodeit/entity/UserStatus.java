@@ -20,7 +20,8 @@ import java.util.UUID;
 @Getter @Setter
 public class UserStatus  implements Serializable {
     private static final long serialVersionUID = 1L;
-    private UUID userId;    //User에서도 userId로 변경하는게 좋을까?
+    private UUID id;
+    private UUID userId;
     private Instant lastOnlineTime;
 
     private Instant createdAt;
@@ -28,31 +29,31 @@ public class UserStatus  implements Serializable {
 
     private boolean online;
 
-    public UserStatus(UUID userId, boolean online) {
+    public UserStatus(UUID userId, Instant lastOnlineTime) {
+        this.id = UUID.randomUUID();
         this.userId = userId;
         this.createdAt = Instant.now();
-        this.updatedAt = this.createdAt;
-        this.lastOnlineTime = online ? Instant.now() : null;
-        this.online = online;
+        this.lastOnlineTime = lastOnlineTime;
+        this.online = isOnlineNow();
     }
 
     //lastOnlineTime update
-    public void updatelastOnline() {
-        this.lastOnlineTime = Instant.now();
-        this.updatedAt = Instant.now();
-        this.online = isOnlineNow();
+    public void updatelastOnline(Instant lastOnlineTime) {
+        boolean anyValueUpdated = false;
+        if (lastOnlineTime != null && !lastOnlineTime.equals(this.lastOnlineTime)) {
+            this.lastOnlineTime = lastOnlineTime;
+            this.online = isOnlineNow();
+            anyValueUpdated = true;
+        }
+
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
 
     //지금 온라인 상태인지?(5분 이내 인지)
     public boolean isOnlineNow() {
-        return lastOnlineTime != null &&
-                Duration.between(lastOnlineTime, Instant.now()).toMinutes() <= 5;
-    }
-
-    //온라인상태 수동변경
-    public void updateOnlineStatus(boolean online) {
-        this.online = online;
-        this.lastOnlineTime = Instant.now();
-        this.updatedAt = Instant.now();
+        Instant instantFiveMinutesAgo = Instant.now().minus(Duration.ofMinutes(5));
+        return lastOnlineTime.isAfter(instantFiveMinutesAgo);
     }
 }

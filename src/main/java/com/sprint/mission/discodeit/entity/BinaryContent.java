@@ -14,25 +14,19 @@ import java.util.UUID;
 @Getter
 public class BinaryContent  implements Serializable {
     private static final long serialVersionUID = 1L;
-    private final UUID id;
+    private UUID id;
 
-    private final UUID userId;      //프로필이미지
-    private final UUID messageId;   //첨부파일
+    private byte[] bytes;
+    private String contentType;
+    private String originalFilename;
 
-    private final byte[] content;
-    private final String contentType;
-    private final String originalFilename;
-    private final String url;
-    private final Instant createdAt;
+    private Instant createdAt;
 
-    public BinaryContent(UUID userId, UUID messageId, byte[] content, String contentType, String originalFilename) {
+    public BinaryContent(byte[] bytes, String contentType, String originalFilename) {
         this.id = UUID.randomUUID();
-        this.userId = userId;
-        this.messageId = messageId;
-        this.content = content;
+        this.bytes = bytes;
         this.contentType = contentType;
         this.originalFilename = originalFilename;
-        this.url = "/files/" + originalFilename;
         this.createdAt = Instant.now();
     }
 }

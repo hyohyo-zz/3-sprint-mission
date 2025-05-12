@@ -54,15 +54,6 @@ public class FileMessageRepository implements MessageRepository {
         return new ArrayList<>(this.data.values());
     }
 
-    //메시지 수정
-    @Override
-    public Message update(UUID id, Message update) {
-        Message selected = this.data.get(id);
-        selected.update(update.getContent());
-        saveData();
-        return selected;
-    }
-
     //메시지 삭제
     @Override
     public boolean delete(UUID id) {

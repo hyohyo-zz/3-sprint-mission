@@ -1,9 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.dto.Response.BinaryContentResponse;
 import com.sprint.mission.discodeit.dto.Response.MessageResponse;
-import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
@@ -29,7 +28,7 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public MessageResponse create(MessageCreateRequest request, Optional<BinaryContentRequest> attachmentCreateRequest) {
+    public MessageResponse create(MessageCreateRequest request, List<BinaryContentCreateRequest> attachmentRequests) {
 
         User sender = userRepository.find(request.senderId()).orElseThrow(()-> new IllegalArgumentException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
@@ -39,34 +38,31 @@ public class BasicMessageService implements MessageService {
                         ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
                 );
 
+        List<UUID> attachmentIds = attachmentRequests.stream()
+                .map(attachmentRequest -> {
+                    byte[] bytes = attachmentRequest.bytes();
+                    String contentType = attachmentRequest.contentType();
+                    String fileName = attachmentRequest.originalFilename();
+
+                    BinaryContent binaryContent = new BinaryContent(bytes, contentType, fileName);
+                    BinaryContent createdBinaryContent = binaryContentRepository.save(binaryContent);
+                    return createdBinaryContent.getId();
+                })
+                .toList();
+
         Message message = new Message(
                 sender.getId(),
                 channel.getId(),
                 request.category(),
-                request.content()
+                request.content(),
+                attachmentIds
         );
 
         channel.validateCategory(request.category());
         channel.validateMembership(sender);
         message.validateContent();
 
-        Message savedMessage = messageRepository.create(message);
-
-        List<BinaryContent> savedAttachments = new ArrayList<>();
-        if(request.attachments() != null && !request.attachments().isEmpty()) {
-            for(BinaryContentRequest file : request.attachments()) {
-                BinaryContent attachment = new BinaryContent(
-                        null,
-                        savedMessage.getId(),
-                        file.content(),
-                        file.contentType(),
-                        file.originalFilename()
-                );
-                savedAttachments.add(binaryContentRepository.save(attachment));
-            }
-        }
-
-        return toMessageResponse(savedMessage, savedAttachments, sender.getName());
+        return toMessageResponse(message, sender.getName());
     }
 
     @Override
@@ -80,11 +76,7 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)));
 
-        List<BinaryContent> attachmemts = binaryContentRepository.findAll().stream()
-                .filter(file -> file.getMessageId().equals(message.getId()))
-                .toList();
-
-        return toMessageResponse(message, attachmemts, sender.getName());
+        return toMessageResponse(message, sender.getName());
     }
 
     @Override
@@ -106,11 +98,7 @@ public class BasicMessageService implements MessageService {
                             ErrorMessages.format("Seder", ErrorMessages.ERROR_NOT_FOUND)
                     ));
 
-            List<BinaryContent> attachments = binaryContentRepository.findAll().stream()
-                    .filter(file -> file.getMessageId().equals(message.getId()))
-                    .toList();
-
-            responses.add(toMessageResponse(message, attachments, sender.getName()));
+            responses.add(toMessageResponse(message, sender.getName()));
         }
         return responses;
     }
@@ -132,11 +120,7 @@ public class BasicMessageService implements MessageService {
                         ErrorMessages.format("Sender", ErrorMessages.ERROR_NOT_FOUND)
                 ));
 
-        List<BinaryContent> attachments = binaryContentRepository.findAll().stream()
-                .filter(file -> file.getMessageId().equals(updatedMessage.getId()))
-                .toList();
-
-        return toMessageResponse(updatedMessage, attachments, sender.getName());
+        return toMessageResponse(updatedMessage, sender.getName());
     }
 
     @Override
@@ -146,29 +130,17 @@ public class BasicMessageService implements MessageService {
             throw new IllegalArgumentException(
                     ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
         }
-
-        //첨부파일 삭제
-        binaryContentRepository.deleteByMessageId(messageId);
-
         //메시지 삭제
         return messageRepository.delete(messageId);
     }
 
-    private MessageResponse toMessageResponse(Message message, List<BinaryContent> attachments, String senderName) {
-        List<BinaryContentResponse> attachmentsDtos = attachments.stream()
-                .map(file -> new BinaryContentResponse(
-                        file.getId(),
-                        file.getContentType(),
-                        file.getOriginalFilename(),
-                        file.getUrl()
-                )).toList();
-
+    private MessageResponse toMessageResponse(Message message, String senderName) {
         return new MessageResponse(
                 message.getId(),
                 message.getContent(),
                 senderName,
                 message.getCreatedAt(),
-                attachmentsDtos
+                message.getAttachmentIds()
         );
     }
 }

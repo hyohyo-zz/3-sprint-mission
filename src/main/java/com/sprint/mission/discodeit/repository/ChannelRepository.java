@@ -15,8 +15,6 @@ public interface ChannelRepository{
 
     public List<Channel> findAll();
 
-    public Channel update(UUID id, Channel update);
-
     public boolean delete(UUID id, UUID userId, String password);
 
     public Set<User> members(UUID id);
