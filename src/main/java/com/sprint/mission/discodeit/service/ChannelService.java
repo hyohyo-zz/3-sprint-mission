@@ -21,7 +21,7 @@ public interface ChannelService {
 
     public List<ChannelResponse> findByChannelName(String channelName);
 
-    public ChannelResponse update(ChannelUpdateRequest_public request);
+    public ChannelResponse update(UUID channelId, ChannelUpdateRequest_public request);
 
     public boolean delete(UUID id, UUID userId, String password);
 

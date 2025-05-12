@@ -62,15 +62,15 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatusResponse update(UserStatusUpdateRequest request) {
-        UserStatus userStatus = userStatusRepository.find(request.id());
+    public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
+        UserStatus userStatus = userStatusRepository.find(userStatusId);
         if(userStatus == null) {
             throw new IllegalArgumentException(
                     ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         userStatus.updatelastOnline(Instant.now());
-        UserStatus updateUserStatus = userStatusRepository.update(userStatus);
+        UserStatus updateUserStatus = userStatusRepository.create(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }
 
@@ -85,7 +85,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus userStatus = optionalUserStatus.get();
         userStatus.updatelastOnline(Instant.now());
-        UserStatus updateUserStatus = userStatusRepository.update(userStatus);
+        UserStatus updateUserStatus = userStatusRepository.create(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }
 

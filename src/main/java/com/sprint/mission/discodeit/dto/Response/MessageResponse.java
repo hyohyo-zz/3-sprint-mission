@@ -6,8 +6,8 @@ import java.util.UUID;
 
 public record MessageResponse(
         UUID id,
+        UUID senderId,
         String content,
-        String senderName,
         Instant sentAt,
         List<UUID> attachmentIds
 ) {

@@ -62,7 +62,7 @@ public class BasicMessageService implements MessageService {
         channel.validateMembership(sender);
         message.validateContent();
 
-        return toMessageResponse(message, sender.getName());
+        return toMessageResponse(message);
     }
 
     @Override
@@ -76,7 +76,7 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)));
 
-        return toMessageResponse(message, sender.getName());
+        return toMessageResponse(message);
     }
 
     @Override
@@ -98,29 +98,22 @@ public class BasicMessageService implements MessageService {
                             ErrorMessages.format("Seder", ErrorMessages.ERROR_NOT_FOUND)
                     ));
 
-            responses.add(toMessageResponse(message, sender.getName()));
+            responses.add(toMessageResponse(message));
         }
         return responses;
     }
 
     @Override
-    public MessageResponse update(MessageUpdateRequest request) {
-        Message message = messageRepository.find(request.messageId());
+    public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
+        String newContent = request.newContent();
+        Message message = messageRepository.find(messageId);
         if(message == null) {
             throw new IllegalArgumentException(
                     ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
         }
 
-        message.update(request.newContent());
-
-        Message updatedMessage = messageRepository.update(request.messageId(), message);
-
-        User sender = userRepository.find(updatedMessage.getSenderId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        ErrorMessages.format("Sender", ErrorMessages.ERROR_NOT_FOUND)
-                ));
-
-        return toMessageResponse(updatedMessage, sender.getName());
+        message.update(newContent);
+        return toMessageResponse(message);
     }
 
     @Override
@@ -134,11 +127,11 @@ public class BasicMessageService implements MessageService {
         return messageRepository.delete(messageId);
     }
 
-    private MessageResponse toMessageResponse(Message message, String senderName) {
+    private MessageResponse toMessageResponse(Message message) {
         return new MessageResponse(
                 message.getId(),
+                message.getSenderId(),
                 message.getContent(),
-                senderName,
                 message.getCreatedAt(),
                 message.getAttachmentIds()
         );

@@ -72,8 +72,8 @@ public class BasicReadStatusService implements ReadStatusService {
     }
 
     @Override
-    public ReadStatus update(ReadStatusUpdateRequest request) {
-        ReadStatus readStatus = readStatusRepository.find(request.id());
+    public ReadStatus update(UUID readStatusId, ReadStatusUpdateRequest request) {
+        ReadStatus readStatus = readStatusRepository.find(readStatusId);
         if (readStatus == null) {
             throw new IllegalArgumentException(
                     ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)
@@ -81,7 +81,7 @@ public class BasicReadStatusService implements ReadStatusService {
         }
 
         readStatus.setLastReadTime(request.newReadTime());
-        return readStatusRepository.update(readStatus);
+        return readStatusRepository.create(readStatus);
     }
 
     @Override

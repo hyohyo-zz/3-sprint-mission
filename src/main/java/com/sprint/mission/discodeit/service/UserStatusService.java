@@ -14,7 +14,7 @@ public interface UserStatusService {
 
     public List<UserStatusResponse> findAll();
 
-    public UserStatusResponse update(UserStatusUpdateRequest request);
+    public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request);
 
     public UserStatusResponse updateByUserId(UUID userId, UserStatusUpdateRequest request);
 

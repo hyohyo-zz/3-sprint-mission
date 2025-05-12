@@ -158,12 +158,13 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelResponse update(ChannelUpdateRequest_public request) {
-        Channel channel = channelRepository.find(request.channelId()).orElseThrow();
-        if (channel == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
-        }
+    public ChannelResponse update(UUID channelId, ChannelUpdateRequest_public request) {
+        Channel channel = channelRepository.find(channelId)
+                .orElseThrow(()->
+                    new IllegalArgumentException(
+                            ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)
+                ));
+
         if(channel.isPrivate()) {
             throw new IllegalArgumentException(
                     ErrorMessages.format("Channel", ErrorMessages.ERROR_PRIVATE_CHANNEL_NOT_UPDATE));
