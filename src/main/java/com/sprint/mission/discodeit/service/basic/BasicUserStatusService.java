@@ -38,7 +38,8 @@ public class BasicUserStatusService implements UserStatusService {
             );
         }
 
-        UserStatus status = new UserStatus(request.userId(), Instant.now());
+        Instant lastOnlineTime = request.lastOnlineTime();
+        UserStatus status = new UserStatus(request.userId(), lastOnlineTime);
         userStatusRepository.create(status);
         return toUserStatusResponse(status);
     }
@@ -63,19 +64,22 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
+        Instant newLastOnlineTime = request.newLastOnlineTime();
+
         UserStatus userStatus = userStatusRepository.find(userStatusId);
         if(userStatus == null) {
             throw new IllegalArgumentException(
                     ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
         }
 
-        userStatus.updatelastOnline(Instant.now());
+        userStatus.update(newLastOnlineTime);
         UserStatus updateUserStatus = userStatusRepository.create(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }
 
     @Override
     public UserStatusResponse updateByUserId(UUID userId, UserStatusUpdateRequest request) {
+        Instant newLastOnlineTime = request.newLastOnlineTime();
         Optional<UserStatus> optionalUserStatus = userStatusRepository.findByUserId(userId);
 
         if (optionalUserStatus.isEmpty()) {
@@ -84,7 +88,7 @@ public class BasicUserStatusService implements UserStatusService {
         }
 
         UserStatus userStatus = optionalUserStatus.get();
-        userStatus.updatelastOnline(Instant.now());
+        userStatus.update(newLastOnlineTime);
         UserStatus updateUserStatus = userStatusRepository.create(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }

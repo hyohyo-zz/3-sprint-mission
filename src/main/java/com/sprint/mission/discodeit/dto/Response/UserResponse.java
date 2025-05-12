@@ -11,7 +11,7 @@ public record UserResponse(
         String phone,
         String password,
         Instant createdAt,
-        boolean online,
+        Boolean online,
         UUID profileImageId,
         boolean hasProfileImage
 ) {

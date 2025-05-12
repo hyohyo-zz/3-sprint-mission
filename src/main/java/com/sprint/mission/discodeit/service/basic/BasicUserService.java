@@ -50,7 +50,8 @@ public class BasicUserService implements UserService {
        User user = new User(request.name(), request.email(), request.phone(), request.password(), nullableProfileId);
        User savedUser = userRepository.create(user);
 
-       UserStatus userStatus = new UserStatus(savedUser.getId(), Instant.now());
+       Instant now = Instant.now();
+       UserStatus userStatus = new UserStatus(savedUser.getId(), now);
        userStatusRepository.create(userStatus);
 
        return toUserResponse(savedUser);
@@ -117,12 +118,9 @@ public class BasicUserService implements UserService {
 
         User savedUser = userRepository.create(user);
 
-        UserStatus userStatus = new UserStatus(savedUser.getId(), Instant.now());
-        userStatusRepository.create(userStatus);
-
         return toUserResponse(savedUser);
     }
-    
+
     @Override
     public boolean delete(UUID userId, String password) {
         User user = userRepository.find(userId).orElseThrow(()-> new IllegalArgumentException(
@@ -137,7 +135,7 @@ public class BasicUserService implements UserService {
 
         boolean deleted = userRepository.delete(userId);
         if (deleted) {
-            removeUserFromChannels(user);
+//            removeUserFromChannels(user);
             userStatusRepository.deleteByUserId(userId);
 
             userRepository.delete(userId);
@@ -145,17 +143,17 @@ public class BasicUserService implements UserService {
         }
         return deleted;
     }
-
-    @Override
-    public void removeUserFromChannels(User user) {
-        for (Channel channel : channelRepository.findAll()) {
-            Set<User> members = new HashSet<>(channel.getMembers());
-            if (members.remove(user)) {
-                channel.setMembers(members);
-                channelRepository.update(channel.getId(), channel);
-            }
-        }
-    }
+//
+//    @Override
+//    public void removeUserFromChannels(User user) {
+//        for (Channel channel : channelRepository.findAll()) {
+//            Set<User> members = new HashSet<>(channel.getMembers());
+//            if (members.remove(user)) {
+//                channel.setMembers(members);
+//                channel.update(channel.getId(), channel);
+//            }
+//        }
+//    }
 
     private UserResponse toUserResponse(User user) {
         Boolean online = userStatusRepository.findByUserId(user.getId())

@@ -24,7 +24,7 @@ public interface UserService {
 
     public boolean delete(UUID id, String password);
 
-    public void removeUserFromChannels(User user);
+//    public void removeUserFromChannels(User user);
 
     public List<UserResponse> findByUserNameKeyWords(String keyword);
 

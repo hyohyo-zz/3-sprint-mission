@@ -60,7 +60,7 @@ public class UserController {
     }
 
     @RequestMapping(
-            value = "/",
+            value = "/findAll",
             method = RequestMethod.GET
     )
     @ResponseBody
@@ -107,10 +107,11 @@ public class UserController {
     )
     @ResponseBody
     public ResponseEntity<UserStatusResponse> updateStatus(
+            @RequestParam("userStatusId") UUID userStatusId,
             @RequestBody UserStatusUpdateRequest userStatusUpdateRequest
     ){
         try {
-            UserStatusResponse updatedStatus = userStatusService.update(userStatusUpdateRequest);
+            UserStatusResponse updatedStatus = userStatusService.update(userStatusId, userStatusUpdateRequest);
             return ResponseEntity.ok(updatedStatus);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);

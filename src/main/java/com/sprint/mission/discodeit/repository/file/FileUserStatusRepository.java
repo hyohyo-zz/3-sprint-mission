@@ -55,7 +55,9 @@ public class FileUserStatusRepository implements UserStatusRepository {
 
     @Override
     public boolean delete(UUID id) {
-        return data.remove(id) != null;
+        boolean removed = data.remove(id) != null;
+        saveData();
+        return removed;
     }
 
     @Override
