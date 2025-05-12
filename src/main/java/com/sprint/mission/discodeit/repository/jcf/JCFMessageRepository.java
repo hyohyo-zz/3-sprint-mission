@@ -2,12 +2,19 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
 import java.util.*;
 
+@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
+@Repository
 public class JCFMessageRepository implements MessageRepository {
-    private final Map<UUID, Message> data = new LinkedHashMap<>();
+    private final Map<UUID, Message> data;
+
+    public JCFMessageRepository() {
+        this.data = new HashMap<>();
+    }
 
     //메시지 생성
     @Override
@@ -18,42 +25,28 @@ public class JCFMessageRepository implements MessageRepository {
 
     //메시지 조회
     @Override
-    public Message find(UUID id) {
-        return this.data.get(id);
-    }
-
-    //메시지 전체조회
-    @Override
-    public List<Message> findAll() {
-        return new ArrayList<>(this.data.values());
-    }
-
-    //메시지 삭제
-    @Override
-    public boolean delete(UUID id) {
-        return data.remove(id) != null;
+    public Optional<Message> find(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     @Override
-    public Optional<Instant> findLastMessageTimeByChannelId(UUID channelId) {
-        return data.values().stream()
-                .filter(msg -> Objects.equals(msg.getChannelId(), channelId))
-                .map(Message::getCreatedAt)
-                .max(Comparator.naturalOrder());
+    public List<Message> findAllByChannelId(UUID channelId) {
+        return this.data.values().stream().filter(message -> message.getChannelId().equals(channelId)).toList();
     }
 
     @Override
-    public boolean deleteByChannelId(UUID channelId) {
-        List<UUID> toRemove = data.values().stream()
-                .filter(message -> Objects.equals(message.getChannelId(), channelId))
-                .map(Message::getId)
-                .toList();
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
+    }
 
-        boolean deleted = false;
-        for (UUID id : toRemove) {
-            deleted |= data.remove(id) != null;
-        }
+    @Override
+    public void deleteById(UUID id) {
+        this.data.remove(id);
+    }
 
-        return deleted;
+    @Override
+    public void deleteAllByChannelId(UUID channelId) {
+        this.findAllByChannelId(channelId)
+                .forEach(message -> this.deleteById(message.getId()));
     }
 }

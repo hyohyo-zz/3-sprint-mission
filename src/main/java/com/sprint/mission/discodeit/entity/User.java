@@ -15,7 +15,7 @@ public class User implements Serializable {
     private String name;
     private String email;
     private String phone;
-    private transient String password;
+    private String password;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -36,7 +36,8 @@ public class User implements Serializable {
 
         this.online = false;
     }
-    public void update(String newUserName, String newEmail, String newPassword, UUID newProfileId) {
+
+    public void update(String newUserName, String newEmail, String newPhone, String newPassword, UUID newProfileId) {
         boolean anyValueUpdated = false;
         if (newUserName != null && !newUserName.equals(this.name)) {
             this.name = newUserName;
@@ -44,6 +45,10 @@ public class User implements Serializable {
         }
         if (newEmail != null && !newEmail.equals(this.email)) {
             this.email = newEmail;
+            anyValueUpdated = true;
+        }
+        if (newPhone != null && !newPhone.equals(this.phone)) {
+            this.phone = newPhone;
             anyValueUpdated = true;
         }
         if (newPassword != null && !newPassword.equals(this.password)) {

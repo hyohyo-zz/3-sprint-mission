@@ -17,6 +17,6 @@ public interface MessageService {
 
     public MessageResponse update(UUID messageId, MessageUpdateRequest request);
 
-    public boolean delete(UUID id);
+    public void delete(UUID id);
 
 }

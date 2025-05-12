@@ -14,53 +14,32 @@ public class Channel implements Serializable {
 
     private UUID id;
     private String channelName;
-    private User creator;
     private List<String> categories;
-    private Set<User> members;
 
-    private boolean isPrivate;
+    private ChannelType type;
 
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Channel(String channelName, User creator, List<String> categories, Set<User> members , boolean isPrivate) {
+    public Channel(ChannelType type, String channelName, List<String> categories) {
         this.id = UUID.randomUUID();
-        this.channelName = channelName != null ? channelName : "";
-        this.categories = categories  != null ? categories : new ArrayList<>();
+        this.type = type;
 
-        this.creator = creator;
-        this.members = new HashSet<>(members);
-        this.members.add(creator);
-
-        this.isPrivate = isPrivate;
+        this.channelName = channelName;
+        this.categories = new ArrayList<>();
 
         this.createdAt = Instant.now();
-        this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
-    }
-
-    public void update(Channel updateChannelData) {
-        this.channelName = updateChannelData.channelName;
-        this.creator = updateChannelData.creator;
-        this.categories = new ArrayList<>(updateChannelData.categories);
-        this.members = new HashSet<>(updateChannelData.members);
-        this.updatedAt = Instant.now();
     }
 
     public void update(String newChannelName, List<String> newCategories) {
-        this.channelName = newChannelName;
-        this.categories = new ArrayList<>(newCategories);
-        this.updatedAt = Instant.now();
-    }
-
-    public void setMembers(Set<User> members) {
-        this.members = members;
-    }
-
-    //채널 멤버가 아닌 유저가 메시지 생성시
-    public void validateMembership(User sender) {
-        if (!members.contains(sender)) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("Sender", ErrorMessages.ERROR_NOT_FOUND));
+        boolean anyValueUpdated = false;
+        if (newChannelName != null && !newChannelName.equals(this.channelName)) {
+            this.channelName = newChannelName;
+            anyValueUpdated = true;
+        }
+        if (newCategories != null && !newCategories.equals(this.categories)) {
+            this.categories = newCategories;
+            anyValueUpdated = true;
         }
     }
 
@@ -83,9 +62,5 @@ public class Channel implements Serializable {
                     ErrorMessages.format("Category", ErrorMessages.ERROR_NOT_FOUND)
             );
         }
-    }
-
-    public void addCreatorToMembers() {
-        this.members.add(this.creator);
     }
 }

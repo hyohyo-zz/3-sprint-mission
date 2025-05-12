@@ -17,7 +17,10 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +62,6 @@ public class BasicMessageService implements MessageService {
         );
 
         channel.validateCategory(request.category());
-        channel.validateMembership(sender);
         message.validateContent();
 
         return toMessageResponse(message);
@@ -67,10 +69,8 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public MessageResponse find(UUID id) {
-        Message message = messageRepository.find(id);
-        if (message == null) {
-            System.out.println(ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
-        }
+        Message message = messageRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
 
         User sender= userRepository.find(message.getSenderId())
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -85,7 +85,7 @@ public class BasicMessageService implements MessageService {
                 ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
         );
 
-        List<Message> messages = messageRepository.findAll().stream()
+        List<Message> messages = messageRepository.findAllByChannelId(channelId).stream()
                 .filter(msg -> msg.getChannelId().equals(channelId))
                 .sorted(Comparator.comparing(Message::getCreatedAt))
                 .toList();
@@ -106,25 +106,19 @@ public class BasicMessageService implements MessageService {
     @Override
     public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
         String newContent = request.newContent();
-        Message message = messageRepository.find(messageId);
-        if(message == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
-        }
+        Message message = messageRepository.find(messageId).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
 
         message.update(newContent);
         return toMessageResponse(message);
     }
 
     @Override
-    public boolean delete(UUID messageId) {
-        Message message = messageRepository.find(messageId);
-        if (message == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
-        }
-        //메시지 삭제
-        return messageRepository.delete(messageId);
+    public void delete(UUID messageId) {
+        Message message = messageRepository.find(messageId).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
+
+        messageRepository.deleteById(messageId);
     }
 
     private MessageResponse toMessageResponse(Message message) {

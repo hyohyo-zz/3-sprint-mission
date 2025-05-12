@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.dto.request.create;
 
-import java.util.Optional;
 import java.util.UUID;
 
 public record UserCreateRequest(
@@ -11,7 +10,4 @@ public record UserCreateRequest(
         UUID profileImageId,    //선택, 없으면 null
         BinaryContentCreateRequest profileImage      //선택, 없으면 null
 ) {
-    public Optional<BinaryContentCreateRequest> getProfileImage() {
-        return Optional.ofNullable(profileImage);
-    }
 }

@@ -6,7 +6,6 @@ import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateReques
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -17,10 +16,10 @@ import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,10 +32,15 @@ public class BasicUserService implements UserService {
 
     public UserResponse create(UserCreateRequest request, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
         // 중복 name, email 검사
-        userRepository.existsByUserName(request.name());
-        userRepository.existsByEmail(request.email());
+        if (userRepository.existsByEmail(request.email())) {
+            throw new IllegalArgumentException(ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
+        }
+        if (userRepository.existsByUserName(request.name())) {
+            throw new IllegalArgumentException(ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
+        }
 
-       UUID nullableProfileId = optionalProfileCreateRequest
+
+        UUID nullableProfileId = optionalProfileCreateRequest
                .map(profileCreateRequest -> {
                    byte[] bytes = profileCreateRequest.bytes();
                    String contentType = profileCreateRequest.contentType();
@@ -74,36 +78,27 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponse findByUserName(String name) {
-        User user = userRepository.findByUserName(name)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)));
-
-        return toUserResponse(user);
-    }
-
-    @Override
     public UserResponse update(UUID userId, UserUpdateRequest userUpdateRequest, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
         //1. 수정할 엔티티 조회
         User user = userRepository.find(userId).orElseThrow(()-> new IllegalArgumentException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
 
-        String newUsername = userUpdateRequest.newUsername();
+        String newUsername = userUpdateRequest.newUserName();
         String newEmail = userUpdateRequest.newEmail();
 
         //2. username/email 중복 체크
         if (userRepository.existsByEmail(newEmail)) {
-            throw new IllegalArgumentException("User with email " + newEmail + " already exists");
+            throw new IllegalArgumentException(ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
         }
         if (userRepository.existsByUserName(newUsername)) {
-            throw new IllegalArgumentException("User with username " + newUsername + " already exists");
+            throw new IllegalArgumentException(ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
         }
 
         UUID nullableProfileId = optionalProfileCreateRequest
                 .map(profileRequest -> {
                     Optional.ofNullable(user.getProfileImageId())
-                            .ifPresent(binaryContentRepository::delete);
+                            .ifPresent(binaryContentRepository::deleteById);
 
                     String fileName = profileRequest.originalFilename();
                     String contentType = profileRequest.contentType();
@@ -113,8 +108,9 @@ public class BasicUserService implements UserService {
                 })
                 .orElse(null);
 
+        String newPhone = userUpdateRequest.newPhone();
         String newPassword = userUpdateRequest.newPassword();
-        user.update(newUsername, newEmail, newPassword, nullableProfileId);
+        user.update(newUsername, newEmail, newPhone, newPassword, nullableProfileId);
 
         User savedUser = userRepository.create(user);
 
@@ -122,7 +118,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public boolean delete(UUID userId, String password) {
+    public void delete(UUID userId, String password) {
         User user = userRepository.find(userId).orElseThrow(()-> new IllegalArgumentException(
                 ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
         );
@@ -130,30 +126,14 @@ public class BasicUserService implements UserService {
         if (!user.getPassword().equals(password)) {
             System.out.println(
                     ErrorMessages.format("User", ErrorMessages.ERROR_MISMATCH));
-            return false;
-        }
-
-        boolean deleted = userRepository.delete(userId);
-        if (deleted) {
-//            removeUserFromChannels(user);
+        } else {
+            Optional.ofNullable(user.getProfileImageId())
+                    .ifPresent(binaryContentRepository::deleteById);
             userStatusRepository.deleteByUserId(userId);
 
-            userRepository.delete(userId);
-            System.out.println("유저 탈퇴 성공");
+            userRepository.deleteById(userId);
         }
-        return deleted;
     }
-//
-//    @Override
-//    public void removeUserFromChannels(User user) {
-//        for (Channel channel : channelRepository.findAll()) {
-//            Set<User> members = new HashSet<>(channel.getMembers());
-//            if (members.remove(user)) {
-//                channel.setMembers(members);
-//                channel.update(channel.getId(), channel);
-//            }
-//        }
-//    }
 
     private UserResponse toUserResponse(User user) {
         Boolean online = userStatusRepository.findByUserId(user.getId())
@@ -171,13 +151,5 @@ public class BasicUserService implements UserService {
                 user.getProfileImageId(),
                 user.getProfileImageId() != null
         );
-    }
-
-    public List<UserResponse> findByUserNameKeyWords(String keyword) {
-        return userRepository.findAll()
-                .stream()
-                .filter(user -> user.getName().contains(keyword))
-                .map(this::toUserResponse)
-                .toList();
     }
 }

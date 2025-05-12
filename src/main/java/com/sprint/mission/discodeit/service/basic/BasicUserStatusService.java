@@ -46,12 +46,9 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public UserStatusResponse find(UUID id) {
-        UserStatus userStatus = userStatusRepository.find(id);
-        if(userStatus == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)
-            );
-        }
+        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
         return toUserStatusResponse(userStatus);
     }
 
@@ -66,11 +63,8 @@ public class BasicUserStatusService implements UserStatusService {
     public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
         Instant newLastOnlineTime = request.newLastOnlineTime();
 
-        UserStatus userStatus = userStatusRepository.find(userStatusId);
-        if(userStatus == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
-        }
+        UserStatus userStatus = userStatusRepository.find(userStatusId).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("UseStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
         userStatus.update(newLastOnlineTime);
         UserStatus updateUserStatus = userStatusRepository.create(userStatus);
@@ -94,14 +88,11 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public boolean delete(UUID id) {
-        UserStatus userStatus = userStatusRepository.find(id);
-        if(userStatus == null) {
-            throw new IllegalArgumentException(ErrorMessages.format(
-                    "UserStatus", ErrorMessages.ERROR_NOT_FOUND));
-        }
-        userStatusRepository.delete(id);
-        return true;
+    public void delete(UUID id) {
+        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
+        userStatusRepository.deleteById(id);
     }
 
     private UserStatusResponse toUserStatusResponse(UserStatus status) {

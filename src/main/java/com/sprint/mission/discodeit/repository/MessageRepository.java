@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.repository;
 
 import com.sprint.mission.discodeit.entity.Message;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -10,13 +9,13 @@ import java.util.UUID;
 public interface MessageRepository {
     public Message create(Message message);
 
-    public Message find(UUID id);
+    public  Optional<Message> find(UUID id);
 
-    public List<Message> findAll();
+    public List<Message> findAllByChannelId(UUID channelId);
 
-    public boolean delete(UUID id);
+    public boolean existsById(UUID id);
 
-    public Optional<Instant> findLastMessageTimeByChannelId(UUID channelId);
+    public void deleteById(UUID id);
 
-    public boolean deleteByChannelId(UUID channelId);
+    public void deleteAllByChannelId(UUID channelId);
 }

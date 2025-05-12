@@ -11,20 +11,15 @@ import java.util.Set;
 import java.util.UUID;
 
 public interface ChannelService {
-    public ChannelResponse createPublicChannel(ChannelCreateRequest_public request);
+    public ChannelResponse create(ChannelCreateRequest_public request);
 
-    public ChannelResponse createPrivateChannel(ChannelCreateRequest_private request);
+    public ChannelResponse create(ChannelCreateRequest_private request);
 
     public ChannelResponse find(UUID id);
 
     public List<ChannelResponse> findAllByUserId(UUID id);
 
-    public List<ChannelResponse> findByChannelName(String channelName);
-
     public ChannelResponse update(UUID channelId, ChannelUpdateRequest_public request);
 
-    public boolean delete(UUID id, UUID userId, String password);
-
-    public Set<User> members(UUID id);
-
+    public void delete(UUID channelId);
 }

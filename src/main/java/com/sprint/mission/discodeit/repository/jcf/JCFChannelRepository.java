@@ -4,14 +4,21 @@ package com.sprint.mission.discodeit.repository.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
+@Repository
 public class JCFChannelRepository implements ChannelRepository {
-    private final Map<UUID, Channel> data = new HashMap<>();
+    private final Map<UUID, Channel> data;
 
-    //채널 생성
+    public JCFChannelRepository() {
+        this.data = new HashMap<>();
+    }
+
     @Override
     public Channel create(Channel channel) {
         data.put(channel.getId(), channel);
@@ -27,27 +34,16 @@ public class JCFChannelRepository implements ChannelRepository {
     //채널 전체 조회
     @Override
     public List<Channel> findAll() {
-        return new ArrayList<>(data.values());
+        return this.data.values().stream().toList();
     }
 
-    //특정 채널 정보
-    public List<Channel> findByChannelName(String channelName) {
-        return data.values().stream()
-                .filter(channel -> channel.getChannelName().contains(channelName))
-                .collect(Collectors.toList());
-    }
-
-    //채널 삭제
     @Override
-    public boolean delete(UUID id, UUID userId, String password) {
-        return this.data.remove(id) != null;
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
     }
 
-    //채널 멤버셋
     @Override
-    public Set<User> members(UUID id) {
-        Channel channel = data.get(id);
-        return channel != null ? channel.getMembers() : Set.of();
+    public void deleteById(UUID id) {
+        this.data.remove(id);
     }
-
 }

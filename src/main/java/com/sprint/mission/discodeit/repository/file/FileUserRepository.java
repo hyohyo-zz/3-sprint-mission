@@ -1,67 +1,114 @@
 package com.sprint.mission.discodeit.repository.file;
 
-import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.config.DiscodeitProperties;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
 
-
+@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
+@Repository
 public class FileUserRepository implements UserRepository {
-    private final String filePath;
-    private ChannelRepository channelRepository;
-    private Map<UUID, User> data;
+    private final Path DIRECTORY;
+    private final String EXTENSION = ".ser";
 
-    public FileUserRepository(DiscodeitProperties properties, ChannelRepository channelRepository) {
-        if (properties.getFilePath() == null) {
-            System.out.println(ErrorMessages.format("[User]", ErrorMessages.ERROR_FILE_PATH_NULL));
+    public FileUserRepository(
+            @Value("${discodeit.repository.file-directory:data}") String fileDirectory
+    ) {
+        this.DIRECTORY = Paths.get(System.getProperty("user.dir"), fileDirectory, User.class.getSimpleName());
+        if (Files.notExists(DIRECTORY)) {
+            try {
+                Files.createDirectories(DIRECTORY);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-        this.filePath = properties.getFilePath() + "/user.ser";
-        this.channelRepository = channelRepository;
-        this.data = new HashMap<>();
     }
 
-    // 파일 있으면 불러오기
-    @PostConstruct
-    public void init() {
-        this.data = loadData();
+    private Path resolvePath(UUID id) {
+        return DIRECTORY.resolve(id + EXTENSION);
     }
 
     @Override
     public User create(User user) {
-        this.data.put(user.getId(), user);
-        saveData();
+        Path path = resolvePath(user.getId());
+        try (
+                FileOutputStream fos = new FileOutputStream(path.toFile());
+                ObjectOutputStream oos = new ObjectOutputStream(fos)
+        ) {
+            oos.writeObject(user);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return user;
     }
 
     //유저 아이디 조회
     @Override
     public Optional<User> find(UUID id) {
-        return Optional.ofNullable(this.data.get(id));
+        User userNullable = null;
+        Path path = resolvePath(id);
+        if (Files.exists(path)) {
+            try (
+                    FileInputStream fis = new FileInputStream(path.toFile());
+                    ObjectInputStream ois = new ObjectInputStream(fis)
+            ) {
+                userNullable = (User) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return Optional.ofNullable(userNullable);
     }
 
     //유저 이름으로 조회
     @Override
     public Optional<User> findByUserName(String name) {
-        return data.values().stream()
-                .filter(user -> Objects.equals(user.getName(), name))
+        return this.findAll().stream()
+                .filter(user -> user.getName().equals(name))
                 .findFirst();
     }
 
     //유저 전체 조회
     @Override
     public List<User> findAll() {
-        return new ArrayList<>(data.values());
+        try (Stream<Path> paths = Files.list(DIRECTORY)) {
+            return paths
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .map(path -> {
+                        try (
+                                FileInputStream fis = new FileInputStream(path.toFile());
+                                ObjectInputStream ois = new ObjectInputStream(fis)
+                        ) {
+                            return (User) ois.readObject();
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     //유저 삭제
     @Override
-    public boolean delete(UUID id) {
-        return this.data.remove(id) != null;
+    public void deleteById(UUID id) {
+        Path path = resolvePath(id);
+        try {
+            Files.delete(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -76,31 +123,9 @@ public class FileUserRepository implements UserRepository {
                 .anyMatch(user -> user.getName().equals(userName));
     }
 
-    private void saveData() {
-        try (FileOutputStream fos = new FileOutputStream(filePath);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(data);
-        } catch (IOException e) {
-            System.out.println(ErrorMessages.format("[User]", ErrorMessages.ERROR_SAVE));
-            e.printStackTrace();
-        }
+    @Override
+    public boolean existsById(UUID id) {
+        Path path = resolvePath(id);
+        return Files.exists(path);
     }
-
-    // 불러오기 메서드
-    @SuppressWarnings("unchecked")
-    private Map<UUID, User> loadData() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
-            return (Map<UUID, User>) ois.readObject();
-        } catch (FileNotFoundException e) {
-            System.out.println(ErrorMessages.format("[User]", ErrorMessages.ERROR_NOT_FOUND));
-            System.out.println("새 데이터를 시작합니다.");
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println(ErrorMessages.format("[User]", ErrorMessages.ERROR_LOAD));
-
-            e.printStackTrace();
-        }
-        // 실패 시 빈 Map 반환
-        return new HashMap<>();
-    }
-
 }

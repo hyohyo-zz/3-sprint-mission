@@ -16,16 +16,9 @@ public interface UserService {
 
     public UserResponse find(UUID id);
 
-    public UserResponse findByUserName(String name);
-
     public List<UserResponse> findAll();
 
     public UserResponse update(UUID userId, UserUpdateRequest userUpdateRequest, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest);
 
-    public boolean delete(UUID id, String password);
-
-//    public void removeUserFromChannels(User user);
-
-    public List<UserResponse> findByUserNameKeyWords(String keyword);
-
+    public void delete(UUID id, String password);
 }

@@ -71,16 +71,21 @@ public class UserController {
 
     @RequestMapping(
             value = "/update",
-            method = RequestMethod.PUT
+            method = RequestMethod.PUT,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @ResponseBody
     public ResponseEntity<UserResponse> update(
             @RequestParam("userId") UUID userId,
-            @RequestBody UserUpdateRequest userUpdateRequest,
-            @RequestBody Optional<BinaryContentCreateRequest> optionalProfileCreateRequest
+            @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
+            @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
-        UserResponse updatedUser = userService.update(userId, userUpdateRequest, optionalProfileCreateRequest);
-        return ResponseEntity.ok(updatedUser);
+        Optional<BinaryContentCreateRequest> profileRequest =
+                Optional.ofNullable(profile)
+                        .flatMap(this::resolveProfileRequest);
+
+        UserResponse updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
+        return  ResponseEntity.status(HttpStatus.OK).body(updatedUser);
     }
 
     @RequestMapping(
@@ -92,12 +97,18 @@ public class UserController {
             @RequestParam("userId") UUID userId,
             @RequestParam("password") String password
     ) {
-        boolean deleted = userService.delete(userId, password);
-        if(deleted) {
-            return ResponseEntity.ok("유저 삭제 성공");
-        } else {
-            String errorMessage = ErrorMessages.format("비밀번호", ErrorMessages.ERROR_MISMATCH);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorMessage);
+        try {
+            if (userService.find(userId).password().equals(password)) {
+                userService.delete(userId, password);
+                return ResponseEntity.status(HttpStatus.OK).body("삭제 성공");
+            } else {
+                String errorMessage = ErrorMessages.format("비밀번호", ErrorMessages.ERROR_MISMATCH);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 

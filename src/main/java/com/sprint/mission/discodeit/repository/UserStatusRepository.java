@@ -9,13 +9,15 @@ import java.util.UUID;
 public interface UserStatusRepository {
     public UserStatus create(UserStatus userStatus);
 
-    public UserStatus find(UUID id);
-
-    public List<UserStatus> findAll();
+    public Optional<UserStatus> find(UUID id);
 
     public Optional<UserStatus> findByUserId(UUID userId);
 
-    public boolean delete(UUID id);
+    public List<UserStatus> findAll();
 
-    public boolean deleteByUserId(UUID userId);
+    public boolean existsById(UUID id);
+
+    public void deleteById(UUID id);
+
+    public void deleteByUserId(UUID userId);
 }

@@ -15,10 +15,7 @@ public interface ChannelRepository{
 
     public List<Channel> findAll();
 
-    public boolean delete(UUID id, UUID userId, String password);
+    boolean existsById(UUID id);
 
-    public Set<User> members(UUID id);
-
-    public List<Channel> findByChannelName(String channelName);
-
+    void deleteById(UUID id);
 }

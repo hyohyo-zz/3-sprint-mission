@@ -16,5 +16,5 @@ public interface ReadStatusService {
 
     public ReadStatus update(UUID readStatusId, ReadStatusUpdateRequest request);
 
-    public boolean delete(UUID id);
+    public void delete(UUID id);
 }

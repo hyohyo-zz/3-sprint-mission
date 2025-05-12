@@ -13,6 +13,6 @@ public interface BinaryContentService {
 
     public List<BinaryContentResponse> findAllByIdIn(List<UUID> ids);
 
-    public boolean delete(UUID id);
+    public void delete(UUID id);
 
 }

@@ -37,7 +37,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
 
         //가장 최근에 읽은 시간 하나만 두기위해 중복 체크
-        boolean alreadyExists = readStatusRepository.findByUserId(request.userId()).stream()
+        boolean alreadyExists = readStatusRepository.findAllByUserId(request.userId()).stream()
                 .anyMatch(rs -> rs.getChannelId().equals(request.channelId()));
 
         if (alreadyExists) {
@@ -58,41 +58,31 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public ReadStatus find(UUID id) {
-        ReadStatus readStatus = readStatusRepository.find(id);
-        if (readStatus == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND));
-        }
+        ReadStatus readStatus = readStatusRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
         return readStatus;
     }
 
     @Override
     public List<ReadStatus> findAllByUserId(UUID userId) {
-        return readStatusRepository.findByUserId(userId);
+        return readStatusRepository.findAllByUserId(userId);
     }
 
     @Override
     public ReadStatus update(UUID readStatusId, ReadStatusUpdateRequest request) {
-        ReadStatus readStatus = readStatusRepository.find(readStatusId);
-        if (readStatus == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)
-            );
-        }
+        ReadStatus readStatus = readStatusRepository.find(readStatusId).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
         readStatus.setLastReadTime(request.newReadTime());
         return readStatusRepository.create(readStatus);
     }
 
     @Override
-    public boolean delete(UUID id) {
-        ReadStatus readStatus = readStatusRepository.find(id);
-        if (readStatus == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)
-            );
-        }
-        readStatusRepository.delete(id);
-        return true;
+    public void delete(UUID id) {
+        ReadStatus readStatus = readStatusRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
+                ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
+        readStatusRepository.deleteById(id);
     }
 }

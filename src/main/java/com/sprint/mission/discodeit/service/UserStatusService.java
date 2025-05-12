@@ -18,5 +18,5 @@ public interface UserStatusService {
 
     public UserStatusResponse updateByUserId(UUID userId, UserStatusUpdateRequest request);
 
-    public boolean delete(UUID id);
+    public void delete(UUID id);
 }
