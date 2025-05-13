@@ -26,7 +26,7 @@ public class Channel implements Serializable {
         this.type = type;
 
         this.channelName = channelName;
-        this.categories = new ArrayList<>();
+        this.categories = categories;
 
         this.createdAt = Instant.now();
     }

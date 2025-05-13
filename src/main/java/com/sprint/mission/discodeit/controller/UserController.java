@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.Response.UserResponse;
-import com.sprint.mission.discodeit.dto.Response.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserStatusUpdateRequest;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,7 +30,7 @@ public class UserController {
 
     @RequestMapping(
             path = "/create"
-            , method = RequestMethod.POST
+//            , method = RequestMethod.POST
             , consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @ResponseBody
@@ -48,8 +48,8 @@ public class UserController {
     }
 
     @RequestMapping(
-            value = "/{userId}",
-            method = RequestMethod.GET
+            path = "/{userId}"
+//            , method = RequestMethod.GET
     )
     @ResponseBody
     public ResponseEntity<UserResponse> find(
@@ -60,8 +60,8 @@ public class UserController {
     }
 
     @RequestMapping(
-            value = "/findAll",
-            method = RequestMethod.GET
+            path = "/findAll"
+//            , method = RequestMethod.GET
     )
     @ResponseBody
     public ResponseEntity<List<UserResponse>> findAll() {
@@ -70,9 +70,9 @@ public class UserController {
     }
 
     @RequestMapping(
-            value = "/update",
-            method = RequestMethod.PUT,
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+            path = "/update"
+//            , method = RequestMethod.PUT
+            , consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @ResponseBody
     public ResponseEntity<UserResponse> update(
@@ -85,12 +85,12 @@ public class UserController {
                         .flatMap(this::resolveProfileRequest);
 
         UserResponse updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
-        return  ResponseEntity.status(HttpStatus.OK).body(updatedUser);
+        return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
     }
 
     @RequestMapping(
-            value = "/delete",
-            method = RequestMethod.DELETE
+            value = "/delete"
+//            , method = RequestMethod.DELETE
     )
     @ResponseBody
     public ResponseEntity<String> delete(
@@ -100,7 +100,7 @@ public class UserController {
         try {
             if (userService.find(userId).password().equals(password)) {
                 userService.delete(userId, password);
-                return ResponseEntity.status(HttpStatus.OK).body("삭제 성공");
+                return ResponseEntity.status(HttpStatus.OK).body("유저 삭제 성공");
             } else {
                 String errorMessage = ErrorMessages.format("비밀번호", ErrorMessages.ERROR_MISMATCH);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
@@ -113,21 +113,21 @@ public class UserController {
     }
 
     @RequestMapping(
-            value = "/updateStatus",
-            method = RequestMethod.PUT
+            value = "/updateStatus"
+//            , method = RequestMethod.PUT
     )
     @ResponseBody
-    public ResponseEntity<UserStatusResponse> updateStatus(
-            @RequestParam("userStatusId") UUID userStatusId,
-            @RequestBody UserStatusUpdateRequest userStatusUpdateRequest
+    public ResponseEntity<String> updateStatus(
+            @RequestParam("userId") UUID userId
     ){
         try {
-            UserStatusResponse updatedStatus = userStatusService.update(userStatusId, userStatusUpdateRequest);
-            return ResponseEntity.ok(updatedStatus);
+            userStatusService.updateByUserId(userId, new UserStatusUpdateRequest(Instant.now()));
+            return ResponseEntity.status(HttpStatus.OK).body("userStatus update 성공");
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            String errorMessage = ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 

@@ -5,7 +5,6 @@ import java.util.UUID;
 
 public record ChannelUpdateRequest_public(
         String newChannelName,
-        List<String> newCategories,
-        UUID newKeyUserId
+        List<String> newCategories
 ) {
 }

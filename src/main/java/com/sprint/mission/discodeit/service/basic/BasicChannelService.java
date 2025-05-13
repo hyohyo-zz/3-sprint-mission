@@ -15,6 +15,7 @@ import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -77,7 +78,7 @@ public class BasicChannelService implements ChannelService {
        return channelRepository.findAll().stream()
                .filter(channel ->
                        channel.getType().equals(ChannelType.PUBLIC)
-               || mySubscribedChannelIds.contains(channel.getId())
+                               || mySubscribedChannelIds.contains(channel.getId())
                )
                .map(this::toChannelResponse)
                .toList();
@@ -129,6 +130,7 @@ public class BasicChannelService implements ChannelService {
                     .map(ReadStatus::getUserId)
                     .forEach(memberIds::add);
         }
+
         return new ChannelResponse(
                 channel.getId(),
                 channel.getType(),
