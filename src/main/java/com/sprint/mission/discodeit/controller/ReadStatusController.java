@@ -52,6 +52,6 @@ public class ReadStatusController {
             @RequestPart("readStatusUpdateRequest") ReadStatusUpdateRequest readStatusUpdateRequest
     ) {
         ReadStatus updatedStatus = readStatusService.update(readStatusId, readStatusUpdateRequest);
-        return ResponseEntity.status(HttpStatus.OK).body(updatedStatus);
+        return ResponseEntity.ok(updatedStatus);
     }
 }

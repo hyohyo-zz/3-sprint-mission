@@ -19,10 +19,7 @@ import org.springframework.http.converter.json.GsonBuilderUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +58,7 @@ public class BasicChannelService implements ChannelService {
     public ChannelResponse find(UUID channelId) {
         return channelRepository.find(channelId)
                 .map(this::toChannelResponse)
-                .orElseThrow(()-> new IllegalArgumentException(ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
+                .orElseThrow(()-> new NoSuchElementException(ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
     }
 
     /*
@@ -105,7 +102,7 @@ public class BasicChannelService implements ChannelService {
     @Override
     public void delete(UUID channelId) {
         Channel channel = channelRepository.find(channelId)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NoSuchElementException(
                         ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
 
         messageRepository.deleteAllByChannelId(channel.getId());

@@ -17,10 +17,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,11 +31,11 @@ public class BasicMessageService implements MessageService {
     public MessageResponse create(MessageCreateRequest request, List<BinaryContentCreateRequest> attachmentRequests) {
 
         User sender = userRepository.find(request.senderId())
-                .orElseThrow(()-> new IllegalArgumentException(
+                .orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
         Channel channel = channelRepository.find(request.channelId())
-                .orElseThrow(()-> new IllegalArgumentException(
+                .orElseThrow(()-> new NoSuchElementException(
                         ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
                 );
 
@@ -71,7 +68,7 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public MessageResponse find(UUID id) {
-        Message message = messageRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
+        Message message = messageRepository.find(id).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)
         ));
 
@@ -88,7 +85,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
         String newContent = request.newContent();
-        Message message = messageRepository.find(messageId).orElseThrow(()-> new IllegalArgumentException(
+        Message message = messageRepository.find(messageId).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
 
         message.update(newContent);
@@ -98,7 +95,7 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public void delete(UUID messageId) {
-        messageRepository.find(messageId).orElseThrow(()-> new IllegalArgumentException(
+        messageRepository.find(messageId).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
 
         messageRepository.deleteById(messageId);

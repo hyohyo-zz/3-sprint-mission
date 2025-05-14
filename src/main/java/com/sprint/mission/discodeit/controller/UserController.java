@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.Response.UserResponse;
 import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
@@ -66,7 +65,7 @@ public class UserController {
     @ResponseBody
     public ResponseEntity<List<UserResponse>> findAll() {
         List<UserResponse> users = userService.findAll();
-        return ResponseEntity.status(HttpStatus.OK).body(users);
+        return ResponseEntity.ok(users);
     }
 
     @RequestMapping(
@@ -85,7 +84,7 @@ public class UserController {
                         .flatMap(this::resolveProfileRequest);
 
         UserResponse updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
-        return ResponseEntity.status(HttpStatus.OK).body(updatedUser);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @RequestMapping(
@@ -97,19 +96,8 @@ public class UserController {
             @RequestParam("userId") UUID userId,
             @RequestParam("password") String password
     ) {
-        try {
-            if (userService.find(userId).password().equals(password)) {
-                userService.delete(userId, password);
-                return ResponseEntity.status(HttpStatus.OK).body("유저 삭제 성공");
-            } else {
-                String errorMessage = ErrorMessages.format("비밀번호", ErrorMessages.ERROR_MISMATCH);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
-            }
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        userService.delete(userId, password);
+        return ResponseEntity.ok("유저 삭제 성공");
     }
 
     @RequestMapping(
@@ -120,15 +108,8 @@ public class UserController {
     public ResponseEntity<String> updateStatus(
             @RequestParam("userId") UUID userId
     ){
-        try {
-            userStatusService.updateByUserId(userId, new UserStatusUpdateRequest(Instant.now()));
-            return ResponseEntity.status(HttpStatus.OK).body("userStatus update 성공");
-        } catch (IllegalArgumentException e) {
-            String errorMessage = ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        userStatusService.updateByUserId(userId, new UserStatusUpdateRequest(Instant.now()));
+        return ResponseEntity.ok("userStatus update 성공");
     }
 
     private Optional<BinaryContentCreateRequest> resolveProfileRequest(MultipartFile profile) {
@@ -146,7 +127,7 @@ public class UserController {
                 );
                 return Optional.of(binaryContentCreateRequest);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("프로필 업로드 중 오류 발생", e);
             }
         }
     }

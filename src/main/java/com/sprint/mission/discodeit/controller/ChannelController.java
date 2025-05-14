@@ -80,7 +80,7 @@ public class ChannelController {
             @RequestPart("channelUpdateRequest_public") ChannelUpdateRequest_public channelUpdateRequest_public
     ) {
         ChannelResponse updatedChannel = channelService.update(channelId, channelUpdateRequest_public);
-        return ResponseEntity.status(HttpStatus.OK).body(updatedChannel);
+        return ResponseEntity.ok(updatedChannel);
     }
 
     @RequestMapping(
@@ -91,13 +91,7 @@ public class ChannelController {
     public ResponseEntity<String> delete(
             @RequestParam("channelId") UUID channelId
     ) {
-        try {
-            channelService.delete(channelId);
-            return ResponseEntity.status(HttpStatus.OK).body("채널 삭제 성공");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        channelService.delete(channelId);
+        return ResponseEntity.status(HttpStatus.OK).body("채널 삭제 성공");
     }
 }

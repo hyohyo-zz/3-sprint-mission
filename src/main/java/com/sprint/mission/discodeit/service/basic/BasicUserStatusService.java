@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,7 +28,7 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusResponse create(UserStatusCreateRequest request) {
         User user = userRepository.find(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NoSuchElementException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
 
@@ -46,7 +47,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public UserStatusResponse find(UUID id) {
-        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
+        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
         return toUserStatusResponse(userStatus);
@@ -63,7 +64,7 @@ public class BasicUserStatusService implements UserStatusService {
     public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
         Instant newLastOnlineTime = request.newLastOnlineTime();
 
-        UserStatus userStatus = userStatusRepository.find(userStatusId).orElseThrow(()-> new IllegalArgumentException(
+        UserStatus userStatus = userStatusRepository.find(userStatusId).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("UseStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
         userStatus.update(newLastOnlineTime);
@@ -77,7 +78,7 @@ public class BasicUserStatusService implements UserStatusService {
         Optional<UserStatus> optionalUserStatus = userStatusRepository.findByUserId(userId);
 
         if (optionalUserStatus.isEmpty()) {
-            throw new IllegalArgumentException(
+            throw new NoSuchElementException(
                     ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
         }
 
@@ -89,7 +90,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public void delete(UUID id) {
-        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
+        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
         userStatusRepository.deleteById(id);

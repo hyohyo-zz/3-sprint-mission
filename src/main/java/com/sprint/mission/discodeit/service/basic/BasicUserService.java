@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,7 +31,6 @@ public class BasicUserService implements UserService {
     private final BinaryContentRepository binaryContentRepository;
 
     public UserResponse create(UserCreateRequest request, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
-        // ㅜ믇
         if (userRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException(ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
         }
@@ -61,7 +61,7 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserResponse find(UUID userId) {
-        User user = userRepository.find(userId).orElseThrow(()-> new IllegalArgumentException(
+        User user = userRepository.find(userId).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
         return toUserResponse(user);
@@ -78,7 +78,7 @@ public class BasicUserService implements UserService {
     @Override
     public UserResponse update(UUID userId, UserUpdateRequest userUpdateRequest, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
         //1. 수정할 엔티티 조회
-        User user = userRepository.find(userId).orElseThrow(()-> new IllegalArgumentException(
+        User user = userRepository.find(userId).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
 
@@ -117,13 +117,12 @@ public class BasicUserService implements UserService {
 
     @Override
     public void delete(UUID userId, String password) {
-        User user = userRepository.find(userId).orElseThrow(()-> new IllegalArgumentException(
+        User user = userRepository.find(userId).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
         );
 
         if (!user.getPassword().equals(password)) {
-            System.out.println(
-                    ErrorMessages.format("User", ErrorMessages.ERROR_MISMATCH));
+            throw new IllegalArgumentException(ErrorMessages.format("Password", ErrorMessages.ERROR_MISMATCH));
         } else {
             Optional.ofNullable(user.getProfileImageId())
                     .ifPresent(binaryContentRepository::deleteById);

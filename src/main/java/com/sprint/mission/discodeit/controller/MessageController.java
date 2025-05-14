@@ -80,7 +80,7 @@ public class MessageController {
             @RequestPart("messageUpdateRequest") MessageUpdateRequest messageUpdateRequest
     ) {
         MessageResponse updatedMessage = messageService.update(messageId, messageUpdateRequest);
-        return ResponseEntity.status(HttpStatus.OK).body(updatedMessage);
+        return ResponseEntity.ok(updatedMessage);
     }
 
     @RequestMapping(
@@ -91,14 +91,8 @@ public class MessageController {
     public ResponseEntity<String> delete(
             @RequestParam("messageId") UUID messageId
     ) {
-        try {
-            messageService.delete(messageId);
-            return ResponseEntity.status(HttpStatus.OK).body("메시지 삭제 성공");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+        messageService.delete(messageId);
+        return ResponseEntity.status(HttpStatus.OK).body("메시지 삭제 성공");
     }
 
     private Optional<BinaryContentCreateRequest> resolveAttachmentRequest(MultipartFile attachment) {
@@ -116,7 +110,7 @@ public class MessageController {
                 );
                 return Optional.of(binaryContentRequest);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("첨부파일 업로드 중 오류발생" + e);
             }
         }
     }

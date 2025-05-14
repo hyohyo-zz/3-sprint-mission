@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -28,10 +29,10 @@ public class BasicReadStatusService implements ReadStatusService {
         UUID channelId = request.channelId();
 
         if (!userRepository.existsById(userId)) {
-            throw new IllegalArgumentException(ErrorMessages.format("user", ErrorMessages.ERROR_NOT_FOUND));
+            throw new NoSuchElementException(ErrorMessages.format("user", ErrorMessages.ERROR_NOT_FOUND));
         }
         if (!channelRepository.existsById(channelId)) {
-            throw new IllegalArgumentException(ErrorMessages.format("channel", ErrorMessages.ERROR_NOT_FOUND));
+            throw new NoSuchElementException(ErrorMessages.format("channel", ErrorMessages.ERROR_NOT_FOUND));
         }
         if (readStatusRepository.findAllByUserId(userId).stream()
                 .anyMatch(readStatus -> readStatus.getChannelId().equals(channelId))) {
@@ -45,7 +46,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public ReadStatus find(UUID id) {
-        return readStatusRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
+        return readStatusRepository.find(id).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
     }
 
@@ -57,7 +58,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public ReadStatus update(UUID readStatusId, ReadStatusUpdateRequest request) {
-        ReadStatus readStatus = readStatusRepository.find(readStatusId).orElseThrow(()-> new IllegalArgumentException(
+        ReadStatus readStatus = readStatusRepository.find(readStatusId).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
         readStatus.update(request.newReadTime());
@@ -67,7 +68,7 @@ public class BasicReadStatusService implements ReadStatusService {
     @Override
     public void delete(UUID id) {
         if (!readStatusRepository.existsById(id)) {
-            throw new IllegalArgumentException(
+            throw new NoSuchElementException(
                     ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND));
         };
         readStatusRepository.deleteById(id);
