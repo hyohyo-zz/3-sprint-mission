@@ -23,10 +23,10 @@ public class Message implements Serializable {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Message(UUID senderId, UUID channelId, String category, String content, List<UUID> attachmentIds) {
+    public Message(UUID channelId, UUID senderId, String category, String content, List<UUID> attachmentIds) {
         this.id = UUID.randomUUID();
-        this.senderId = senderId;
         this.channelId = channelId;
+        this.senderId = senderId;
         this.category = category;
         this.content = content;
 

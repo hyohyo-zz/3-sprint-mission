@@ -33,7 +33,8 @@ public class BasicMessageService implements MessageService {
     @Override
     public MessageResponse create(MessageCreateRequest request, List<BinaryContentCreateRequest> attachmentRequests) {
 
-        User sender = userRepository.find(request.senderId()).orElseThrow(()-> new IllegalArgumentException(
+        User sender = userRepository.find(request.senderId())
+                .orElseThrow(()-> new IllegalArgumentException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
         Channel channel = channelRepository.find(request.channelId())
@@ -63,44 +64,25 @@ public class BasicMessageService implements MessageService {
 
         channel.validateCategory(request.category());
         message.validateContent();
+        Message savedMessage = messageRepository.create(message);
 
-        return toMessageResponse(message);
+        return toMessageResponse(savedMessage);
     }
 
     @Override
     public MessageResponse find(UUID id) {
         Message message = messageRepository.find(id).orElseThrow(()-> new IllegalArgumentException(
-                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
-
-        User sender= userRepository.find(message.getSenderId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)));
+                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)
+        ));
 
         return toMessageResponse(message);
     }
 
     @Override
     public List<MessageResponse> findAllByChannelId(UUID channelId) {
-        Channel channel = channelRepository.find(channelId).orElseThrow(()-> new IllegalArgumentException(
-                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
-        );
-
-        List<Message> messages = messageRepository.findAllByChannelId(channelId).stream()
-                .filter(msg -> msg.getChannelId().equals(channelId))
-                .sorted(Comparator.comparing(Message::getCreatedAt))
+        return messageRepository.findAllByChannelId(channelId).stream()
+                .map(this::toMessageResponse)
                 .toList();
-
-        List<MessageResponse> responses = new ArrayList<>();
-
-        for (Message message : messages) {
-            User sender = userRepository.find(message.getSenderId())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            ErrorMessages.format("Seder", ErrorMessages.ERROR_NOT_FOUND)
-                    ));
-
-            responses.add(toMessageResponse(message));
-        }
-        return responses;
     }
 
     @Override
@@ -110,12 +92,13 @@ public class BasicMessageService implements MessageService {
                 ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
 
         message.update(newContent);
-        return toMessageResponse(message);
+        Message updatedMessage = messageRepository.create(message);
+        return toMessageResponse(updatedMessage);
     }
 
     @Override
     public void delete(UUID messageId) {
-        Message message = messageRepository.find(messageId).orElseThrow(()-> new IllegalArgumentException(
+        messageRepository.find(messageId).orElseThrow(()-> new IllegalArgumentException(
                 ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
 
         messageRepository.deleteById(messageId);
@@ -124,7 +107,9 @@ public class BasicMessageService implements MessageService {
     private MessageResponse toMessageResponse(Message message) {
         return new MessageResponse(
                 message.getId(),
+                message.getChannelId(),
                 message.getSenderId(),
+                message.getCategory(),
                 message.getContent(),
                 message.getCreatedAt(),
                 message.getAttachmentIds()

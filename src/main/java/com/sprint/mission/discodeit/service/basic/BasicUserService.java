@@ -25,7 +25,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
 
-    private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
@@ -38,7 +37,6 @@ public class BasicUserService implements UserService {
         if (userRepository.existsByUserName(request.name())) {
             throw new IllegalArgumentException(ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
         }
-
 
         UUID nullableProfileId = optionalProfileCreateRequest
                .map(profileCreateRequest -> {
