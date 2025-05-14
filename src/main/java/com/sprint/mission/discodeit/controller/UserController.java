@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.Response.UserResponse;
+import com.sprint.mission.discodeit.dto.Response.UserDto;
 import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserStatusUpdateRequest;
@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user")
 public class UserController {
     private final UserService userService;
     private final UserStatusService userStatusService;
@@ -33,7 +33,7 @@ public class UserController {
             , consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @ResponseBody
-    public ResponseEntity<UserResponse> create(
+    public ResponseEntity<UserDto> create(
             @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
             @RequestPart(value = "profile", required = false) MultipartFile profile
             ) {
@@ -42,7 +42,7 @@ public class UserController {
                 Optional.ofNullable(profile)
                         .flatMap(this::resolveProfileRequest);
 
-        UserResponse createdUser = userService.create(userCreateRequest, profileRequest);
+        UserDto createdUser = userService.create(userCreateRequest, profileRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
@@ -51,10 +51,10 @@ public class UserController {
 //            , method = RequestMethod.GET
     )
     @ResponseBody
-    public ResponseEntity<UserResponse> find(
+    public ResponseEntity<UserDto> find(
             @PathVariable("userId") UUID userId
     ) {
-        UserResponse user = userService.find(userId);
+        UserDto user = userService.find(userId);
         return ResponseEntity.ok(user);
     }
 
@@ -62,9 +62,8 @@ public class UserController {
             path = "/findAll"
 //            , method = RequestMethod.GET
     )
-    @ResponseBody
-    public ResponseEntity<List<UserResponse>> findAll() {
-        List<UserResponse> users = userService.findAll();
+    public ResponseEntity<List<UserDto>> findAll() {
+        List<UserDto> users = userService.findAll();
         return ResponseEntity.ok(users);
     }
 
@@ -74,7 +73,7 @@ public class UserController {
             , consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     @ResponseBody
-    public ResponseEntity<UserResponse> update(
+    public ResponseEntity<UserDto> update(
             @RequestParam("userId") UUID userId,
             @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
             @RequestPart(value = "profile", required = false) MultipartFile profile
@@ -83,7 +82,7 @@ public class UserController {
                 Optional.ofNullable(profile)
                         .flatMap(this::resolveProfileRequest);
 
-        UserResponse updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
+        UserDto updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
         return ResponseEntity.ok(updatedUser);
     }
 

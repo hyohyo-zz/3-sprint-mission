@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.dto.Response.UserResponse;
+import com.sprint.mission.discodeit.dto.Response.UserDto;
 import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
@@ -9,7 +9,6 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
@@ -30,7 +29,7 @@ public class BasicUserService implements UserService {
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
 
-    public UserResponse create(UserCreateRequest request, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
+    public UserDto create(UserCreateRequest request, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
         if (userRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException(ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
         }
@@ -60,7 +59,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponse find(UUID userId) {
+    public UserDto find(UUID userId) {
         User user = userRepository.find(userId).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
@@ -68,7 +67,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public List<UserResponse> findAll() {
+    public List<UserDto> findAll() {
         return userRepository.findAll()
                 .stream()
                 .map(this::toUserResponse)
@@ -76,7 +75,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponse update(UUID userId, UserUpdateRequest userUpdateRequest, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
+    public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
         //1. 수정할 엔티티 조회
         User user = userRepository.find(userId).orElseThrow(()-> new NoSuchElementException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
@@ -132,21 +131,19 @@ public class BasicUserService implements UserService {
         }
     }
 
-    private UserResponse toUserResponse(User user) {
+    private UserDto toUserResponse(User user) {
         Boolean online = userStatusRepository.findByUserId(user.getId())
                 .map(UserStatus::isOnline)
                 .orElse(null);
 
-        return new UserResponse(
+        return new UserDto(
                 user.getId(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
                 user.getName(),
                 user.getEmail(),
-                user.getPhone(),
-                user.getPassword(),
-                user.getCreatedAt(),
-                online,
                 user.getProfileImageId(),
-                user.getProfileImageId() != null
+                online
         );
     }
 }
