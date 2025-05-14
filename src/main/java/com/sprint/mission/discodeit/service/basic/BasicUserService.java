@@ -30,7 +30,7 @@ public class BasicUserService implements UserService {
     private final BinaryContentRepository binaryContentRepository;
 
     public UserResponse create(UserCreateRequest request, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
-        // 중복 name, email 검사
+        // ㅜ믇
         if (userRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException(ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
         }
