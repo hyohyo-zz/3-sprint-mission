@@ -4,8 +4,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record UserStatusResponse(
-        UUID userId,
-        boolean online,
-        Instant lastOnlineTime
+    UUID userId,
+    boolean online,
+    Instant lastOnlineTime
 ) {
+
 }

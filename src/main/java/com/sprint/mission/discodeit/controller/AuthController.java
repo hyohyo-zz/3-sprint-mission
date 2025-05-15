@@ -5,29 +5,34 @@ import com.sprint.mission.discodeit.dto.request.LoginRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.UserService;
-import org.springframework.http.ResponseEntity;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    private final UserService userService;
-    private final AuthService authService;
 
-    @RequestMapping(
-            path = "/login"
-            ,method = RequestMethod.POST
-    )
-    @ResponseBody
-    public ResponseEntity<UserDto> login(
-            @RequestPart("loginRequest") LoginRequest loginRequest
-    ) {
+  private final UserService userService;
+  private final AuthService authService;
 
-        User user = authService.login(loginRequest);
-        UserDto userDto = userService.find(user.getId());
+  @RequestMapping(
+      path = "/login"
+      , method = RequestMethod.POST
+  )
+  @ResponseBody
+  public ResponseEntity<UserDto> login(
+      @RequestPart("loginRequest") LoginRequest loginRequest
+  ) {
 
-        return ResponseEntity.ok(userDto);
-    }
+    User user = authService.login(loginRequest);
+    UserDto userDto = userService.find(user.getId());
+
+    return ResponseEntity.ok(userDto);
+  }
 }

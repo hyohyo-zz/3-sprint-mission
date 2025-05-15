@@ -14,102 +14,106 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class BasicMessageService implements MessageService {
-    private final MessageRepository messageRepository;
-    private final UserRepository userRepository;
-    private final ChannelRepository channelRepository;
-    private final BinaryContentRepository binaryContentRepository;
 
-    @Override
-    public MessageResponse create(MessageCreateRequest request, List<BinaryContentCreateRequest> attachmentRequests) {
+  private final MessageRepository messageRepository;
+  private final UserRepository userRepository;
+  private final ChannelRepository channelRepository;
+  private final BinaryContentRepository binaryContentRepository;
 
-        User sender = userRepository.find(request.senderId())
-                .orElseThrow(()-> new NoSuchElementException(
-                ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
+  @Override
+  public MessageResponse create(MessageCreateRequest request,
+      List<BinaryContentCreateRequest> attachmentRequests) {
+
+    User sender = userRepository.find(request.senderId())
+        .orElseThrow(() -> new NoSuchElementException(
+            ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
-        Channel channel = channelRepository.find(request.channelId())
-                .orElseThrow(()-> new NoSuchElementException(
-                        ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
-                );
-
-        List<UUID> attachmentIds = attachmentRequests.stream()
-                .map(attachmentRequest -> {
-                    byte[] bytes = attachmentRequest.bytes();
-                    String contentType = attachmentRequest.contentType();
-                    String fileName = attachmentRequest.originalFilename();
-
-                    BinaryContent binaryContent = new BinaryContent(bytes, contentType, fileName);
-                    BinaryContent createdBinaryContent = binaryContentRepository.save(binaryContent);
-                    return createdBinaryContent.getId();
-                })
-                .toList();
-
-        Message message = new Message(
-                sender.getId(),
-                channel.getId(),
-                request.category(),
-                request.content(),
-                attachmentIds
+    Channel channel = channelRepository.find(request.channelId())
+        .orElseThrow(() -> new NoSuchElementException(
+            ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
         );
 
-        channel.validateCategory(request.category());
-        message.validateContent();
-        Message savedMessage = messageRepository.create(message);
+    List<UUID> attachmentIds = attachmentRequests.stream()
+        .map(attachmentRequest -> {
+          byte[] bytes = attachmentRequest.bytes();
+          String contentType = attachmentRequest.contentType();
+          String fileName = attachmentRequest.originalFilename();
 
-        return toMessageResponse(savedMessage);
-    }
+          BinaryContent binaryContent = new BinaryContent(bytes, contentType, fileName);
+          BinaryContent createdBinaryContent = binaryContentRepository.save(binaryContent);
+          return createdBinaryContent.getId();
+        })
+        .toList();
 
-    @Override
-    public MessageResponse find(UUID id) {
-        Message message = messageRepository.find(id).orElseThrow(()-> new NoSuchElementException(
-                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)
-        ));
+    Message message = new Message(
+        sender.getId(),
+        channel.getId(),
+        request.category(),
+        request.content(),
+        attachmentIds
+    );
 
-        return toMessageResponse(message);
-    }
+    channel.validateCategory(request.category());
+    message.validateContent();
+    Message savedMessage = messageRepository.create(message);
 
-    @Override
-    public List<MessageResponse> findAllByChannelId(UUID channelId) {
-        return messageRepository.findAllByChannelId(channelId).stream()
-                .map(this::toMessageResponse)
-                .toList();
-    }
+    return toMessageResponse(savedMessage);
+  }
 
-    @Override
-    public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
-        String newContent = request.newContent();
-        Message message = messageRepository.find(messageId).orElseThrow(()-> new NoSuchElementException(
-                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
+  @Override
+  public MessageResponse find(UUID id) {
+    Message message = messageRepository.find(id).orElseThrow(() -> new NoSuchElementException(
+        ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)
+    ));
 
-        message.update(newContent);
-        Message updatedMessage = messageRepository.create(message);
-        return toMessageResponse(updatedMessage);
-    }
+    return toMessageResponse(message);
+  }
 
-    @Override
-    public void delete(UUID messageId) {
-        messageRepository.find(messageId).orElseThrow(()-> new NoSuchElementException(
-                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
+  @Override
+  public List<MessageResponse> findAllByChannelId(UUID channelId) {
+    return messageRepository.findAllByChannelId(channelId).stream()
+        .map(this::toMessageResponse)
+        .toList();
+  }
 
-        messageRepository.deleteById(messageId);
-    }
+  @Override
+  public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
+    String newContent = request.newContent();
+    Message message = messageRepository.find(messageId)
+        .orElseThrow(() -> new NoSuchElementException(
+            ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
 
-    private MessageResponse toMessageResponse(Message message) {
-        return new MessageResponse(
-                message.getId(),
-                message.getChannelId(),
-                message.getSenderId(),
-                message.getCategory(),
-                message.getContent(),
-                message.getCreatedAt(),
-                message.getAttachmentIds()
-        );
-    }
+    message.update(newContent);
+    Message updatedMessage = messageRepository.create(message);
+    return toMessageResponse(updatedMessage);
+  }
+
+  @Override
+  public void delete(UUID messageId) {
+    messageRepository.find(messageId).orElseThrow(() -> new NoSuchElementException(
+        ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
+
+    messageRepository.deleteById(messageId);
+  }
+
+  private MessageResponse toMessageResponse(Message message) {
+    return new MessageResponse(
+        message.getId(),
+        message.getChannelId(),
+        message.getSenderId(),
+        message.getCategory(),
+        message.getContent(),
+        message.getCreatedAt(),
+        message.getAttachmentIds()
+    );
+  }
 }

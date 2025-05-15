@@ -5,12 +5,13 @@ import java.util.UUID;
 
 
 public record UserDto(
-        UUID id,
-        Instant createdAt,
-        Instant updatedAt,
-        String username,
-        String email,
-        UUID profileId,
-        Boolean online
+    UUID id,
+    Instant createdAt,
+    Instant updatedAt,
+    String username,
+    String email,
+    UUID profileId,
+    Boolean online
 ) {
+
 }
