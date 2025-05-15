@@ -88,10 +88,10 @@ public class BasicUserService implements UserService {
     String newEmail = userUpdateRequest.newEmail();
 
     //2. username/email 중복 체크
-    if (userRepository.existsByEmail(newEmail)) {
+    if (!user.getEmail().equals(newEmail) && userRepository.existsByEmail(newEmail)) {
       throw new IllegalArgumentException(ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
     }
-    if (userRepository.existsByUserName(newUsername)) {
+    if (!user.getName().equals(newUsername) && userRepository.existsByUserName(newUsername)) {
       throw new IllegalArgumentException(
           ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
     }
