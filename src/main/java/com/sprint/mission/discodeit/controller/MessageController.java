@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.dto.request.create.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,10 +31,12 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/messages")
+@Tag(name = "Message API", description = "메시지 관리")
 public class MessageController {
 
   private final MessageService messageService;
 
+  @Operation(summary = "메시지 생성", description = "메시지를 생성합니다.")
   @PostMapping(
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE
   )
@@ -53,6 +57,7 @@ public class MessageController {
     return ResponseEntity.status(HttpStatus.CREATED).body(createdMessage);
   }
 
+  @Operation(summary = "단일 메시지 조회", description = "특정 메시지를 조회합니다.")
   @GetMapping(
       path = "/{messageId}"
 //            , method = RequestMethod.GET
@@ -64,6 +69,7 @@ public class MessageController {
     return ResponseEntity.ok(message);
   }
 
+  @Operation(summary = "채널 메시지 조회", description = "채널의 모든 메시지를 조회합니다.")
   @GetMapping
   public ResponseEntity<List<Message>> findAllByChannelId(
       @RequestParam("channelId") UUID channelId
@@ -72,6 +78,7 @@ public class MessageController {
     return ResponseEntity.ok(messages);
   }
 
+  @Operation(summary = "메시지 수정", description = "기존 메시지를 수정합니다.")
   @PatchMapping(
       path = "/{messageId}"
       , consumes = MediaType.APPLICATION_JSON_VALUE
@@ -84,6 +91,7 @@ public class MessageController {
     return ResponseEntity.ok(updatedMessage);
   }
 
+  @Operation(summary = "메시지 제거", description = "특정 메시지를 제거합니다.")
   @DeleteMapping(
       path = "/{messageId}"
 //            , method = RequestMethod.DELETE

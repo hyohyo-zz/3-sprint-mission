@@ -1,6 +1,11 @@
-spring:
-  application:
-    name: discodeit
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    url: /api-docs
+    path: /swagger-ui.html
 
 discodeit:
   repository:

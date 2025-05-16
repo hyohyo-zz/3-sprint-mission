@@ -7,6 +7,8 @@ import com.sprint.mission.discodeit.dto.request.update.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -23,11 +25,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "User API", description = "사용자 관리")
 public class UserController {
 
   private final UserService userService;
   private final UserStatusService userStatusService;
 
+  @Operation(summary = "유저 생성", description = "새로운 유저를 생성합니다.")
   @PostMapping(
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE
   )
@@ -44,6 +48,7 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
   }
 
+  @Operation(summary = "유저 조회", description = "기존 유저를 조회합니다.")
   @GetMapping(
       path = "/{userId}"
 //            , method = RequestMethod.GET
@@ -55,12 +60,14 @@ public class UserController {
     return ResponseEntity.ok(user);
   }
 
+  @Operation(summary = "전체 유저 조회", description = "전체 유저를 조회합니다.")
   @GetMapping
   public ResponseEntity<List<UserDto>> findAll() {
     List<UserDto> users = userService.findAll();
     return ResponseEntity.ok(users);
   }
 
+  @Operation(summary = "유저 수정", description = "기존 유저 정보를 수정합니다.")
   @PatchMapping(
       path = "/{userId}"
 //            , method = RequestMethod.PUT
@@ -79,6 +86,7 @@ public class UserController {
     return ResponseEntity.ok(updatedUser);
   }
 
+  @Operation(summary = "유저 삭제", description = "기존 유저를 삭제합니다.")
   @DeleteMapping(
       value = "/{userId}"
 //            , method = RequestMethod.DELETE
@@ -90,6 +98,7 @@ public class UserController {
     return ResponseEntity.noContent().build(); // 204
   }
 
+  @Operation(summary = "유저 상태 업데이트", description = "유저 상태를 업데이트합니다.(온라인)")
   @PatchMapping(
       value = "/{userId}/userStatus"
 //            , method = RequestMethod.PUT

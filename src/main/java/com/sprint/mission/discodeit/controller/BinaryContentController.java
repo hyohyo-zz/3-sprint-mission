@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/binaryContents")
+@Tag(name = "BinaryContent API", description = "바이너리 파일 다운로드")
 public class BinaryContentController {
 
   private final BinaryContentService binaryContentService;
 
+  @Operation(summary = "단일 파일 조회", description = "파일 1개를 조회합니다.")
   @GetMapping("/{binaryContentId}")
   public ResponseEntity<BinaryContent> find(
       @PathVariable UUID binaryContentId
@@ -27,6 +31,7 @@ public class BinaryContentController {
     return ResponseEntity.ok(binaryContent);
   }
 
+  @Operation(summary = "다중 파일 조회", description = "파일 여러 개를 조회합니다.")
   @GetMapping
   public ResponseEntity<List<BinaryContent>> findAll(
       @RequestParam("binaryContentIds") List<UUID> ids

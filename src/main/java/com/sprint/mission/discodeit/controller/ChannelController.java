@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePrivateReque
 import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePublicRequest;
 import com.sprint.mission.discodeit.dto.request.update.ChannelUpdateRequest_public;
 import com.sprint.mission.discodeit.service.ChannelService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +25,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/channels")
+@Tag(name = "Channel API", description = "채널 관리")
 public class ChannelController {
 
   private final ChannelService channelService;
 
+  @Operation(summary = "공개 채널 생성", description = "공개 채널을 생성합니다.")
   @PostMapping(
       path = "/public"
   )
@@ -37,6 +41,7 @@ public class ChannelController {
     return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel);
   }
 
+  @Operation(summary = "비공개 채널 생성", description = "비공개 채널을 생성합니다.")
   @PostMapping(
       path = "/private"
   )
@@ -47,6 +52,7 @@ public class ChannelController {
     return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel_private);
   }
 
+  @Operation(summary = "채널 조회", description = "특정 채널을 조회합니다.")
   @GetMapping(
       path = "/{channelId}"
       //            , method = RequestMethod.GET
@@ -58,6 +64,7 @@ public class ChannelController {
     return ResponseEntity.ok(channel);
   }
 
+  @Operation(summary = "모든 채널 목록 조회", description = "특정 사용자가 볼 수 있는 모든 채널 목록을 조회합니다.")
   @GetMapping
   public ResponseEntity<List<ChannelDto>> findAllByUserId(
       @RequestParam("userId") UUID userId
@@ -66,6 +73,7 @@ public class ChannelController {
     return ResponseEntity.ok(channels);
   }
 
+  @Operation(summary = "공개 채널 수정", description = "공개 채널의 정보를 수정합니다.")
   @PatchMapping(
       path = "/{channelId}"
       //            , method = RequestMethod.PUT
@@ -79,6 +87,7 @@ public class ChannelController {
     return ResponseEntity.ok(updatedChannel);
   }
 
+  @Operation(summary = "채널 삭제", description = "특정 채널을 삭제합니다.")
   @DeleteMapping(
       path = "/{channelId}"
       //            , method = RequestMethod.DELETE
