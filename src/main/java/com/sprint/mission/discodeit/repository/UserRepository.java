@@ -7,11 +7,11 @@ import java.util.UUID;
 
 public interface UserRepository {
 
-  public User create(User user);
+  public User save(User user);
 
   public Optional<User> find(UUID id);
 
-  public Optional<User> findByUserName(String name);
+  public Optional<User> findByUsername(String username);
 
   public List<User> findAll();
 
@@ -21,6 +21,6 @@ public interface UserRepository {
 
   public boolean existsByEmail(String email);
 
-  public boolean existsByUserName(String userName);
+  public boolean existsByUsername(String username);
 
 }

@@ -17,24 +17,19 @@ public class Message implements Serializable {
   private Instant updatedAt;
 
   private String content;     //내용
-  private UUID senderId;        //보낸사람
-  private UUID channelId;
-  private String category;
 
+  private UUID channelId;
+  private UUID authorId;        //보낸사람
   private List<UUID> attachmentIds;
 
-
-  public Message(UUID channelId, UUID senderId, String category, String content,
-      List<UUID> attachmentIds) {
+  public Message(String content, UUID channelId, UUID authorId, List<UUID> attachmentIds) {
     this.id = UUID.randomUUID();
-    this.channelId = channelId;
-    this.senderId = senderId;
-    this.category = category;
-    this.content = content;
-
-    this.attachmentIds = attachmentIds;
-
     this.createdAt = Instant.now();
+
+    this.content = content;
+    this.channelId = channelId;
+    this.authorId = authorId;
+    this.attachmentIds = attachmentIds;
   }
 
   public void update(String newContent) {

@@ -1,11 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.common.ErrorMessages;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,56 +11,36 @@ import lombok.Setter;
 public class Channel implements Serializable {
 
   private static final long serialVersionUID = 1L;
-
   private UUID id;
-  private String channelName;
-  private List<String> categories;
-
-  private ChannelType type;
-
   private Instant createdAt;
   private Instant updatedAt;
 
-  public Channel(ChannelType type, String channelName, List<String> categories) {
+  private ChannelType type;
+  private String name;
+  private String description;
+
+  public Channel(ChannelType type, String name, String description) {
     this.id = UUID.randomUUID();
-    this.type = type;
-
-    this.channelName = channelName;
-    this.categories = categories;
-
     this.createdAt = Instant.now();
+
+    this.type = type;
+    this.name = name;
+    this.description = description;
   }
 
-  public void update(String newChannelName, List<String> newCategories) {
+  public void update(String newName, String newDescription) {
     boolean anyValueUpdated = false;
-    if (newChannelName != null && !newChannelName.equals(this.channelName)) {
-      this.channelName = newChannelName;
+    if (newName != null && !newName.equals(this.name)) {
+      this.name = newName;
       anyValueUpdated = true;
     }
-    if (newCategories != null && !newCategories.equals(this.categories)) {
-      this.categories = newCategories;
+    if (newDescription != null && !newDescription.equals(this.description)) {
+      this.description = newDescription;
       anyValueUpdated = true;
     }
-  }
 
-  //카테고리 중복 확인
-  public void validateUniqueCategory() {
-    Set<String> unique = new HashSet<>();
-    for (String category : this.categories) {
-      if (!unique.add(category)) {
-        throw new IllegalArgumentException(
-            ErrorMessages.format("Category", ErrorMessages.ERROR_EXISTS)
-        );
-      }
-    }
-  }
-
-  //채널에 없는 카테고리에 메시지 생성시
-  public void validateCategory(String category) {
-    if (!categories.contains(category)) {
-      throw new IllegalArgumentException(
-          ErrorMessages.format("Category", ErrorMessages.ERROR_NOT_FOUND)
-      );
+    if (anyValueUpdated) {
+      this.updatedAt = Instant.now();
     }
   }
 }

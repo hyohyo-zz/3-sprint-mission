@@ -1,9 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.request.create.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.request.update.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
@@ -19,8 +19,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class BasicMessageService implements MessageService {
 
   private final MessageRepository messageRepository;
@@ -32,7 +32,7 @@ public class BasicMessageService implements MessageService {
   public Message create(MessageCreateRequest request,
       List<BinaryContentCreateRequest> attachmentRequests) {
 
-    User sender = userRepository.find(request.senderId())
+    User authorId = userRepository.find(request.authorId())
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
@@ -45,25 +45,24 @@ public class BasicMessageService implements MessageService {
         .map(attachmentRequest -> {
           byte[] bytes = attachmentRequest.bytes();
           String contentType = attachmentRequest.contentType();
-          String fileName = attachmentRequest.originalFilename();
+          String fileName = attachmentRequest.fileName();
 
-          BinaryContent binaryContent = new BinaryContent(bytes, contentType, fileName);
+          BinaryContent binaryContent = new BinaryContent(fileName, (long) bytes.length,
+              contentType, bytes);
           BinaryContent createdBinaryContent = binaryContentRepository.save(binaryContent);
           return createdBinaryContent.getId();
         })
         .toList();
 
     Message message = new Message(
-        channel.getId(),
-        sender.getId(),
-        request.category(),
         request.content(),
+        channel.getId(),
+        authorId.getId(),
         attachmentIds
     );
 
-    channel.validateCategory(request.category());
     message.validateContent();
-    return messageRepository.create(message);
+    return messageRepository.save(message);
   }
 
   @Override
@@ -87,7 +86,7 @@ public class BasicMessageService implements MessageService {
             ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
 
     message.update(newContent);
-    return messageRepository.create(message);
+    return messageRepository.save(message);
   }
 
   @Override

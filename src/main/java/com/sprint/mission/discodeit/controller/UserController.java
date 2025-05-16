@@ -1,26 +1,39 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.request.update.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.data.UserDto;
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
@@ -31,11 +44,17 @@ public class UserController {
   private final UserService userService;
   private final UserStatusService userStatusService;
 
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "201", description = "User가 성공적으로 생성됨",
+          content = @Content(schema = @Schema(implementation = User.class))),
+      @ApiResponse(responseCode = "400", description = "같은 email 또는 username을 사용하는 User가 이미 존재함",
+          content = @Content(mediaType = "text/plain"))
+  })
   @Operation(summary = "유저 생성", description = "새로운 유저를 생성합니다.")
   @PostMapping(
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE
   )
-  public ResponseEntity<UserDto> create(
+  public ResponseEntity<User> create(
       @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
       @RequestPart(value = "profile", required = false) MultipartFile profile
   ) {
@@ -44,20 +63,8 @@ public class UserController {
         Optional.ofNullable(profile)
             .flatMap(this::resolveProfileRequest);
 
-    UserDto createdUser = userService.create(userCreateRequest, profileRequest);
+    User createdUser = userService.create(userCreateRequest, profileRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-  }
-
-  @Operation(summary = "유저 조회", description = "기존 유저를 조회합니다.")
-  @GetMapping(
-      path = "/{userId}"
-//            , method = RequestMethod.GET
-  )
-  public ResponseEntity<UserDto> find(
-      @PathVariable UUID userId
-  ) {
-    UserDto user = userService.find(userId);
-    return ResponseEntity.ok(user);
   }
 
   @Operation(summary = "전체 유저 조회", description = "전체 유저를 조회합니다.")
@@ -73,7 +80,7 @@ public class UserController {
 //            , method = RequestMethod.PUT
       , consumes = MediaType.MULTIPART_FORM_DATA_VALUE
   )
-  public ResponseEntity<UserDto> update(
+  public ResponseEntity<User> update(
       @PathVariable UUID userId,
       @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
       @RequestPart(value = "profile", required = false) MultipartFile profile
@@ -82,7 +89,7 @@ public class UserController {
         Optional.ofNullable(profile)
             .flatMap(this::resolveProfileRequest);
 
-    UserDto updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
+    User updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
     return ResponseEntity.ok(updatedUser);
   }
 
@@ -103,11 +110,12 @@ public class UserController {
       value = "/{userId}/userStatus"
 //            , method = RequestMethod.PUT
   )
-  public ResponseEntity<String> updateStatus(
-      @PathVariable UUID userId
+  public ResponseEntity<UserStatus> updateStatus(
+      @PathVariable UUID userId,
+      @RequestBody UserStatusUpdateRequest request
   ) {
-    userStatusService.updateByUserId(userId, new UserStatusUpdateRequest(Instant.now()));
-    return ResponseEntity.ok("userStatus update 성공");
+    UserStatus updated = userStatusService.updateByUserId(userId, request);
+    return ResponseEntity.ok(updated);
   }
 
   private Optional<BinaryContentCreateRequest> resolveProfileRequest(MultipartFile profile) {
@@ -116,9 +124,9 @@ public class UserController {
         .map(file -> {
           try {
             return new BinaryContentCreateRequest(
-                file.getBytes(),
+                file.getOriginalFilename(),
                 file.getContentType(),
-                file.getOriginalFilename()
+                file.getBytes()
             );
           } catch (IOException e) {
             throw new RuntimeException("프로필 업로드 중 오류 발생", e);

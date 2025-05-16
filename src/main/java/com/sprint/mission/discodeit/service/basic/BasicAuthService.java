@@ -9,8 +9,8 @@ import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class BasicAuthService implements AuthService {
 
   private final UserRepository userRepository;
@@ -18,7 +18,7 @@ public class BasicAuthService implements AuthService {
   @Override
   public User login(LoginRequest request) {
     //1. Username으로 user 찾기
-    User user = userRepository.findByUserName(request.userName())
+    User user = userRepository.findByUsername(request.username())
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("user", ErrorMessages.ERROR_NOT_FOUND)));
 

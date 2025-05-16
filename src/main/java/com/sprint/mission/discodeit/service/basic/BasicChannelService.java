@@ -1,10 +1,10 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePrivateRequest;
-import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePublicRequest;
-import com.sprint.mission.discodeit.dto.request.update.ChannelUpdateRequest_public;
+import com.sprint.mission.discodeit.dto.data.ChannelDto;
+import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
@@ -22,8 +22,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class BasicChannelService implements ChannelService {
 
   private final ChannelRepository channelRepository;
@@ -33,33 +33,31 @@ public class BasicChannelService implements ChannelService {
 
   //private 채널생성
   @Override
-  public ChannelDto create(ChannelCreatePrivateRequest request) {
+  public Channel create(PrivateChannelCreateRequest request) {
     Channel channel = new Channel(ChannelType.PRIVATE, null, null);
-    Channel createdChannel = channelRepository.create(channel);
+    Channel createdChannel = channelRepository.save(channel);
 
-    request.memberIds().stream()
+    request.participantIds().stream()
         .map(userId -> new ReadStatus(userId, createdChannel.getId(), Instant.MIN))
-        .forEach(readStatusRepository::create);
+        .forEach(readStatusRepository::save);
 
-    return toChannelResponse(createdChannel);
+    return createdChannel;
   }
 
   //public 채널생성
   @Override
-  public ChannelDto create(ChannelCreatePublicRequest request) {
-    String channelName = request.channelName();
-    List<String> categories = request.categories();
-    Channel channel = new Channel(ChannelType.PUBLIC, channelName, categories);
+  public Channel create(PublicChannelCreateRequest request) {
+    String name = request.name();
+    String description = request.description();
+    Channel channel = new Channel(ChannelType.PUBLIC, name, description);
 
-    Channel createdChannel = channelRepository.create(channel);
-
-    return toChannelResponse(createdChannel);
+    return channelRepository.save(channel);
   }
 
   @Override
   public ChannelDto find(UUID channelId) {
     return channelRepository.find(channelId)
-        .map(this::toChannelResponse)
+        .map(this::toDto)
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
   }
@@ -80,15 +78,14 @@ public class BasicChannelService implements ChannelService {
             channel.getType().equals(ChannelType.PUBLIC)
                 || mySubscribedChannelIds.contains(channel.getId())
         )
-        .map(this::toChannelResponse)
+        .map(this::toDto)
         .toList();
   }
 
   @Override
-  public ChannelDto update(UUID channelId, ChannelUpdateRequest_public request) {
-    String newChannelName = request.newChannelName();
-    List<String> newCategories = request.newCategories();
-
+  public Channel update(UUID channelId, PublicChannelUpdateRequest request) {
+    String newName = request.newName();
+    String newDescription = request.newDescription();
     Channel channel = channelRepository.find(channelId)
         .orElseThrow(() -> new IllegalArgumentException(
             ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
@@ -98,10 +95,8 @@ public class BasicChannelService implements ChannelService {
       throw new IllegalArgumentException(
           ErrorMessages.format("Channel", ErrorMessages.ERROR_PRIVATE_CHANNEL_NOT_UPDATE));
     }
-    channel.update(newChannelName, newCategories);
-    Channel createdChannel = channelRepository.create(channel);
-
-    return toChannelResponse(createdChannel);
+    channel.update(newName, newDescription);
+    return channelRepository.save(channel);
   }
 
   @Override
@@ -116,7 +111,7 @@ public class BasicChannelService implements ChannelService {
     channelRepository.deleteById(channelId);
   }
 
-  private ChannelDto toChannelResponse(Channel channel) {
+  private ChannelDto toDto(Channel channel) {
     Instant lastMessageAt = messageRepository.findAllByChannelId(channel.getId())
         .stream()
         .sorted(Comparator.comparing(Message::getCreatedAt).reversed())
@@ -125,20 +120,20 @@ public class BasicChannelService implements ChannelService {
         .findFirst()
         .orElse(Instant.MIN);
 
-    List<UUID> memberIds = new ArrayList<>();
+    List<UUID> participantIds = new ArrayList<>();
     if (channel.getType().equals(ChannelType.PRIVATE)) {
       readStatusRepository.findAllByChannelId(channel.getId())
           .stream()
           .map(ReadStatus::getUserId)
-          .forEach(memberIds::add);
+          .forEach(participantIds::add);
     }
 
     return new ChannelDto(
         channel.getId(),
         channel.getType(),
-        channel.getChannelName(),
-        channel.getCategories(),
-        memberIds,
+        channel.getName(),
+        channel.getDescription(),
+        participantIds,
         lastMessageAt
     );
   }

@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.request.create.ReadStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.request.update.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.request.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,7 +41,7 @@ public class ReadStatusController {
 
   @Operation(summary = "메시지 수신 정보 수정", description = "특정 채널의 메시지 수신 정보를 수정합니다.")
   @PatchMapping(
-      path = "/{readStatusId}/read-time"
+      path = "/{readStatusId}"
 //            , method = RequestMethod.PUT
   )
   public ResponseEntity<ReadStatus> update(

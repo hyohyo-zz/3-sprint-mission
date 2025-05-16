@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto;
+package com.sprint.mission.discodeit.dto.data;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
@@ -15,7 +15,7 @@ public record UserDto(
     @Schema(description = "유저 정보 최종 수정 시간", example = "2025-05-16T09:20:00Z")
     Instant updatedAt,
 
-    @Schema(description = "유저 이름", example = "현아공주")
+    @Schema(description = "유저 이름", example = "조현아")
     String username,
 
     @Schema(description = "유저 이메일", example = "hyuna@example.com")

@@ -45,7 +45,7 @@ public class FileChannelRepository implements ChannelRepository {
 
   //채널 생성
   @Override
-  public Channel create(Channel channel) {
+  public Channel save(Channel channel) {
     Path path = resolvePath(channel.getId());
     try (
         FileOutputStream fos = new FileOutputStream(path.toFile());

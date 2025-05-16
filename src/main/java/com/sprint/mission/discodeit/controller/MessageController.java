@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.request.create.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.request.update.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,18 +57,6 @@ public class MessageController {
     return ResponseEntity.status(HttpStatus.CREATED).body(createdMessage);
   }
 
-  @Operation(summary = "단일 메시지 조회", description = "특정 메시지를 조회합니다.")
-  @GetMapping(
-      path = "/{messageId}"
-//            , method = RequestMethod.GET
-  )
-  public ResponseEntity<Message> find(
-      @PathVariable UUID messageId
-  ) {
-    Message message = messageService.find(messageId);
-    return ResponseEntity.ok(message);
-  }
-
   @Operation(summary = "채널 메시지 조회", description = "채널의 모든 메시지를 조회합니다.")
   @GetMapping
   public ResponseEntity<List<Message>> findAllByChannelId(
@@ -110,9 +98,9 @@ public class MessageController {
         .map(file -> {
           try {
             return new BinaryContentCreateRequest(
-                file.getBytes(),
+                file.getOriginalFilename(),
                 file.getContentType(),
-                file.getOriginalFilename()
+                file.getBytes()
             );
           } catch (IOException e) {
             throw new RuntimeException("파일 읽기 중 오류 발생", e);

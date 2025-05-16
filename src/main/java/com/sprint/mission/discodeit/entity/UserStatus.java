@@ -29,16 +29,17 @@ public class UserStatus implements Serializable {
 
   public UserStatus(UUID userId, Instant lastActiveAt) {
     this.id = UUID.randomUUID();
-    this.userId = userId;
     this.createdAt = Instant.now();
+
+    this.userId = userId;
     this.lastActiveAt = lastActiveAt;
   }
 
-  //lastOnlineTime update
-  public void update(Instant lastOnlineTime) {
+  //lastActiveAt update
+  public void update(Instant lastActiveAt) {
     boolean anyValueUpdated = false;
-    if (lastOnlineTime != null && !lastOnlineTime.equals(this.lastActiveAt)) {
-      this.lastActiveAt = lastOnlineTime;
+    if (lastActiveAt != null && !lastActiveAt.equals(this.lastActiveAt)) {
+      this.lastActiveAt = lastActiveAt;
       anyValueUpdated = true;
     }
 

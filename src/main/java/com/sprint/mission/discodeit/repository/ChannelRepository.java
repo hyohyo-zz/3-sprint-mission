@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface ChannelRepository {
 
-  public Channel create(Channel channel);
+  public Channel save(Channel channel);
 
   public Optional<Channel> find(UUID id);
 

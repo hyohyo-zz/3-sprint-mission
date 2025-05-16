@@ -21,7 +21,7 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
   }
 
   @Override
-  public ReadStatus create(ReadStatus readStatus) {
+  public ReadStatus save(ReadStatus readStatus) {
     this.data.put(readStatus.getId(), readStatus);
     return readStatus;
   }

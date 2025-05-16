@@ -22,7 +22,7 @@ public class JCFUserStatusRepository implements UserStatusRepository {
   }
 
   @Override
-  public UserStatus create(UserStatus userStatus) {
+  public UserStatus save(UserStatus userStatus) {
     this.data.put(userStatus.getUserId(), userStatus);
     return userStatus;
   }

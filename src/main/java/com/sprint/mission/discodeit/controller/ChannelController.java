@@ -1,9 +1,10 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePrivateRequest;
-import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePublicRequest;
-import com.sprint.mission.discodeit.dto.request.update.ChannelUpdateRequest_public;
+import com.sprint.mission.discodeit.dto.data.ChannelDto;
+import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,10 +35,10 @@ public class ChannelController {
   @PostMapping(
       path = "/public"
   )
-  public ResponseEntity<ChannelDto> createPublicChannel(
-      @RequestBody ChannelCreatePublicRequest channelCreatePublicRequest
+  public ResponseEntity<Channel> createPublicChannel(
+      @RequestBody PublicChannelCreateRequest publicChannelCreateRequest
   ) {
-    ChannelDto createdChannel = channelService.create(channelCreatePublicRequest);
+    Channel createdChannel = channelService.create(publicChannelCreateRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel);
   }
 
@@ -45,23 +46,11 @@ public class ChannelController {
   @PostMapping(
       path = "/private"
   )
-  public ResponseEntity<ChannelDto> createPrivateChannel(
-      @RequestBody ChannelCreatePrivateRequest channelCreatePrivateRequest
+  public ResponseEntity<Channel> createPrivateChannel(
+      @RequestBody PrivateChannelCreateRequest privateChannelCreateRequest
   ) {
-    ChannelDto createdChannel_private = channelService.create(channelCreatePrivateRequest);
+    Channel createdChannel_private = channelService.create(privateChannelCreateRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel_private);
-  }
-
-  @Operation(summary = "채널 조회", description = "특정 채널을 조회합니다.")
-  @GetMapping(
-      path = "/{channelId}"
-      //            , method = RequestMethod.GET
-  )
-  public ResponseEntity<ChannelDto> find(
-      @PathVariable UUID channelId
-  ) {
-    ChannelDto channel = channelService.find(channelId);
-    return ResponseEntity.ok(channel);
   }
 
   @Operation(summary = "모든 채널 목록 조회", description = "특정 사용자가 볼 수 있는 모든 채널 목록을 조회합니다.")
@@ -78,12 +67,12 @@ public class ChannelController {
       path = "/{channelId}"
       //            , method = RequestMethod.PUT
   )
-  public ResponseEntity<ChannelDto> update(
+  public ResponseEntity<Channel> update(
       @PathVariable UUID channelId,
-      @RequestBody ChannelUpdateRequest_public channelUpdateRequest_public
+      @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest_
   ) {
-    ChannelDto updatedChannel = channelService.update(channelId,
-        channelUpdateRequest_public);
+    Channel updatedChannel = channelService.update(channelId,
+        publicChannelUpdateRequest_);
     return ResponseEntity.ok(updatedChannel);
   }
 

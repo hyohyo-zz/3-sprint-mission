@@ -1,11 +1,10 @@
-package com.sprint.mission.discodeit.dto.request.create;
+package com.sprint.mission.discodeit.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.Instant;
 import java.util.UUID;
 
 public record ReadStatusCreateRequest(
-
     @Schema(description = "유저 ID", example = "9ac17d8d-052e-423e-8eb7-40be2db7cee1")
     UUID userId,
 
