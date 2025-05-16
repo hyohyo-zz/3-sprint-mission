@@ -38,7 +38,7 @@ public class JCFUserRepository implements UserRepository {
   @Override
   public Optional<User> findByUserName(String name) {
     return data.values().stream()
-        .filter(user -> Objects.equals(user.getName(), name))
+        .filter(user -> Objects.equals(user.getUsername(), name))
         .findFirst();
   }
 
@@ -66,7 +66,7 @@ public class JCFUserRepository implements UserRepository {
 
   @Override
   public boolean existsByUserName(String userName) {
-    return this.findAll().stream().anyMatch(user -> user.getName().equals(userName));
+    return this.findAll().stream().anyMatch(user -> user.getUsername().equals(userName));
   }
 }
 

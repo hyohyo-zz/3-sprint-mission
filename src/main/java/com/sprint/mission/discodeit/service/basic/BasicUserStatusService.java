@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.dto.Response.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.request.create.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
@@ -26,7 +25,7 @@ public class BasicUserStatusService implements UserStatusService {
 
 
   @Override
-  public UserStatusResponse create(UserStatusCreateRequest request) {
+  public UserStatus create(UserStatusCreateRequest request) {
     User user = userRepository.find(request.userId())
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
@@ -41,28 +40,24 @@ public class BasicUserStatusService implements UserStatusService {
 
     Instant lastOnlineTime = request.lastOnlineTime();
     UserStatus status = new UserStatus(request.userId(), lastOnlineTime);
-    userStatusRepository.create(status);
-    return toUserStatusResponse(status);
+    return userStatusRepository.create(status);
   }
 
   @Override
-  public UserStatusResponse find(UUID id) {
-    UserStatus userStatus = userStatusRepository.find(id)
+  public UserStatus find(UUID id) {
+    return userStatusRepository.find(id)
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
-
-    return toUserStatusResponse(userStatus);
   }
 
   @Override
-  public List<UserStatusResponse> findAll() {
+  public List<UserStatus> findAll() {
     return userStatusRepository.findAll().stream()
-        .map(this::toUserStatusResponse)
         .toList();
   }
 
   @Override
-  public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
+  public UserStatus update(UUID userStatusId, UserStatusUpdateRequest request) {
     Instant newLastOnlineTime = request.newLastOnlineTime();
 
     UserStatus userStatus = userStatusRepository.find(userStatusId)
@@ -70,12 +65,11 @@ public class BasicUserStatusService implements UserStatusService {
             ErrorMessages.format("UseStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
     userStatus.update(newLastOnlineTime);
-    UserStatus updateUserStatus = userStatusRepository.create(userStatus);
-    return toUserStatusResponse(updateUserStatus);
+    return userStatusRepository.create(userStatus);
   }
 
   @Override
-  public UserStatusResponse updateByUserId(UUID userId, UserStatusUpdateRequest request) {
+  public UserStatus updateByUserId(UUID userId, UserStatusUpdateRequest request) {
     Instant newLastOnlineTime = request.newLastOnlineTime();
     Optional<UserStatus> optionalUserStatus = userStatusRepository.findByUserId(userId);
 
@@ -86,8 +80,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     UserStatus userStatus = optionalUserStatus.get();
     userStatus.update(newLastOnlineTime);
-    UserStatus updateUserStatus = userStatusRepository.create(userStatus);
-    return toUserStatusResponse(updateUserStatus);
+    return userStatusRepository.create(userStatus);
   }
 
   @Override
@@ -97,13 +90,5 @@ public class BasicUserStatusService implements UserStatusService {
             ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
     userStatusRepository.deleteById(id);
-  }
-
-  private UserStatusResponse toUserStatusResponse(UserStatus status) {
-    return new UserStatusResponse(
-        status.getUserId(),
-        status.isOnline(),
-        status.getLastOnlineTime()
-    );
   }
 }

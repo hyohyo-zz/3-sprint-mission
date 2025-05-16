@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.dto.Response.MessageResponse;
 import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.MessageUpdateRequest;
@@ -30,7 +29,7 @@ public class BasicMessageService implements MessageService {
   private final BinaryContentRepository binaryContentRepository;
 
   @Override
-  public MessageResponse create(MessageCreateRequest request,
+  public Message create(MessageCreateRequest request,
       List<BinaryContentCreateRequest> attachmentRequests) {
 
     User sender = userRepository.find(request.senderId())
@@ -55,8 +54,8 @@ public class BasicMessageService implements MessageService {
         .toList();
 
     Message message = new Message(
-        sender.getId(),
         channel.getId(),
+        sender.getId(),
         request.category(),
         request.content(),
         attachmentIds
@@ -64,37 +63,31 @@ public class BasicMessageService implements MessageService {
 
     channel.validateCategory(request.category());
     message.validateContent();
-    Message savedMessage = messageRepository.create(message);
-
-    return toMessageResponse(savedMessage);
+    return messageRepository.create(message);
   }
 
   @Override
-  public MessageResponse find(UUID id) {
-    Message message = messageRepository.find(id).orElseThrow(() -> new NoSuchElementException(
+  public Message find(UUID id) {
+    return messageRepository.find(id).orElseThrow(() -> new NoSuchElementException(
         ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)
     ));
-
-    return toMessageResponse(message);
   }
 
   @Override
-  public List<MessageResponse> findAllByChannelId(UUID channelId) {
+  public List<Message> findAllByChannelId(UUID channelId) {
     return messageRepository.findAllByChannelId(channelId).stream()
-        .map(this::toMessageResponse)
         .toList();
   }
 
   @Override
-  public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
+  public Message update(UUID messageId, MessageUpdateRequest request) {
     String newContent = request.newContent();
     Message message = messageRepository.find(messageId)
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
 
     message.update(newContent);
-    Message updatedMessage = messageRepository.create(message);
-    return toMessageResponse(updatedMessage);
+    return messageRepository.create(message);
   }
 
   @Override
@@ -103,17 +96,5 @@ public class BasicMessageService implements MessageService {
         ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
 
     messageRepository.deleteById(messageId);
-  }
-
-  private MessageResponse toMessageResponse(Message message) {
-    return new MessageResponse(
-        message.getId(),
-        message.getChannelId(),
-        message.getSenderId(),
-        message.getCategory(),
-        message.getContent(),
-        message.getCreatedAt(),
-        message.getAttachmentIds()
-    );
   }
 }

@@ -20,24 +20,24 @@ public class UserStatus implements Serializable {
 
   private static final long serialVersionUID = 1L;
   private UUID id;
-  private UUID userId;
-  private Instant lastOnlineTime;
-
   private Instant createdAt;
   private Instant updatedAt;
 
-  public UserStatus(UUID userId, Instant lastOnlineTime) {
+  private UUID userId;
+  private Instant lastActiveAt;
+
+  public UserStatus(UUID userId, Instant lastActiveAt) {
     this.id = UUID.randomUUID();
     this.userId = userId;
     this.createdAt = Instant.now();
-    this.lastOnlineTime = lastOnlineTime;
+    this.lastActiveAt = lastActiveAt;
   }
 
   //lastOnlineTime update
   public void update(Instant lastOnlineTime) {
     boolean anyValueUpdated = false;
-    if (lastOnlineTime != null && !lastOnlineTime.equals(this.lastOnlineTime)) {
-      this.lastOnlineTime = lastOnlineTime;
+    if (lastOnlineTime != null && !lastOnlineTime.equals(this.lastActiveAt)) {
+      this.lastActiveAt = lastOnlineTime;
       anyValueUpdated = true;
     }
 
@@ -50,6 +50,6 @@ public class UserStatus implements Serializable {
   public Boolean isOnline() {
     Instant instantFiveMinutesAgo = Instant.now().minus(Duration.ofMinutes(5));
 
-    return lastOnlineTime.isAfter(instantFiveMinutesAgo);
+    return lastActiveAt.isAfter(instantFiveMinutesAgo);
   }
 }

@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.dto.Response.UserDto;
+import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserUpdateRequest;
@@ -49,7 +49,7 @@ public class BasicUserService implements UserService {
         })
         .orElse(null);
 
-    User user = new User(request.name(), request.email(), request.phone(), request.password(),
+    User user = new User(request.name(), request.email(), request.password(),
         nullableProfileId);
     User savedUser = userRepository.create(user);
 
@@ -91,14 +91,14 @@ public class BasicUserService implements UserService {
     if (!user.getEmail().equals(newEmail) && userRepository.existsByEmail(newEmail)) {
       throw new IllegalArgumentException(ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
     }
-    if (!user.getName().equals(newUsername) && userRepository.existsByUserName(newUsername)) {
+    if (!user.getUsername().equals(newUsername) && userRepository.existsByUserName(newUsername)) {
       throw new IllegalArgumentException(
           ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
     }
 
     UUID nullableProfileId = optionalProfileCreateRequest
         .map(profileRequest -> {
-          Optional.ofNullable(user.getProfileImageId())
+          Optional.ofNullable(user.getProfileId())
               .ifPresent(binaryContentRepository::deleteById);
 
           String fileName = profileRequest.originalFilename();
@@ -108,10 +108,9 @@ public class BasicUserService implements UserService {
           return binaryContentRepository.save(binaryContent).getId();
         })
         .orElse(null);
-
-    String newPhone = userUpdateRequest.newPhone();
+    
     String newPassword = userUpdateRequest.newPassword();
-    user.update(newUsername, newEmail, newPhone, newPassword, nullableProfileId);
+    user.update(newUsername, newEmail, newPassword, nullableProfileId);
 
     User savedUser = userRepository.create(user);
 
@@ -123,7 +122,7 @@ public class BasicUserService implements UserService {
     User user = userRepository.find(userId).orElseThrow(() -> new NoSuchElementException(
         ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
     );
-    Optional.ofNullable(user.getProfileImageId())
+    Optional.ofNullable(user.getProfileId())
         .ifPresent(binaryContentRepository::deleteById);
     userStatusRepository.deleteByUserId(userId);
 
@@ -139,9 +138,9 @@ public class BasicUserService implements UserService {
         user.getId(),
         user.getCreatedAt(),
         user.getUpdatedAt(),
-        user.getName(),
+        user.getUsername(),
         user.getEmail(),
-        user.getProfileImageId(),
+        user.getProfileId(),
         online
     );
   }

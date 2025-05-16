@@ -15,12 +15,13 @@ public class ReadStatus implements Serializable {
 
   private static final long serialVersionUID = 1L;
   private UUID id;
-  private UUID userId;
-  private UUID channelId;
-  private Instant lastReadTime;
-
   private Instant createdAt;
   private Instant updatedAt;
+
+  private UUID userId;
+  private UUID channelId;
+  private Instant lastReadAt;
+
 
   public ReadStatus(UUID userId, UUID channelId, Instant createdAt) {
     this.id = UUID.randomUUID();
@@ -32,8 +33,8 @@ public class ReadStatus implements Serializable {
 
   public void update(Instant newLastReadTime) {
     boolean anyValueUpdated = false;
-    if (newLastReadTime != null && !newLastReadTime.equals(this.lastReadTime)) {
-      this.lastReadTime = newLastReadTime;
+    if (newLastReadTime != null && !newLastReadTime.equals(this.lastReadAt)) {
+      this.lastReadAt = newLastReadTime;
       anyValueUpdated = true;
     }
 

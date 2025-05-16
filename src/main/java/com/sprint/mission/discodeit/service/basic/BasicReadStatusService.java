@@ -41,7 +41,7 @@ public class BasicReadStatusService implements ReadStatusService {
           ErrorMessages.format("ReadStatus with user and channel", ErrorMessages.ERROR_EXISTS));
     }
 
-    Instant lastReadTime = request.lastReadTime();
+    Instant lastReadTime = request.lastReadAt();
     ReadStatus readStatus = new ReadStatus(userId, channelId, lastReadTime);
     return readStatusRepository.create(readStatus);
   }
@@ -64,7 +64,7 @@ public class BasicReadStatusService implements ReadStatusService {
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
-    readStatus.update(request.newReadTime());
+    readStatus.update(request.newLastReadAt());
     return readStatusRepository.create(readStatus);
   }
 

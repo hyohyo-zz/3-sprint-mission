@@ -1,9 +1,9 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.Response.MessageResponse;
 import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.MessageUpdateRequest;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class MessageController {
   @PostMapping(
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE
   )
-  public ResponseEntity<MessageResponse> create(
+  public ResponseEntity<Message> create(
       @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
       @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
   ) {
@@ -48,7 +48,7 @@ public class MessageController {
         resolveAttachmentRequest(file).ifPresent(attachmentRequests::add);
       }
     }
-    MessageResponse createdMessage = messageService.create(messageCreateRequest,
+    Message createdMessage = messageService.create(messageCreateRequest,
         attachmentRequests);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdMessage);
   }
@@ -57,18 +57,18 @@ public class MessageController {
       path = "/{messageId}"
 //            , method = RequestMethod.GET
   )
-  public ResponseEntity<MessageResponse> find(
+  public ResponseEntity<Message> find(
       @PathVariable UUID messageId
   ) {
-    MessageResponse message = messageService.find(messageId);
+    Message message = messageService.find(messageId);
     return ResponseEntity.ok(message);
   }
 
   @GetMapping
-  public ResponseEntity<List<MessageResponse>> findAllByChannelId(
+  public ResponseEntity<List<Message>> findAllByChannelId(
       @RequestParam("channelId") UUID channelId
   ) {
-    List<MessageResponse> messages = messageService.findAllByChannelId(channelId);
+    List<Message> messages = messageService.findAllByChannelId(channelId);
     return ResponseEntity.ok(messages);
   }
 
@@ -76,11 +76,11 @@ public class MessageController {
       path = "/{messageId}"
       , consumes = MediaType.APPLICATION_JSON_VALUE
   )
-  public ResponseEntity<MessageResponse> update(
+  public ResponseEntity<Message> update(
       @PathVariable UUID messageId,
       @RequestBody MessageUpdateRequest messageUpdateRequest
   ) {
-    MessageResponse updatedMessage = messageService.update(messageId, messageUpdateRequest);
+    Message updatedMessage = messageService.update(messageId, messageUpdateRequest);
     return ResponseEntity.ok(updatedMessage);
   }
 

@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.dto.Response.ChannelResponse;
+import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePrivateRequest;
 import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePublicRequest;
 import com.sprint.mission.discodeit.dto.request.update.ChannelUpdateRequest_public;
@@ -33,7 +33,7 @@ public class BasicChannelService implements ChannelService {
 
   //private 채널생성
   @Override
-  public ChannelResponse create(ChannelCreatePrivateRequest request) {
+  public ChannelDto create(ChannelCreatePrivateRequest request) {
     Channel channel = new Channel(ChannelType.PRIVATE, null, null);
     Channel createdChannel = channelRepository.create(channel);
 
@@ -46,7 +46,7 @@ public class BasicChannelService implements ChannelService {
 
   //public 채널생성
   @Override
-  public ChannelResponse create(ChannelCreatePublicRequest request) {
+  public ChannelDto create(ChannelCreatePublicRequest request) {
     String channelName = request.channelName();
     List<String> categories = request.categories();
     Channel channel = new Channel(ChannelType.PUBLIC, channelName, categories);
@@ -57,7 +57,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
-  public ChannelResponse find(UUID channelId) {
+  public ChannelDto find(UUID channelId) {
     return channelRepository.find(channelId)
         .map(this::toChannelResponse)
         .orElseThrow(() -> new NoSuchElementException(
@@ -70,7 +70,7 @@ public class BasicChannelService implements ChannelService {
    * 3. 채널 순회 하며 필터링(Private, Public)
    * 4. 반환*/
   @Override
-  public List<ChannelResponse> findAllByUserId(UUID userId) {
+  public List<ChannelDto> findAllByUserId(UUID userId) {
     List<UUID> mySubscribedChannelIds = readStatusRepository.findAllByUserId(userId).stream()
         .map(ReadStatus::getChannelId)
         .toList();
@@ -85,7 +85,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
-  public ChannelResponse update(UUID channelId, ChannelUpdateRequest_public request) {
+  public ChannelDto update(UUID channelId, ChannelUpdateRequest_public request) {
     String newChannelName = request.newChannelName();
     List<String> newCategories = request.newCategories();
 
@@ -116,7 +116,7 @@ public class BasicChannelService implements ChannelService {
     channelRepository.deleteById(channelId);
   }
 
-  private ChannelResponse toChannelResponse(Channel channel) {
+  private ChannelDto toChannelResponse(Channel channel) {
     Instant lastMessageAt = messageRepository.findAllByChannelId(channel.getId())
         .stream()
         .sorted(Comparator.comparing(Message::getCreatedAt).reversed())
@@ -133,7 +133,7 @@ public class BasicChannelService implements ChannelService {
           .forEach(memberIds::add);
     }
 
-    return new ChannelResponse(
+    return new ChannelDto(
         channel.getId(),
         channel.getType(),
         channel.getChannelName(),

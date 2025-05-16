@@ -13,15 +13,16 @@ public class Message implements Serializable {
   private static final long serialVersionUID = 1L;
 
   private UUID id;
+  private Instant createdAt;
+  private Instant updatedAt;
+
+  private String content;     //내용
   private UUID senderId;        //보낸사람
   private UUID channelId;
   private String category;
-  private String content;     //내용
 
   private List<UUID> attachmentIds;
 
-  private Instant createdAt;
-  private Instant updatedAt;
 
   public Message(UUID channelId, UUID senderId, String category, String content,
       List<UUID> attachmentIds) {

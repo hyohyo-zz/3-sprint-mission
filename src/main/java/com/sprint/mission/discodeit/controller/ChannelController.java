@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.Response.ChannelResponse;
+import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePrivateRequest;
 import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePublicRequest;
 import com.sprint.mission.discodeit.dto.request.update.ChannelUpdateRequest_public;
@@ -30,20 +30,20 @@ public class ChannelController {
   @PostMapping(
       path = "/public"
   )
-  public ResponseEntity<ChannelResponse> createPublicChannel(
+  public ResponseEntity<ChannelDto> createPublicChannel(
       @RequestBody ChannelCreatePublicRequest channelCreatePublicRequest
   ) {
-    ChannelResponse createdChannel = channelService.create(channelCreatePublicRequest);
+    ChannelDto createdChannel = channelService.create(channelCreatePublicRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel);
   }
 
   @PostMapping(
       path = "/private"
   )
-  public ResponseEntity<ChannelResponse> createPrivateChannel(
+  public ResponseEntity<ChannelDto> createPrivateChannel(
       @RequestBody ChannelCreatePrivateRequest channelCreatePrivateRequest
   ) {
-    ChannelResponse createdChannel_private = channelService.create(channelCreatePrivateRequest);
+    ChannelDto createdChannel_private = channelService.create(channelCreatePrivateRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel_private);
   }
 
@@ -51,18 +51,18 @@ public class ChannelController {
       path = "/{channelId}"
       //            , method = RequestMethod.GET
   )
-  public ResponseEntity<ChannelResponse> find(
+  public ResponseEntity<ChannelDto> find(
       @PathVariable UUID channelId
   ) {
-    ChannelResponse channel = channelService.find(channelId);
+    ChannelDto channel = channelService.find(channelId);
     return ResponseEntity.ok(channel);
   }
 
   @GetMapping
-  public ResponseEntity<List<ChannelResponse>> findAllByUserId(
+  public ResponseEntity<List<ChannelDto>> findAllByUserId(
       @RequestParam("userId") UUID userId
   ) {
-    List<ChannelResponse> channels = channelService.findAllByUserId(userId);
+    List<ChannelDto> channels = channelService.findAllByUserId(userId);
     return ResponseEntity.ok(channels);
   }
 
@@ -70,11 +70,11 @@ public class ChannelController {
       path = "/{channelId}"
       //            , method = RequestMethod.PUT
   )
-  public ResponseEntity<ChannelResponse> update(
+  public ResponseEntity<ChannelDto> update(
       @PathVariable UUID channelId,
       @RequestBody ChannelUpdateRequest_public channelUpdateRequest_public
   ) {
-    ChannelResponse updatedChannel = channelService.update(channelId,
+    ChannelDto updatedChannel = channelService.update(channelId,
         channelUpdateRequest_public);
     return ResponseEntity.ok(updatedChannel);
   }
