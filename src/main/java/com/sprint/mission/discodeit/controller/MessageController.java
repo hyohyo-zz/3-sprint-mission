@@ -44,7 +44,7 @@ public class MessageController {
 
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "Message가 성공적으로 생성됨",
-          content = @Content(schema = @Schema(implementation = ReadStatus.class))),
+          content = @Content(schema = @Schema(implementation = Message.class))),
       @ApiResponse(responseCode = "404", description = "Channel 또는 User를 찾을 수 없음",
           content = @Content(mediaType = "text/plain"))
   })
@@ -71,7 +71,7 @@ public class MessageController {
 
   @ApiResponse(responseCode = "200", description = "Message 목록 조회 성공",
       content = @Content(mediaType = "application/json",
-          schema = @Schema(type = "array", implementation = ReadStatus.class)))
+          schema = @Schema(type = "array", implementation = Message.class)))
   @Operation(summary = "채널 메시지 조회", description = "채널의 모든 메시지를 조회합니다.")
   @GetMapping
   public ResponseEntity<List<Message>> findAllByChannelId(
@@ -83,7 +83,7 @@ public class MessageController {
 
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Message가 성공적으로 수정됨",
-          content = @Content(schema = @Schema(implementation = ReadStatus.class))),
+          content = @Content(schema = @Schema(implementation = Message.class))),
       @ApiResponse(responseCode = "404", description = "Message를 찾을 수 없음",
           content = @Content(mediaType = "text/plain")),
   })
@@ -102,7 +102,7 @@ public class MessageController {
 
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "Message가 성공적으로 삭제됨",
-          content = @Content(schema = @Schema(implementation = Channel.class))),
+          content = @Content(schema = @Schema(implementation = Message.class))),
       @ApiResponse(responseCode = "404", description = "Message를 찾을 수 없음",
           content = @Content(mediaType = "text/plain"))
   })

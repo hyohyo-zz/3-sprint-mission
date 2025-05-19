@@ -29,7 +29,7 @@ public class BinaryContentController {
 
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "첨부 파일 조회 성공",
-          content = @Content(schema = @Schema(implementation = User.class))),
+          content = @Content(schema = @Schema(implementation = BinaryContent.class))),
       @ApiResponse(responseCode = "404", description = "첨부 파일을 찾을 수 없음",
           content = @Content(mediaType = "text/plain"))
   })
@@ -44,7 +44,7 @@ public class BinaryContentController {
 
   @ApiResponse(responseCode = "200", description = "첨부 파일 목록 조회 성공",
       content = @Content(mediaType = "application/json",
-          schema = @Schema(type = "array", implementation = User.class)))
+          schema = @Schema(type = "array", implementation = BinaryContent.class)))
 
   @Operation(summary = "다중 파일 조회", description = "파일 여러 개를 조회합니다.")
   @GetMapping

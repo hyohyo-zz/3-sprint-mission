@@ -76,7 +76,7 @@ public class ChannelController {
 
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "Channel 정보가 성공적으로 수정됨",
-          content = @Content(schema = @Schema(implementation = ReadStatus.class))),
+          content = @Content(schema = @Schema(implementation = Channel.class))),
       @ApiResponse(responseCode = "404", description = "Channel을 찾을 수 없음",
           content = @Content(mediaType = "text/plain")),
       @ApiResponse(responseCode = "400", description = "Private Channel은 수정할 수 없음",

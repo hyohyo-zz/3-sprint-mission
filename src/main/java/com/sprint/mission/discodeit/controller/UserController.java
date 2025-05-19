@@ -18,7 +18,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -81,7 +80,7 @@ public class UserController {
 
   @ApiResponses(value = {
       @ApiResponse(responseCode = "201", description = "User 정보가 성공적으로 수정됨",
-          content = @Content(schema = @Schema(implementation = ReadStatus.class))),
+          content = @Content(schema = @Schema(implementation = User.class))),
       @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음",
           content = @Content(mediaType = "text/plain")),
       @ApiResponse(responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함",
@@ -108,7 +107,7 @@ public class UserController {
 
   @ApiResponses(value = {
       @ApiResponse(responseCode = "204", description = "User가 성공적으로 삭제됨",
-          content = @Content(schema = @Schema(implementation = Channel.class))),
+          content = @Content(schema = @Schema(implementation = User.class))),
       @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음",
           content = @Content(mediaType = "text/plain"))
   })
@@ -126,7 +125,7 @@ public class UserController {
 
   @ApiResponses(value = {
       @ApiResponse(responseCode = "200", description = "User 온라인 상태가 성공적으로 업데이트됨",
-          content = @Content(schema = @Schema(implementation = ReadStatus.class))),
+          content = @Content(schema = @Schema(implementation = UserStatus.class))),
       @ApiResponse(responseCode = "404", description = "해당 User의 UserStatus를 찾을 수 없음",
           content = @Content(mediaType = "text/plain")),
   })
