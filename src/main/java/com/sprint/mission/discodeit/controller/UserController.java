@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
@@ -67,6 +69,9 @@ public class UserController {
     return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
   }
 
+  @ApiResponse(responseCode = "200", description = "유저 목록 조회 성공",
+      content = @Content(mediaType = "application/json",
+          schema = @Schema(type = "array", implementation = User.class)))
   @Operation(summary = "전체 유저 조회", description = "전체 유저를 조회합니다.")
   @GetMapping
   public ResponseEntity<List<UserDto>> findAll() {
@@ -74,6 +79,14 @@ public class UserController {
     return ResponseEntity.ok(users);
   }
 
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "201", description = "User 정보가 성공적으로 수정됨",
+          content = @Content(schema = @Schema(implementation = ReadStatus.class))),
+      @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음",
+          content = @Content(mediaType = "text/plain")),
+      @ApiResponse(responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함",
+          content = @Content(mediaType = "text/plain"))
+  })
   @Operation(summary = "유저 수정", description = "기존 유저 정보를 수정합니다.")
   @PatchMapping(
       path = "/{userId}"
@@ -93,6 +106,12 @@ public class UserController {
     return ResponseEntity.ok(updatedUser);
   }
 
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "204", description = "User가 성공적으로 삭제됨",
+          content = @Content(schema = @Schema(implementation = Channel.class))),
+      @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음",
+          content = @Content(mediaType = "text/plain"))
+  })
   @Operation(summary = "유저 삭제", description = "기존 유저를 삭제합니다.")
   @DeleteMapping(
       value = "/{userId}"
@@ -105,6 +124,12 @@ public class UserController {
     return ResponseEntity.noContent().build(); // 204
   }
 
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "User 온라인 상태가 성공적으로 업데이트됨",
+          content = @Content(schema = @Schema(implementation = ReadStatus.class))),
+      @ApiResponse(responseCode = "404", description = "해당 User의 UserStatus를 찾을 수 없음",
+          content = @Content(mediaType = "text/plain")),
+  })
   @Operation(summary = "유저 상태 업데이트", description = "유저 상태를 업데이트합니다.(온라인)")
   @PatchMapping(
       value = "/{userId}/userStatus"

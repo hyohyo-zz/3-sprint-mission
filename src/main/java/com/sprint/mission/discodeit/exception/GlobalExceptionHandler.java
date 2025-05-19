@@ -17,10 +17,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException e) {
     return ResponseEntity
         .status(HttpStatus.BAD_REQUEST)
-        .body(Map.of(
-            "error", "Bad Request",
-            "message", e.getMessage()
-        ));
+        .body(buildError("Bad Request", e.getMessage()));
   }
 
   //데이터가 존재하지 않을 때 예외 처리
@@ -28,10 +25,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, String>> handleNotFound(NoSuchElementException e) {
     return ResponseEntity
         .status(HttpStatus.NOT_FOUND)
-        .body(Map.of(
-            "error", "Not Found",
-            "message", e.getMessage()
-        ));
+        .body(buildError("Not Found", e.getMessage()));
   }
 
   //파일 업로드/다운로드 등의 I/O 처리 중 발생하는 예외 처리
@@ -39,10 +33,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, String>> handleIOException(IOException e) {
     return ResponseEntity
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(Map.of(
-            "error", "File Error",
-            "message", e.getMessage()
-        ));
+        .body(buildError("File Error", e.getMessage()));
   }
 
   /**
@@ -52,10 +43,12 @@ public class GlobalExceptionHandler {
   public ResponseEntity<Map<String, String>> handleOtherRuntime(Exception e) {
     return ResponseEntity
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body(Map.of(
-            "error", "Internal Server Error",
-            "message", e.getClass().getSimpleName() + ": " + e.getMessage()
-        ));
+        .body(buildError("Internal Server Error", e.getMessage()));
+  }
+
+
+  private Map<String, String> buildError(String error, String message) {
+    return Map.of("error", error, "message", message);
   }
 }
 
