@@ -1,17 +1,9 @@
 package com.sprint.mission.discodeit.dto.request.update;
 
-import jakarta.validation.constraints.NotNull;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.util.UUID;
-
 public record UserUpdateRequest(
-        @NotNull
-        UUID id,
-        String username,
-        String email,
-        String phone,
-        String password,
-        MultipartFile profileImage
+        String newUserName,
+        String newEmail,
+        String newPhone,
+        String newPassword
 ) {
 }

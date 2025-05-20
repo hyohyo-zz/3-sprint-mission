@@ -12,7 +12,9 @@ import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,7 +28,7 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusResponse create(UserStatusCreateRequest request) {
         User user = userRepository.find(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new NoSuchElementException(
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
         );
 
@@ -37,19 +39,17 @@ public class BasicUserStatusService implements UserStatusService {
             );
         }
 
-        UserStatus status = new UserStatus(request.userId(), request.isOnline());
+        Instant lastOnlineTime = request.lastOnlineTime();
+        UserStatus status = new UserStatus(request.userId(), lastOnlineTime);
         userStatusRepository.create(status);
         return toUserStatusResponse(status);
     }
 
     @Override
     public UserStatusResponse find(UUID id) {
-        UserStatus userStatus = userStatusRepository.find(id);
-        if(userStatus == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)
-            );
-        }
+        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
         return toUserStatusResponse(userStatus);
     }
 
@@ -61,42 +61,39 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatusResponse update(UserStatusUpdateRequest request) {
-        UserStatus userStatus = userStatusRepository.find(request.id());
-        if(userStatus == null) {
-            throw new IllegalArgumentException(
-                    ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
-        }
+    public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
+        Instant newLastOnlineTime = request.newLastOnlineTime();
 
-        userStatus.updateOnlineStatus(request.newOnlineStatus());
-        UserStatus updateUserStatus = userStatusRepository.update(userStatus);
+        UserStatus userStatus = userStatusRepository.find(userStatusId).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("UseStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
+        userStatus.update(newLastOnlineTime);
+        UserStatus updateUserStatus = userStatusRepository.create(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }
 
     @Override
     public UserStatusResponse updateByUserId(UUID userId, UserStatusUpdateRequest request) {
+        Instant newLastOnlineTime = request.newLastOnlineTime();
         Optional<UserStatus> optionalUserStatus = userStatusRepository.findByUserId(userId);
 
         if (optionalUserStatus.isEmpty()) {
-            throw new IllegalArgumentException(
+            throw new NoSuchElementException(
                     ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         UserStatus userStatus = optionalUserStatus.get();
-        userStatus.updateOnlineStatus(request.newOnlineStatus());
-        UserStatus updateUserStatus = userStatusRepository.update(userStatus);
+        userStatus.update(newLastOnlineTime);
+        UserStatus updateUserStatus = userStatusRepository.create(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }
 
     @Override
-    public boolean delete(UUID id) {
-        UserStatus userStatus = userStatusRepository.find(id);
-        if(userStatus == null) {
-            throw new IllegalArgumentException(ErrorMessages.format(
-                    "UserStatus", ErrorMessages.ERROR_NOT_FOUND));
-        }
-        userStatusRepository.delete(id);
-        return true;
+    public void delete(UUID id) {
+        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
+        userStatusRepository.deleteById(id);
     }
 
     private UserStatusResponse toUserStatusResponse(UserStatus status) {
