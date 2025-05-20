@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.Response.BinaryContentResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.RequiredArgsConstructor;
@@ -12,19 +11,18 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/binarycontent")
+@RequestMapping("/api/binaryContent")
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
     @RequestMapping(
-            path = "/{binaryId}"
+            path = "/find"
 //            , method = RequestMethod.GET
     )
-    @ResponseBody
-    public ResponseEntity<BinaryContentResponse> find(
-            @PathVariable ("binaryId") UUID binaryId
+    public ResponseEntity<BinaryContent> find(
+            @RequestParam ("binaryContentId") UUID binaryId
     ) {
-        BinaryContentResponse binaryContent = binaryContentService.find(binaryId);
+        BinaryContent binaryContent = binaryContentService.find(binaryId);
         return ResponseEntity.ok(binaryContent);
     }
 
@@ -32,10 +30,10 @@ public class BinaryContentController {
             path = "/findAll"
     )
     @ResponseBody
-    public ResponseEntity<List<BinaryContentResponse>> findAll(
+    public ResponseEntity<List<BinaryContent>> findAll(
             @RequestParam("ids") List<UUID> ids
     ) {
-        List<BinaryContentResponse> binaryContents = binaryContentService.findAllByIdIn(ids);
+        List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(ids);
         return ResponseEntity.ok(binaryContents);
     }
 }
