@@ -1,35 +1,43 @@
 package com.sprint.mission.discodeit.util;
 
+import com.sprint.mission.discodeit.config.DiscodeitProperties;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 
 //초기화
+@Component
+@RequiredArgsConstructor
 public class DataInitializer {
-    public static final String CHANNEL_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/channel.ser";
-    public static final String USER_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/user.ser";
-    public static final String MESSAGE_FILE_PATH = "src/main/java/com/sprint/mission/discodeit/message.ser";
+    private final DiscodeitProperties properties;
 
-    private static final List<String> FILE_PATHS = List.of(
-            CHANNEL_FILE_PATH,
-            USER_FILE_PATH,
-            MESSAGE_FILE_PATH
-    );
+    public void clearSerializedData() {
+        String basePath = properties.getFilePath();
+        List<String> fileNames = List.of(
+                "channel.ser",
+                "user.ser",
+                "message.ser",
+                "binarycontent.ser",
+                "readstatus.ser",
+                "userstatus.ser"
+        );
 
-    public static void clearSerializedData() {
-        for (String path : FILE_PATHS) {
+        for (String fileName : fileNames) {
             try {
-                File file = Path.of(path).toFile();
+                File file = Path.of(basePath, fileName).toFile();
 
                 if (file.exists()) {
                     boolean deleted = file.delete();
                     if (deleted) {
-                        System.out.println("초기화 완료 " + file.getName());
+                        System.out.println("초기화 완료: " + file.getName());
                     } else {
-                        System.out.println("초기화 실패 " + file.getName());
+                        System.out.println("초기화 실패: " + file.getName());
                     }
                 } else {
-                    System.out.println("초기화할 파일이 존재하지 않음 " + file.getName());
+                    System.out.println("초기화할 파일 없음: " + file.getName());
                 }
             } catch (Exception e) {
                 System.out.println("!예외 발생!");

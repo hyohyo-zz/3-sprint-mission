@@ -1,79 +1,36 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
-import java.util.List;
-import java.util.Set;
+import java.time.Instant;
 import java.util.UUID;
 
+@Getter
 public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private UUID id;
-    private User sender;        //보낸사람
-    private Channel channel;
+    private UUID senderId;        //보낸사람
+    private UUID channelId;
     private String category;
     private String content;     //내용
-    private long createdAt;
-    private long updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
-    public Message(User sender,Channel channel, String category, String content) {
+    public Message(UUID senderId, UUID channelId, String category, String content) {
         this.id = UUID.randomUUID();
-        this.sender = sender;
-        this.channel = channel;
+        this.senderId = senderId;
+        this.channelId = channelId;
         this.category = category;
         this.content = content;
-        this.createdAt = System.currentTimeMillis();
+        this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
-
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public User getSender() {
-        return sender;
-    }
-    public void setSender(User sender) {
-        this.sender = sender;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-    public void setChannel(Channel channel) {
-        this.channel = channel;
-    }
-
-    public String getCategory() {return category;}
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public long getCreatedAt() {
-        return createdAt;
-    }
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public String getContent() {
-        return content;
-    }
-    public void setContent(String content) {
+    public void update(String content) {
         this.content = content;
-    }
-
-    public long getUpdatedAt() {
-        return updatedAt;
-    }
-    public void setUpdatedAt(long updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public void update(Message updateMessageData) {
-        this.content = updateMessageData.content;
-        this.updatedAt = System.currentTimeMillis();
+        this.updatedAt = Instant.now();
     }
 
     public void validateContent() {
@@ -97,8 +54,8 @@ public class Message implements Serializable {
     public String toString() {
         return "Message{" +
                 "id= '" + id + '\'' +
-                ", sender= '" + sender.getName() + '\'' +
-                ", channel= '" + channel.getChannelName() + '\'' +
+                ", sender= '" + senderId + '\'' +
+                ", channel= '" + channelId + '\'' +
                 ", category= '" + category + '\'' +
                 ", content= '" + content + '\'' +
                 '}';

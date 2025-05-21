@@ -13,24 +13,25 @@ public class JCFChannelRepository implements ChannelRepository {
 
     //채널 생성
     @Override
-    public void create(Channel channel) {
+    public Channel create(Channel channel) {
         data.put(channel.getId(), channel);
+        return channel;
     }
 
     //채널 조회
     @Override
-    public Channel read(UUID id) {
-        return data.get(id);
+    public Optional<Channel> find(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     //채널 전체 조회
     @Override
-    public List<Channel> readAll() {
+    public List<Channel> findAll() {
         return new ArrayList<>(data.values());
     }
 
     //특정 채널 정보
-    public List<Channel> readByName(String channelName) {
+    public List<Channel> findByChannelName(String channelName) {
         return data.values().stream()
                 .filter(channel -> channel.getChannelName().contains(channelName))
                 .collect(Collectors.toList());
@@ -46,7 +47,7 @@ public class JCFChannelRepository implements ChannelRepository {
 
     //채널 삭제
     @Override
-    public boolean delete(UUID id, User user, String password) {
+    public boolean delete(UUID id, UUID userId, String password) {
         return this.data.remove(id) != null;
     }
 
