@@ -1,10 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.request.create.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.ReadStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ReadStatus;
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -12,7 +11,9 @@ import com.sprint.mission.discodeit.service.ReadStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -24,63 +25,52 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public ReadStatus create(ReadStatusCreateRequest request) {
-        User user = userRepository.find(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        UUID userId = request.userId();
+        UUID channelId = request.channelId();
 
-        Channel channel = channelRepository.find(request.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
-
-
-        //가장 최근에 읽은 시간 하나만 두기위해 중복 체크
-        boolean alreadyExists = readStatusRepository.findByUserId(request.userId()).stream()
-                .anyMatch(rs -> rs.getChannelId().equals(request.channelId()));
-
-        if (alreadyExists) {
-            throw new IllegalStateException("이미 해당 채널에 대한 ReadStatus가 존재합니다.");
+        if (!userRepository.existsById(userId)) {
+            throw new NoSuchElementException(ErrorMessages.format("user", ErrorMessages.ERROR_NOT_FOUND));
+        }
+        if (!channelRepository.existsById(channelId)) {
+            throw new NoSuchElementException(ErrorMessages.format("channel", ErrorMessages.ERROR_NOT_FOUND));
+        }
+        if (readStatusRepository.findAllByUserId(userId).stream()
+                .anyMatch(readStatus -> readStatus.getChannelId().equals(channelId))) {
+            throw new IllegalArgumentException(ErrorMessages.format("ReadStatus with user and channel", ErrorMessages.ERROR_EXISTS));
         }
 
-        ReadStatus readStatus = new ReadStatus(
-                request.userId(),
-                request.channelId(),
-                request.lastReadTime()
-        );
-
-        readStatusRepository.create(readStatus);
-        return readStatus;
+        Instant lastReadTime = request.lastReadTime();
+        ReadStatus readStatus = new ReadStatus(userId, channelId, lastReadTime);
+        return readStatusRepository.create(readStatus);
     }
 
     @Override
     public ReadStatus find(UUID id) {
-        ReadStatus readStatus = readStatusRepository.find(id);
-        if (readStatus == null) {
-            throw new IllegalArgumentException("해당 Id의 Readstatus를 찾을 수 없습니다.");
-        }
-        return readStatus;
+        return readStatusRepository.find(id).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
     }
 
     @Override
     public List<ReadStatus> findAllByUserId(UUID userId) {
-        return readStatusRepository.findByUserId(userId);
+        return readStatusRepository.findAllByUserId(userId).stream()
+                .toList();
     }
 
     @Override
-    public ReadStatus update(ReadStatusUpdateRequest request) {
-        ReadStatus readStatus = readStatusRepository.find(request.id());
-        if (readStatus == null) {
-            throw new IllegalArgumentException("수정할 ReadStatus가 존재하지 않습니다.");
-        }
+    public ReadStatus update(UUID readStatusId, ReadStatusUpdateRequest request) {
+        ReadStatus readStatus = readStatusRepository.find(readStatusId).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
-        readStatus.setLastReadTime(request.newReadTime());
-        return readStatusRepository.update(readStatus);
+        readStatus.update(request.newReadTime());
+        return readStatusRepository.create(readStatus);
     }
 
     @Override
-    public boolean delete(UUID id) {
-        ReadStatus readStatus = readStatusRepository.find(id);
-        if (readStatus == null) {
-            throw new IllegalArgumentException("삭제할 ReadStaus가 존재하지 않습니다.");
-        }
-        readStatusRepository.delete(id);
-        return true;
+    public void delete(UUID id) {
+        if (!readStatusRepository.existsById(id)) {
+            throw new NoSuchElementException(
+                    ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND));
+        };
+        readStatusRepository.deleteById(id);
     }
 }

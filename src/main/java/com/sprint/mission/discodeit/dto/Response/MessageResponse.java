@@ -6,9 +6,11 @@ import java.util.UUID;
 
 public record MessageResponse(
         UUID id,
+        UUID channelId,
+        UUID senderId,
+        String category,
         String content,
-        String senderName,
-        Instant sentAt,
-        List<BinaryContentResponse> attachments
+        Instant createAt,
+        List<UUID> attachmentIds
 ) {
 }

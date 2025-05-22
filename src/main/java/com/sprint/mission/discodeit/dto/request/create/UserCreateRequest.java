@@ -1,7 +1,5 @@
 package com.sprint.mission.discodeit.dto.request.create;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import java.util.UUID;
 
 public record UserCreateRequest(

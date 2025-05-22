@@ -3,21 +3,18 @@ package com.sprint.mission.discodeit.repository;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface BinaryContentRepository {
     public BinaryContent save(BinaryContent binaryContent);
 
-    public BinaryContent find(UUID id);
+    public Optional<BinaryContent> find(UUID id);
 
-    public List<BinaryContent> findAll();
+    public List<BinaryContent> findAllByIdIn(List<UUID> ids);
 
-    public boolean delete(UUID id);
+    boolean existsById(UUID id);
 
-    //특정 유저의 (프로필 이미지 등) 바이너리 조회
-    public List<BinaryContent> findByUserId(UUID userId);
+    void deleteById(UUID id);
 
-    public boolean deleteByUserId(UUID userId);
-
-    public boolean deleteByMessageId(UUID messageId);
 }

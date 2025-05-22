@@ -15,8 +15,12 @@ public interface UserRepository {
 
     public List<User> findAll();
 
-    public User update(User update);
+    public boolean existsById(UUID id);
 
-    public boolean delete(UUID id);
+    public void deleteById(UUID id);
+
+    public boolean existsByEmail(String email);
+
+    public boolean existsByUserName(String userName);
 
 }

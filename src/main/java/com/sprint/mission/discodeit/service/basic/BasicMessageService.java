@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.Response.BinaryContentResponse;
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.Response.MessageResponse;
-import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.create.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
@@ -17,10 +17,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,139 +28,88 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public MessageResponse create(MessageCreateRequest request) {
+    public MessageResponse create(MessageCreateRequest request, List<BinaryContentCreateRequest> attachmentRequests) {
 
-        User sender = userRepository.find(request.senderId()).orElseThrow();
-        Channel channel = channelRepository.find(request.channelId()).orElseThrow();
+        User sender = userRepository.find(request.senderId())
+                .orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
+        );
+        Channel channel = channelRepository.find(request.channelId())
+                .orElseThrow(()-> new NoSuchElementException(
+                        ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
+                );
 
-        if(channel == null) {
-            throw new IllegalArgumentException("존재하지 않는 채널");
-        }
+        List<UUID> attachmentIds = attachmentRequests.stream()
+                .map(attachmentRequest -> {
+                    byte[] bytes = attachmentRequest.bytes();
+                    String contentType = attachmentRequest.contentType();
+                    String fileName = attachmentRequest.originalFilename();
+
+                    BinaryContent binaryContent = new BinaryContent(bytes, contentType, fileName);
+                    BinaryContent createdBinaryContent = binaryContentRepository.save(binaryContent);
+                    return createdBinaryContent.getId();
+                })
+                .toList();
 
         Message message = new Message(
                 sender.getId(),
                 channel.getId(),
                 request.category(),
-                request.content()
+                request.content(),
+                attachmentIds
         );
 
         channel.validateCategory(request.category());
-        channel.validateMembership(sender);
         message.validateContent();
-
         Message savedMessage = messageRepository.create(message);
 
-        List<BinaryContent> savedAttachments = new ArrayList<>();
-        if(request.attachments() != null && !request.attachments().isEmpty()) {
-            for(BinaryContentRequest file : request.attachments()) {
-                BinaryContent attachment = new BinaryContent(
-                        null,
-                        savedMessage.getId(),
-                        file.content(),
-                        file.contentType(),
-                        file.originalFilename()
-                );
-                savedAttachments.add(binaryContentRepository.save(attachment));
-            }
-        }
-
-        return toMessageResponse(savedMessage, savedAttachments, sender.getName());
+        return toMessageResponse(savedMessage);
     }
 
     @Override
     public MessageResponse find(UUID id) {
-        Message message = messageRepository.find(id);
-        if (message == null) {
-            throw new IllegalArgumentException(" --해당 메시지를 찾을 수 없습니다.");
-        }
+        Message message = messageRepository.find(id).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)
+        ));
 
-        User sender= userRepository.find(message.getSenderId())
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
-
-        List<BinaryContent> attachmemts = binaryContentRepository.findAll().stream()
-                .filter(file -> file.getMessageId().equals(message.getId()))
-                .toList();
-
-        return toMessageResponse(message, attachmemts, sender.getName());
+        return toMessageResponse(message);
     }
 
     @Override
     public List<MessageResponse> findAllByChannelId(UUID channelId) {
-        Channel channel = channelRepository.find(channelId).orElseThrow();
-        if(channel == null) {
-            throw new IllegalArgumentException("존재하지 않는 채널");
-        }
-
-        List<Message> messages = messageRepository.findAll().stream()
-                .filter(msg -> msg.getChannelId().equals(channelId))
-                .sorted(Comparator.comparing(Message::getCreatedAt))
+        return messageRepository.findAllByChannelId(channelId).stream()
+                .map(this::toMessageResponse)
                 .toList();
-
-        List<MessageResponse> responses = new ArrayList<>();
-
-        for (Message message : messages) {
-            User sender = userRepository.find(message.getSenderId())
-                    .orElseThrow(() -> new IllegalArgumentException(("작성자를 찾을 수 없습니다.")));
-
-            List<BinaryContent> attachments = binaryContentRepository.findAll().stream()
-                    .filter(file -> file.getMessageId().equals(message.getId()))
-                    .toList();
-
-            responses.add(toMessageResponse(message, attachments, sender.getName()));
-        }
-        return responses;
     }
 
     @Override
-    public MessageResponse update(MessageUpdateRequest request) {
-        Message message = messageRepository.find(request.messageId());
-        if(message == null) {
-            throw new IllegalArgumentException("해당 메시지를 찾을 수 없습니다.");
-        }
+    public MessageResponse update(UUID messageId, MessageUpdateRequest request) {
+        String newContent = request.newContent();
+        Message message = messageRepository.find(messageId).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
 
-        message.update(request.newContent());
-
-        Message updatedMessage = messageRepository.update(request.messageId(), message);
-
-        User sender = userRepository.find(updatedMessage.getSenderId())
-                .orElseThrow(() -> new IllegalArgumentException("작성자 조회 실패"));
-
-        List<BinaryContent> attachments = binaryContentRepository.findAll().stream()
-                .filter(file -> file.getMessageId().equals(updatedMessage.getId()))
-                .toList();
-
-        return toMessageResponse(updatedMessage, attachments, sender.getName());
+        message.update(newContent);
+        Message updatedMessage = messageRepository.create(message);
+        return toMessageResponse(updatedMessage);
     }
 
     @Override
-    public boolean delete(UUID messageId) {
-        Message message = messageRepository.find(messageId);
-        if (message == null) {
-            throw new IllegalArgumentException(" --해당 메시지를 찾을 수 없습니다.");
-        }
+    public void delete(UUID messageId) {
+        messageRepository.find(messageId).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
 
-        //첨부파일 삭제
-        binaryContentRepository.deleteByMessageId(messageId);
-
-        //메시지 삭제
-        return messageRepository.delete(messageId);
+        messageRepository.deleteById(messageId);
     }
 
-    private MessageResponse toMessageResponse(Message message, List<BinaryContent> attachments, String senderName) {
-        List<BinaryContentResponse> attachmentsDtos = attachments.stream()
-                .map(file -> new BinaryContentResponse(
-                        file.getId(),
-                        file.getContentType(),
-                        file.getOriginalFilename(),
-                        file.getUrl()
-                )).toList();
-
+    private MessageResponse toMessageResponse(Message message) {
         return new MessageResponse(
                 message.getId(),
+                message.getChannelId(),
+                message.getSenderId(),
+                message.getCategory(),
                 message.getContent(),
-                senderName,
                 message.getCreatedAt(),
-                attachmentsDtos
+                message.getAttachmentIds()
         );
     }
 }

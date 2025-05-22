@@ -1,12 +1,12 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Getter @Setter
 public class Channel implements Serializable {
@@ -14,53 +14,32 @@ public class Channel implements Serializable {
 
     private UUID id;
     private String channelName;
-    private User creator;
     private List<String> categories;
-    private Set<User> members;
 
-    private boolean isPrivate;
+    private ChannelType type;
 
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Channel(String channelName, User creator, List<String> categories, Set<User> members , boolean isPrivate) {
+    public Channel(ChannelType type, String channelName, List<String> categories) {
         this.id = UUID.randomUUID();
-        this.channelName = channelName != null ? channelName : "";
-        this.categories = categories  != null ? categories : new ArrayList<>();
+        this.type = type;
 
-        this.creator = creator;
-        this.members = new HashSet<>(members);
-        this.members.add(creator);
-
-        this.isPrivate = isPrivate;
+        this.channelName = channelName;
+        this.categories = categories;
 
         this.createdAt = Instant.now();
-        this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
-    }
-
-    public void update(Channel updateChannelData) {
-        this.channelName = updateChannelData.channelName;
-        this.creator = updateChannelData.creator;
-        this.categories = new ArrayList<>(updateChannelData.categories);
-        this.members = new HashSet<>(updateChannelData.members);
-        this.updatedAt = Instant.now();
     }
 
     public void update(String newChannelName, List<String> newCategories) {
-        this.channelName = newChannelName;
-        this.categories = new ArrayList<>(newCategories);
-        this.updatedAt = Instant.now();
-    }
-
-    public void setMembers(Set<User> members) {
-        this.members = members;
-    }
-
-    //채널 멤버가 아닌 유저가 메시지 생성시
-    public void validateMembership(User sender) {
-        if (!members.contains(sender)) {
-            throw new IllegalArgumentException(
-                    " ---" + sender.getName() + "(은/는) [" + channelName + "]채널 멤버가 아닙니다.");
+        boolean anyValueUpdated = false;
+        if (newChannelName != null && !newChannelName.equals(this.channelName)) {
+            this.channelName = newChannelName;
+            anyValueUpdated = true;
+        }
+        if (newCategories != null && !newCategories.equals(this.categories)) {
+            this.categories = newCategories;
+            anyValueUpdated = true;
         }
     }
 
@@ -69,7 +48,9 @@ public class Channel implements Serializable {
         Set<String> unique = new HashSet<>();
         for (String category : this.categories) {
             if (!unique.add(category)) {
-                throw new IllegalArgumentException(" --- 중복된 카테고리가 포함되어 있습니다.");
+                throw new IllegalArgumentException(
+                        ErrorMessages.format("Category", ErrorMessages.ERROR_EXISTS)
+                );
             }
         }
     }
@@ -78,32 +59,8 @@ public class Channel implements Serializable {
     public void validateCategory(String category){
         if (!categories.contains(category)) {
             throw new IllegalArgumentException(
-                    " ---"+ category + "(은/는) [" +channelName + "]채널에 존재 하지 않는 카테고리입니다.");
+                    ErrorMessages.format("Category", ErrorMessages.ERROR_NOT_FOUND)
+            );
         }
-    }
-
-    public void addKeyUserToMembers() {
-        this.members.add(this.creator);
-    }
-
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!(obj instanceof Channel channel)) return false;
-        return id.equals(channel.id);
-    }
-
-    public String toString() {
-        return "Channel{" +
-                "ChannelName= '" + channelName + '\'' +
-                ", KeyUser= '" + creator.getName() + '\'' +
-                ", Category= '" + categories + '\'' +
-                ", Members= '" + members.stream().map(User::getName).collect(Collectors.toList()) +
-                "'}";
     }
 }

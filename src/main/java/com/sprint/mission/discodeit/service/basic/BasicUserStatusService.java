@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.Response.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.request.create.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.update.UserStatusUpdateRequest;
@@ -11,7 +12,9 @@ import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,24 +28,28 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusResponse create(UserStatusCreateRequest request) {
         User user = userRepository.find(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
+                .orElseThrow(() -> new NoSuchElementException(
+                ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
+        );
 
         Optional<UserStatus> existing = userStatusRepository.findByUserId(request.userId());
         if(existing.isPresent()) {
-            throw new IllegalArgumentException("해당 유저에 대한 상태 정보가 이미 존재");
+            throw new IllegalArgumentException(
+                    ErrorMessages.format("UserStatus", ErrorMessages.ERROR_EXISTS)
+            );
         }
 
-        UserStatus status = new UserStatus(request.userId(), request.isOnline());
+        Instant lastOnlineTime = request.lastOnlineTime();
+        UserStatus status = new UserStatus(request.userId(), lastOnlineTime);
         userStatusRepository.create(status);
         return toUserStatusResponse(status);
     }
 
     @Override
     public UserStatusResponse find(UUID id) {
-        UserStatus userStatus = userStatusRepository.find(id);
-        if(userStatus == null) {
-            throw new IllegalArgumentException("해당 Id의 UserStatus를 찾을 수 없습니다.");
-        }
+        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
         return toUserStatusResponse(userStatus);
     }
 
@@ -54,39 +61,39 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatusResponse update(UserStatusUpdateRequest request) {
-        UserStatus userStatus = userStatusRepository.find(request.id());
-        if(userStatus == null) {
-            throw new IllegalArgumentException("수정할 UserStatus가 존재하지 않습니다.");
-        }
+    public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
+        Instant newLastOnlineTime = request.newLastOnlineTime();
 
-        userStatus.updateOnlineStatus(request.newOnlineStatus());
-        UserStatus updateUserStatus = userStatusRepository.update(userStatus);
+        UserStatus userStatus = userStatusRepository.find(userStatusId).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("UseStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
+        userStatus.update(newLastOnlineTime);
+        UserStatus updateUserStatus = userStatusRepository.create(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }
 
     @Override
     public UserStatusResponse updateByUserId(UUID userId, UserStatusUpdateRequest request) {
+        Instant newLastOnlineTime = request.newLastOnlineTime();
         Optional<UserStatus> optionalUserStatus = userStatusRepository.findByUserId(userId);
 
         if (optionalUserStatus.isEmpty()) {
-            throw new IllegalArgumentException("해당 유저에 대한 UserStatus가 존재하지 않습니다.");
+            throw new NoSuchElementException(
+                    ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         UserStatus userStatus = optionalUserStatus.get();
-        userStatus.updateOnlineStatus(request.newOnlineStatus());
-        UserStatus updateUserStatus = userStatusRepository.update(userStatus);
+        userStatus.update(newLastOnlineTime);
+        UserStatus updateUserStatus = userStatusRepository.create(userStatus);
         return toUserStatusResponse(updateUserStatus);
     }
 
     @Override
-    public boolean delete(UUID id) {
-        UserStatus userStatus = userStatusRepository.find(id);
-        if(userStatus == null) {
-            throw new IllegalArgumentException("삭제할 UserStatus가 존재하지 않습니다.");
-        }
-        userStatusRepository.delete(id);
-        return true;
+    public void delete(UUID id) {
+        UserStatus userStatus = userStatusRepository.find(id).orElseThrow(()-> new NoSuchElementException(
+                ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
+        userStatusRepository.deleteById(id);
     }
 
     private UserStatusResponse toUserStatusResponse(UserStatus status) {

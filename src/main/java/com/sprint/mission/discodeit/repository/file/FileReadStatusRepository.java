@@ -1,131 +1,137 @@
 package com.sprint.mission.discodeit.repository.file;
 
-import com.sprint.mission.discodeit.config.DiscodeitProperties;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
-import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
 
-
+@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "file")
+@Repository
 public class FileReadStatusRepository implements ReadStatusRepository {
-    private static final long serialVersionUID = 1L;
+    private final Path DIRECTORY;
+    private final String EXTENSION = ".ser";
 
-    private final String filePath;
-    private Map<UUID, ReadStatus> data;
-
-    public FileReadStatusRepository(DiscodeitProperties properties) {
-        if (properties.getFilePath() == null) {
-            throw new IllegalStateException("filePath 설정이 null입니다. application.yaml 설정 확인 필요");
+    public FileReadStatusRepository(
+            @Value("${discodeit.repository.file-directory:data}") String fileDirectory
+    ) {
+        this.DIRECTORY = Paths.get(System.getProperty("user.dir"), fileDirectory, ReadStatus.class.getSimpleName());
+        if (Files.notExists(DIRECTORY)) {
+            try {
+                Files.createDirectories(DIRECTORY);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-        this.filePath = properties.getFilePath() + "/readstatus.ser";
-        this.data = new HashMap<>();
     }
 
-    // 파일 있으면 불러오기
-    @PostConstruct
-    public void init() {
-        this.data = loadData();
+    private Path resolvePath(UUID id) {
+        return DIRECTORY.resolve(id + EXTENSION);
     }
 
     @Override
     public ReadStatus create(ReadStatus readStatus) {
-        data.put(readStatus.getId(), readStatus);
-        saveData();
-        return readStatus;
-    }
-
-    @Override
-    public ReadStatus find(UUID id) {
-        return this.data.get(id);
-    }
-
-    @Override
-    public List<ReadStatus> findAll() {
-        return new ArrayList<>(data.values());
-    }
-
-    @Override
-    public ReadStatus update(ReadStatus update) {
-        ReadStatus readStatus = this.data.get(update.getId());
-        readStatus.updateLastReadTime(update.getLastReadTime());
-        return readStatus;
-    }
-
-    @Override
-    public List<ReadStatus> findByUserId(UUID userId) {
-        return data.values().stream()
-                .filter(file -> Objects.equals(file.getUserId(), userId))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<ReadStatus> findByChannelId(UUID channelId) {
-        return data.values().stream()
-                .filter(file -> Objects.equals(file.getChannelId(), channelId))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public boolean delete(UUID id) {
-        return this.data.remove(id) != null;
-    }
-
-    @Override
-    public boolean deleteByUserId(UUID userId) {
-        List<UUID> toRemove = data.values().stream()
-                .filter(file -> Objects.equals(file.getUserId(), userId))
-                .map(ReadStatus::getId)
-                .toList();
-
-        boolean deleted = false;
-        for(UUID id : toRemove) {
-            deleted |= data.remove(id) != null;
-        }
-        saveData();
-        return deleted;
-    }
-
-    @Override
-    public boolean deleteByChannelId(UUID channelId) {
-        List<UUID> toRemove = data.values().stream()
-                .filter(file -> Objects.equals(file.getChannelId(), channelId))
-                .map(ReadStatus::getId)
-                .toList();
-
-        boolean deleted = false;
-        for(UUID id : toRemove) {
-            deleted |= data.remove(id) != null;
-        }
-        saveData();
-        return deleted;
-    }
-
-
-    private void saveData() {
-        try (FileOutputStream fos = new FileOutputStream(filePath);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
-            oos.writeObject(data);
+        Path path = resolvePath(readStatus.getId());
+        try (
+                FileOutputStream fos = new FileOutputStream(path.toFile());
+                ObjectOutputStream oos = new ObjectOutputStream(fos)
+        ) {
+            oos.writeObject(readStatus);
         } catch (IOException e) {
-            System.err.println("[readStatus] 데이터 저장 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+        return readStatus;
+    }
+
+    @Override
+    public Optional<ReadStatus> find(UUID id) {
+        ReadStatus readStatusNullable = null;
+        Path path = resolvePath(id);
+        if (Files.exists(path)) {
+            try (
+                    FileInputStream fis = new FileInputStream(path.toFile());
+                    ObjectInputStream ois = new ObjectInputStream(fis)
+            ) {
+                readStatusNullable = (ReadStatus) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return Optional.ofNullable(readStatusNullable);
+    }
+
+    @Override
+    public List<ReadStatus> findAllByUserId(UUID userId) {
+        try (Stream<Path> paths = Files.list(DIRECTORY)) {
+            return paths
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .map(path -> {
+                        try (
+                                FileInputStream fis = new FileInputStream(path.toFile());
+                                ObjectInputStream ois = new ObjectInputStream(fis)
+                        ) {
+                            return (ReadStatus) ois.readObject();
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .filter(readStatus -> readStatus.getUserId().equals(userId))
+                    .toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
-    // 불러오기 메서드
-    @SuppressWarnings("unchecked")
-    private Map<UUID, ReadStatus> loadData() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
-            return (Map<UUID, ReadStatus>) ois.readObject();
-        } catch (FileNotFoundException e) {
-            System.out.println("[readStatus] 저장된 파일이 없습니다. 새 데이터를 시작합니다.");
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("[readStatus] 데이터 불러오기 중 오류 발생: " + e.getMessage());
-            e.printStackTrace();
+    @Override
+    public List<ReadStatus> findAllByChannelId(UUID channelId) {
+        try (Stream<Path> paths = Files.list(DIRECTORY)) {
+            return paths
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .map(path -> {
+                        try (
+                                FileInputStream fis = new FileInputStream(path.toFile());
+                                ObjectInputStream ois = new ObjectInputStream(fis)
+                        ) {
+                            return (ReadStatus) ois.readObject();
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .filter(readStatus -> readStatus.getChannelId().equals(channelId))
+                    .toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-        // 실패 시 빈 Map 반환
-        return new HashMap<>();
+    }
+
+    @Override
+    public boolean existsById(UUID id) {
+        Path path = resolvePath(id);
+        return Files.exists(path);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        Path path = resolvePath(id);
+        try {
+            Files.delete(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void deleteAllByChannelId(UUID channelId) {
+        this.findAllByChannelId(channelId)
+                .forEach(readStatus -> this.deleteById(readStatus.getId()));
     }
 }

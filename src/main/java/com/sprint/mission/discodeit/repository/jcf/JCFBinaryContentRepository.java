@@ -1,76 +1,46 @@
 package com.sprint.mission.discodeit.repository.jcf;
 
-import com.sprint.mission.discodeit.dto.request.create.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
+@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
+@Repository
 public class JCFBinaryContentRepository implements BinaryContentRepository {
-    private final Map<UUID, BinaryContent> data = new HashMap<>();
+    private final Map<UUID, BinaryContent> data;
+
+    public JCFBinaryContentRepository() {
+        this.data = new HashMap<>();
+    }
 
     @Override
     public BinaryContent save(BinaryContent binaryContent) {
-        BinaryContent content = new BinaryContent(
-                binaryContent.getUserId(),
-                binaryContent.getMessageId(),
-                binaryContent.getContent(),
-                binaryContent.getContentType(),
-                binaryContent.getOriginalFilename()
-        );
-        data.put(content.getId(), content);
-
-        return content;
+        this.data.put(binaryContent.getId(), binaryContent);
+        return binaryContent;
     }
 
     @Override
-    public BinaryContent find(UUID id) {
-        return data.get(id);
+    public Optional<BinaryContent> find(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     @Override
-    public List<BinaryContent> findAll() {
-        return new ArrayList<>(data.values());
-    }
-
-    @Override
-    public List<BinaryContent> findByUserId(UUID userId) {
-        return data.values().stream()
-                .filter(binaryContent -> binaryContent.getUserId().equals(userId))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public boolean delete(UUID id) {
-        return this.data.remove(id) != null;
-    }
-
-    @Override
-    public boolean deleteByUserId(UUID userId) {
-        List<UUID> toRemove = data.values().stream()
-                .filter(file -> Objects.equals(file.getUserId(), userId))
-                .map(BinaryContent::getId)
+    public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
+        return this.data.values().stream()
+                .filter(content -> ids.contains(content.getId()))
                 .toList();
-
-        boolean deleted = false;
-        for (UUID id : toRemove) {
-            deleted |= data.remove(id) != null;
-        }
-        return deleted;
     }
 
     @Override
-    public boolean deleteByMessageId(UUID messageId) {
-        List<UUID> toRemove = data.values().stream()
-                .filter(file -> Objects.equals(file.getMessageId(), messageId))
-                .map(BinaryContent::getId)
-                .toList();
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
+    }
 
-        boolean deleted = false;
-        for (UUID id : toRemove) {
-            deleted |= data.remove(id) != null;
-        }
-        return deleted;
+    @Override
+    public void deleteById(UUID id) {
+        this.data.remove(id);
     }
 }

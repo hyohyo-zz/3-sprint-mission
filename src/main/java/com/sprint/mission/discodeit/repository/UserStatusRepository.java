@@ -7,17 +7,17 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserStatusRepository {
-    public UserStatus create(UserStatus userstatus);
+    public UserStatus create(UserStatus userStatus);
 
-    public UserStatus find(UUID id);
-
-    public List<UserStatus> findAll();
+    public Optional<UserStatus> find(UUID id);
 
     public Optional<UserStatus> findByUserId(UUID userId);
 
-    public UserStatus update(UserStatus update);
+    public List<UserStatus> findAll();
 
-    public boolean delete(UUID id);
+    public boolean existsById(UUID id);
 
-    public boolean deleteByUserId(UUID userId);
+    public void deleteById(UUID id);
+
+    public void deleteByUserId(UUID userId);
 }
