@@ -23,7 +23,7 @@ public class JCFUserRepository implements UserRepository {
 
   //유저 생성
   @Override
-  public User create(User user) {
+  public User save(User user) {
     this.data.put(user.getId(), user);
     return user;
   }
@@ -36,7 +36,7 @@ public class JCFUserRepository implements UserRepository {
 
   //유저 이름으로 조회
   @Override
-  public Optional<User> findByUserName(String name) {
+  public Optional<User> findByUsername(String name) {
     return data.values().stream()
         .filter(user -> Objects.equals(user.getUsername(), name))
         .findFirst();
@@ -65,8 +65,8 @@ public class JCFUserRepository implements UserRepository {
   }
 
   @Override
-  public boolean existsByUserName(String userName) {
-    return this.findAll().stream().anyMatch(user -> user.getUsername().equals(userName));
+  public boolean existsByUsername(String username) {
+    return this.findAll().stream().anyMatch(user -> user.getUsername().equals(username));
   }
 }
 

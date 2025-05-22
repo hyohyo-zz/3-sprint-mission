@@ -44,7 +44,7 @@ public class FileUserRepository implements UserRepository {
   }
 
   @Override
-  public User create(User user) {
+  public User save(User user) {
     Path path = resolvePath(user.getId());
     try (
         FileOutputStream fos = new FileOutputStream(path.toFile());
@@ -77,7 +77,7 @@ public class FileUserRepository implements UserRepository {
 
   //유저 이름으로 조회
   @Override
-  public Optional<User> findByUserName(String name) {
+  public Optional<User> findByUsername(String name) {
     return this.findAll().stream()
         .filter(user -> user.getUsername().equals(name))
         .findFirst();
@@ -123,9 +123,9 @@ public class FileUserRepository implements UserRepository {
   }
 
   @Override
-  public boolean existsByUserName(String userName) {
+  public boolean existsByUsername(String username) {
     return this.findAll().stream()
-        .anyMatch(user -> user.getUsername().equals(userName));
+        .anyMatch(user -> user.getUsername().equals(username));
   }
 
   @Override

@@ -1,11 +1,16 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePrivateRequest;
-import com.sprint.mission.discodeit.dto.request.create.ChannelCreatePublicRequest;
-import com.sprint.mission.discodeit.dto.request.update.ChannelUpdateRequest_public;
+import com.sprint.mission.discodeit.dto.data.ChannelDto;
+import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
@@ -30,39 +35,34 @@ public class ChannelController {
 
   private final ChannelService channelService;
 
+  @ApiResponse(responseCode = "201", description = "Public Channel이 성공적으로 생성됨",
+      content = @Content(schema = @Schema(implementation = Channel.class)))
   @Operation(summary = "공개 채널 생성", description = "공개 채널을 생성합니다.")
   @PostMapping(
       path = "/public"
   )
-  public ResponseEntity<ChannelDto> createPublicChannel(
-      @RequestBody ChannelCreatePublicRequest channelCreatePublicRequest
+  public ResponseEntity<Channel> createPublicChannel(
+      @RequestBody PublicChannelCreateRequest publicChannelCreateRequest
   ) {
-    ChannelDto createdChannel = channelService.create(channelCreatePublicRequest);
+    Channel createdChannel = channelService.create(publicChannelCreateRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel);
   }
 
+  @ApiResponse(responseCode = "201", description = "Private Channel이 성공적으로 생성됨",
+      content = @Content(schema = @Schema(implementation = Channel.class)))
   @Operation(summary = "비공개 채널 생성", description = "비공개 채널을 생성합니다.")
   @PostMapping(
       path = "/private"
   )
-  public ResponseEntity<ChannelDto> createPrivateChannel(
-      @RequestBody ChannelCreatePrivateRequest channelCreatePrivateRequest
+  public ResponseEntity<Channel> createPrivateChannel(
+      @RequestBody PrivateChannelCreateRequest privateChannelCreateRequest
   ) {
-    ChannelDto createdChannel_private = channelService.create(channelCreatePrivateRequest);
+    Channel createdChannel_private = channelService.create(privateChannelCreateRequest);
     return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel_private);
   }
 
-  @Operation(summary = "채널 조회", description = "특정 채널을 조회합니다.")
-  @GetMapping(
-      path = "/{channelId}"
-      //            , method = RequestMethod.GET
-  )
-  public ResponseEntity<ChannelDto> find(
-      @PathVariable UUID channelId
-  ) {
-    ChannelDto channel = channelService.find(channelId);
-    return ResponseEntity.ok(channel);
-  }
+  @ApiResponse(responseCode = "200", description = "Channel 목록 조회 성공",
+      content = @Content(schema = @Schema(implementation = Channel.class)))
 
   @Operation(summary = "모든 채널 목록 조회", description = "특정 사용자가 볼 수 있는 모든 채널 목록을 조회합니다.")
   @GetMapping
@@ -73,20 +73,34 @@ public class ChannelController {
     return ResponseEntity.ok(channels);
   }
 
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Channel 정보가 성공적으로 수정됨",
+          content = @Content(schema = @Schema(implementation = Channel.class))),
+      @ApiResponse(responseCode = "404", description = "Channel을 찾을 수 없음",
+          content = @Content(mediaType = "text/plain")),
+      @ApiResponse(responseCode = "400", description = "Private Channel은 수정할 수 없음",
+          content = @Content(mediaType = "text/plain"))
+  })
   @Operation(summary = "공개 채널 수정", description = "공개 채널의 정보를 수정합니다.")
   @PatchMapping(
       path = "/{channelId}"
       //            , method = RequestMethod.PUT
   )
-  public ResponseEntity<ChannelDto> update(
+  public ResponseEntity<Channel> update(
       @PathVariable UUID channelId,
-      @RequestBody ChannelUpdateRequest_public channelUpdateRequest_public
+      @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest_
   ) {
-    ChannelDto updatedChannel = channelService.update(channelId,
-        channelUpdateRequest_public);
+    Channel updatedChannel = channelService.update(channelId,
+        publicChannelUpdateRequest_);
     return ResponseEntity.ok(updatedChannel);
   }
 
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "204", description = "Channel이 성공적으로 삭제됨",
+          content = @Content(schema = @Schema(implementation = Channel.class))),
+      @ApiResponse(responseCode = "404", description = "Channel을 찾을 수 없음",
+          content = @Content(mediaType = "text/plain"))
+  })
   @Operation(summary = "채널 삭제", description = "특정 채널을 삭제합니다.")
   @DeleteMapping(
       path = "/{channelId}"

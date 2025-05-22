@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
-import com.sprint.mission.discodeit.dto.request.create.ReadStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.request.update.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.request.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -15,8 +15,8 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class BasicReadStatusService implements ReadStatusService {
 
   public final UserRepository userRepository;
@@ -41,9 +41,9 @@ public class BasicReadStatusService implements ReadStatusService {
           ErrorMessages.format("ReadStatus with user and channel", ErrorMessages.ERROR_EXISTS));
     }
 
-    Instant lastReadTime = request.lastReadAt();
-    ReadStatus readStatus = new ReadStatus(userId, channelId, lastReadTime);
-    return readStatusRepository.create(readStatus);
+    Instant lastReadAt = request.lastReadAt();
+    ReadStatus readStatus = new ReadStatus(userId, channelId, lastReadAt);
+    return readStatusRepository.save(readStatus);
   }
 
   @Override
@@ -65,7 +65,7 @@ public class BasicReadStatusService implements ReadStatusService {
             ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
     readStatus.update(request.newLastReadAt());
-    return readStatusRepository.create(readStatus);
+    return readStatusRepository.save(readStatus);
   }
 
   @Override

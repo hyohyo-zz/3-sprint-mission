@@ -4,40 +4,35 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
 public class User implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
   private UUID id;
+  private Instant createdAt;
+  private Instant updatedAt;
+  //
   private String username;
   private String email;
   private String password;
-  private Instant createdAt;
-  private Instant updatedAt;
-
-  private UUID profileId;
-
-  private boolean online;
+  private UUID profileId;     // BinaryContent
 
   public User(String username, String email, String password, UUID profileId) {
     this.id = UUID.randomUUID();
     this.createdAt = Instant.now();
-    this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
-
+    //
     this.username = username;
     this.email = email;
     this.password = password;
     this.profileId = profileId;
   }
 
-  public void update(String newUserName, String newEmail, String newPassword, UUID newProfileId) {
+  public void update(String newUsername, String newEmail, String newPassword, UUID newProfileId) {
     boolean anyValueUpdated = false;
-    if (newUserName != null && !newUserName.equals(this.username)) {
-      this.username = newUserName;
+    if (newUsername != null && !newUsername.equals(this.username)) {
+      this.username = newUsername;
       anyValueUpdated = true;
     }
     if (newEmail != null && !newEmail.equals(this.email)) {

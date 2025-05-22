@@ -45,7 +45,7 @@ public class FileMessageRepository implements MessageRepository {
 
   //메시지 생성
   @Override
-  public Message create(Message message) {
+  public Message save(Message message) {
     Path path = resolvePath(message.getId());
     try (
         FileOutputStream fos = new FileOutputStream(path.toFile());

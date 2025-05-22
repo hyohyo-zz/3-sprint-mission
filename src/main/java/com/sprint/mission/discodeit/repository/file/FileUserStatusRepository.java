@@ -44,7 +44,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
   }
 
   @Override
-  public UserStatus create(UserStatus userStatus) {
+  public UserStatus save(UserStatus userStatus) {
     Path path = resolvePath(userStatus.getId());
     try (
         FileOutputStream fos = new FileOutputStream(path.toFile());

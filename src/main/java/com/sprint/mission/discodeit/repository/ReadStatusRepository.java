@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface ReadStatusRepository {
 
-  public ReadStatus create(ReadStatus readStatus);
+  public ReadStatus save(ReadStatus readStatus);
 
   public Optional<ReadStatus> find(UUID id);
 

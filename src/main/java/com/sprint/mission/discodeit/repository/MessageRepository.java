@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface MessageRepository {
 
-  public Message create(Message message);
+  public Message save(Message message);
 
   public Optional<Message> find(UUID id);
 
