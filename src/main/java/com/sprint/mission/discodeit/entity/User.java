@@ -1,67 +1,60 @@
 package com.sprint.mission.discodeit.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
-@Getter @Setter
+@Getter
+@Setter
 public class User implements Serializable {
-    private static final long serialVersionUID = 1L;
 
-    private UUID id;
-    private String name;
-    private String email;
-    private String phone;
-    private String password;
-    private Instant createdAt;
-    private Instant updatedAt;
+  private static final long serialVersionUID = 1L;
 
-    private UUID profileImageId;
+  private UUID id;
+  private String username;
+  private String email;
+  private String password;
+  private Instant createdAt;
+  private Instant updatedAt;
 
-    private boolean online;
+  private UUID profileId;
 
-    public User(String name, String email, String phone, String password, UUID profileImageId) {
-        this.id = UUID.randomUUID();
-        this.name = name;
-        this.email = email;
-        this.phone = phone;
-        this.password = password;
-        this.createdAt = Instant.now();
-        this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
+  private boolean online;
 
-        this.profileImageId = profileImageId;
+  public User(String username, String email, String password, UUID profileId) {
+    this.id = UUID.randomUUID();
+    this.createdAt = Instant.now();
+    this.updatedAt = this.createdAt;    //updatedAt의 처음 시간은 createAt과 동일해야 함
 
-        this.online = false;
+    this.username = username;
+    this.email = email;
+    this.password = password;
+    this.profileId = profileId;
+  }
+
+  public void update(String newUserName, String newEmail, String newPassword, UUID newProfileId) {
+    boolean anyValueUpdated = false;
+    if (newUserName != null && !newUserName.equals(this.username)) {
+      this.username = newUserName;
+      anyValueUpdated = true;
+    }
+    if (newEmail != null && !newEmail.equals(this.email)) {
+      this.email = newEmail;
+      anyValueUpdated = true;
+    }
+    if (newPassword != null && !newPassword.equals(this.password)) {
+      this.password = newPassword;
+      anyValueUpdated = true;
+    }
+    if (newProfileId != null && !newProfileId.equals(this.profileId)) {
+      this.profileId = newProfileId;
+      anyValueUpdated = true;
     }
 
-    public void update(String newUserName, String newEmail, String newPhone, String newPassword, UUID newProfileId) {
-        boolean anyValueUpdated = false;
-        if (newUserName != null && !newUserName.equals(this.name)) {
-            this.name = newUserName;
-            anyValueUpdated = true;
-        }
-        if (newEmail != null && !newEmail.equals(this.email)) {
-            this.email = newEmail;
-            anyValueUpdated = true;
-        }
-        if (newPhone != null && !newPhone.equals(this.phone)) {
-            this.phone = newPhone;
-            anyValueUpdated = true;
-        }
-        if (newPassword != null && !newPassword.equals(this.password)) {
-            this.password = newPassword;
-            anyValueUpdated = true;
-        }
-        if (newProfileId != null && !newProfileId.equals(this.profileImageId)) {
-            this.profileImageId = newProfileId;
-            anyValueUpdated = true;
-        }
-
-        if (anyValueUpdated) {
-            this.updatedAt = Instant.now();
-        }
+    if (anyValueUpdated) {
+      this.updatedAt = Instant.now();
     }
+  }
 }

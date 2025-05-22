@@ -1,13 +1,17 @@
 package com.sprint.mission.discodeit.dto.request.create;
 
-import java.util.UUID;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public record UserCreateRequest(
-        String name,
-        String email,
-        String phone,
-        String password,
-        UUID profileImageId,    //선택, 없으면 null
-        BinaryContentCreateRequest profileImage      //선택, 없으면 null
+
+    @Schema(description = "유저 이름", example = "현아공주")
+    String name,
+
+    @Schema(description = "유저 이메일", example = "hyuna@example.com")
+    String email,
+
+    @Schema(description = "유저 비밀번호", example = "securePassword123!")
+    String password
 ) {
+
 }
