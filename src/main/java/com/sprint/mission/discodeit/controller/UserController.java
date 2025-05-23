@@ -50,20 +50,20 @@ public class UserController {
           content = @Content(mediaType = "text/plain"))
   })
   @Operation(summary = "유저 생성", description = "새로운 유저를 생성합니다.")
-  @PostMapping(
-      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-  )
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<User> create(
       @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
       @RequestPart(value = "profile", required = false) MultipartFile profile
   ) {
-
     Optional<BinaryContentCreateRequest> profileRequest =
         Optional.ofNullable(profile)
             .flatMap(this::resolveProfileRequest);
 
     User createdUser = userService.create(userCreateRequest, profileRequest);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createdUser);
   }
 
   @ApiResponse(responseCode = "200", description = "유저 목록 조회 성공",
@@ -73,7 +73,10 @@ public class UserController {
   @GetMapping
   public ResponseEntity<List<UserDto>> findAll() {
     List<UserDto> users = userService.findAll();
-    return ResponseEntity.ok(users);
+
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(users);
   }
 
   @ApiResponses(value = {
@@ -86,9 +89,8 @@ public class UserController {
   })
   @Operation(summary = "유저 수정", description = "기존 유저 정보를 수정합니다.")
   @PatchMapping(
-      path = "/{userId}"
-//            , method = RequestMethod.PUT
-      , consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+      path = "/{userId}",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
   )
   public ResponseEntity<User> update(
       @PathVariable UUID userId,
@@ -100,7 +102,10 @@ public class UserController {
             .flatMap(this::resolveProfileRequest);
 
     User updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
-    return ResponseEntity.ok(updatedUser);
+
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(updatedUser);
   }
 
   @ApiResponses(value = {
@@ -110,14 +115,12 @@ public class UserController {
           content = @Content(mediaType = "text/plain"))
   })
   @Operation(summary = "유저 삭제", description = "기존 유저를 삭제합니다.")
-  @DeleteMapping(
-      value = "/{userId}"
-//            , method = RequestMethod.DELETE
-  )
+  @DeleteMapping(value = "/{userId}")
   public ResponseEntity<String> delete(
       @PathVariable UUID userId
   ) {
     userService.delete(userId);
+
     return ResponseEntity.noContent().build(); // 204
   }
 
@@ -128,16 +131,16 @@ public class UserController {
           content = @Content(mediaType = "text/plain")),
   })
   @Operation(summary = "유저 상태 업데이트", description = "유저 상태를 업데이트합니다.(온라인)")
-  @PatchMapping(
-      value = "/{userId}/userStatus"
-//            , method = RequestMethod.PUT
-  )
+  @PatchMapping(value = "/{userId}/userStatus")
   public ResponseEntity<UserStatus> updateStatus(
       @PathVariable UUID userId,
       @RequestBody UserStatusUpdateRequest request
   ) {
-    UserStatus updated = userStatusService.updateByUserId(userId, request);
-    return ResponseEntity.ok(updated);
+    UserStatus updatedStatus = userStatusService.updateByUserId(userId, request);
+
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(updatedStatus);
   }
 
   private Optional<BinaryContentCreateRequest> resolveProfileRequest(MultipartFile profile) {

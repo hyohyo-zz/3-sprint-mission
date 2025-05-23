@@ -45,7 +45,10 @@ public class ChannelController {
       @RequestBody PublicChannelCreateRequest publicChannelCreateRequest
   ) {
     Channel createdChannel = channelService.create(publicChannelCreateRequest);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createdChannel);
   }
 
   @ApiResponse(responseCode = "201", description = "Private Channel이 성공적으로 생성됨",
@@ -58,7 +61,10 @@ public class ChannelController {
       @RequestBody PrivateChannelCreateRequest privateChannelCreateRequest
   ) {
     Channel createdChannel_private = channelService.create(privateChannelCreateRequest);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createdChannel_private);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createdChannel_private);
   }
 
   @ApiResponse(responseCode = "200", description = "Channel 목록 조회 성공",
@@ -70,7 +76,10 @@ public class ChannelController {
       @RequestParam("userId") UUID userId
   ) {
     List<ChannelDto> channels = channelService.findAllByUserId(userId);
-    return ResponseEntity.ok(channels);
+
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(channels);
   }
 
   @ApiResponses(value = {
@@ -82,17 +91,18 @@ public class ChannelController {
           content = @Content(mediaType = "text/plain"))
   })
   @Operation(summary = "공개 채널 수정", description = "공개 채널의 정보를 수정합니다.")
-  @PatchMapping(
-      path = "/{channelId}"
-      //            , method = RequestMethod.PUT
-  )
+  @PatchMapping(path = "/{channelId}")
   public ResponseEntity<Channel> update(
       @PathVariable UUID channelId,
       @RequestBody PublicChannelUpdateRequest publicChannelUpdateRequest_
   ) {
     Channel updatedChannel = channelService.update(channelId,
         publicChannelUpdateRequest_);
-    return ResponseEntity.ok(updatedChannel);
+
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(updatedChannel);
+
   }
 
   @ApiResponses(value = {
@@ -102,14 +112,12 @@ public class ChannelController {
           content = @Content(mediaType = "text/plain"))
   })
   @Operation(summary = "채널 삭제", description = "특정 채널을 삭제합니다.")
-  @DeleteMapping(
-      path = "/{channelId}"
-      //            , method = RequestMethod.DELETE
-  )
+  @DeleteMapping(path = "/{channelId}")
   public ResponseEntity<String> delete(
       @PathVariable UUID channelId
   ) {
     channelService.delete(channelId);
+    
     return ResponseEntity.noContent().build();
   }
 }

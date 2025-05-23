@@ -46,7 +46,10 @@ public class ReadStatusController {
       @RequestBody ReadStatusCreateRequest readStatusCreateRequest
   ) {
     ReadStatus createStatus = readStatusService.create(readStatusCreateRequest);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createStatus);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createStatus);
   }
 
   @ApiResponse(responseCode = "200", description = "Message 읽음 상태 목록 조회",
@@ -58,7 +61,10 @@ public class ReadStatusController {
       @RequestParam("userId") UUID userId
   ) {
     List<ReadStatus> readStatuses = readStatusService.findAllByUserId(userId);
-    return ResponseEntity.ok(readStatuses);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(readStatuses);
   }
 
   @ApiResponses(value = {
@@ -68,15 +74,15 @@ public class ReadStatusController {
           content = @Content(mediaType = "text/plain")),
   })
   @Operation(summary = "메시지 수신 정보 수정", description = "특정 채널의 메시지 수신 정보를 수정합니다.")
-  @PatchMapping(
-      path = "/{readStatusId}"
-//            , method = RequestMethod.PUT
-  )
+  @PatchMapping(path = "/{readStatusId}")
   public ResponseEntity<ReadStatus> update(
       @PathVariable UUID readStatusId,
       @RequestBody ReadStatusUpdateRequest readStatusUpdateRequest
   ) {
     ReadStatus updatedStatus = readStatusService.update(readStatusId, readStatusUpdateRequest);
-    return ResponseEntity.ok(updatedStatus);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(updatedStatus);
   }
 }

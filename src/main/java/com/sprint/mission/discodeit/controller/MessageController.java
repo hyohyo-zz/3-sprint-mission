@@ -47,14 +47,11 @@ public class MessageController {
           content = @Content(mediaType = "text/plain"))
   })
   @Operation(summary = "메시지 생성", description = "메시지를 생성합니다.")
-  @PostMapping(
-      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-  )
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<Message> create(
       @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
       @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
   ) {
-
     List<BinaryContentCreateRequest> attachmentRequests = new ArrayList<>();
 
     if (attachments != null) {
@@ -62,9 +59,13 @@ public class MessageController {
         resolveAttachmentRequest(file).ifPresent(attachmentRequests::add);
       }
     }
+
     Message createdMessage = messageService.create(messageCreateRequest,
         attachmentRequests);
-    return ResponseEntity.status(HttpStatus.CREATED).body(createdMessage);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(createdMessage);
   }
 
   @ApiResponse(responseCode = "200", description = "Message 목록 조회 성공",
@@ -76,7 +77,10 @@ public class MessageController {
       @RequestParam("channelId") UUID channelId
   ) {
     List<Message> messages = messageService.findAllByChannelId(channelId);
-    return ResponseEntity.ok(messages);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(messages);
   }
 
   @ApiResponses(value = {
@@ -95,7 +99,10 @@ public class MessageController {
       @RequestBody MessageUpdateRequest messageUpdateRequest
   ) {
     Message updatedMessage = messageService.update(messageId, messageUpdateRequest);
-    return ResponseEntity.ok(updatedMessage);
+
+    return ResponseEntity
+        .status(HttpStatus.CREATED)
+        .body(updatedMessage);
   }
 
   @ApiResponses(value = {
@@ -105,14 +112,12 @@ public class MessageController {
           content = @Content(mediaType = "text/plain"))
   })
   @Operation(summary = "메시지 제거", description = "특정 메시지를 제거합니다.")
-  @DeleteMapping(
-      path = "/{messageId}"
-//            , method = RequestMethod.DELETE
-  )
+  @DeleteMapping(path = "/{messageId}")
   public ResponseEntity<String> delete(
       @PathVariable UUID messageId
   ) {
     messageService.delete(messageId);
+
     return ResponseEntity.noContent().build();
   }
 

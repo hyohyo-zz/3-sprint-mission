@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,7 +39,10 @@ public class BinaryContentController {
       @PathVariable UUID binaryContentId
   ) {
     BinaryContent binaryContent = binaryContentService.find(binaryContentId);
-    return ResponseEntity.ok(binaryContent);
+
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(binaryContent);
   }
 
   @ApiResponse(responseCode = "200", description = "첨부 파일 목록 조회 성공",
@@ -51,6 +55,10 @@ public class BinaryContentController {
       @RequestParam("binaryContentIds") List<UUID> ids
   ) {
     List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(ids);
-    return ResponseEntity.ok(binaryContents);
+
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(binaryContents);
+
   }
 }
