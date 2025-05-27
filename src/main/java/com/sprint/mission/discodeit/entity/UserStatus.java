@@ -1,9 +1,8 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.io.Serializable;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.UUID;
 import lombok.Getter;
 
 /*사용자 별 마지막으로 확인된 접속시간 표현(사용자의 온라인 상태 확인)
@@ -16,35 +15,20 @@ import lombok.Getter;
  * lastOnlineTime은 사용자가 언제 마지막으로 접속했는가??
  * 나중에 메소드 추가를 위해? 분리하는 것이 좋다?*/
 @Getter
-public class UserStatus implements Serializable {
+public class UserStatus extends BaseUpdatableEntity {
 
-  private static final long serialVersionUID = 1L;
-
-  private UUID id;
-  private Instant createdAt;
-  private Instant updatedAt;
-
-  private UUID userId;
+  private User user;
   private Instant lastActiveAt;
 
-  public UserStatus(UUID userId, Instant lastActiveAt) {
-    this.id = UUID.randomUUID();
-    this.createdAt = Instant.now();
-
-    this.userId = userId;
+  public UserStatus(User user, Instant lastActiveAt) {
+    this.user = user;
     this.lastActiveAt = lastActiveAt;
   }
 
   //lastActiveAt update
   public void update(Instant lastActiveAt) {
-    boolean anyValueUpdated = false;
     if (lastActiveAt != null && !lastActiveAt.equals(this.lastActiveAt)) {
       this.lastActiveAt = lastActiveAt;
-      anyValueUpdated = true;
-    }
-
-    if (anyValueUpdated) {
-      this.updatedAt = Instant.now();
     }
   }
 

@@ -25,7 +25,7 @@ create table if not exists users
     updated_at timestamptz,
     username   varchar(50)  not null unique,
     email      varchar(100) not null unique,
-    password   varchar(60),
+    password   varchar(60)  not null,
     profile_id uuid,
 
     CONSTRAINT fk_users_profile FOREIGN KEY (profile_id) REFERENCES binary_contents (id) ON DELETE SET NULL
@@ -39,7 +39,7 @@ create table if not exists channels
     updated_at  timestamptz,
     name        varchar(100),
     description varchar(500),
-    type        varchar(10) not null
+    type        varchar(10) not null check ( type IN ('PUBLIC', 'PRIVATE'))
 );
 
 -- messages
@@ -90,7 +90,8 @@ create table if not exists message_attachments
     message_id    uuid,
     attachment_id uuid,
 
-    CONSTRAINT fk_message_attachments_messageId FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
-    CONSTRAINT fk_message_attachments_attachmentId FOREIGN KEY (attachment_id) REFERENCES binary_contents (id) ON DELETE CASCADE
+    PRIMARY KEY (message_id, attachment_id),
+    CONSTRAINT fk_attachments_message FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
+    CONSTRAINT fk_attachments_attachment FOREIGN KEY (attachment_id) REFERENCES binary_contents (id) ON DELETE CASCADE
 );
 
