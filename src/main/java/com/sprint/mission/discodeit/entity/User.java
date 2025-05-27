@@ -1,16 +1,37 @@
 package com.sprint.mission.discodeit.entity;
 
 import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 
+@Entity
+@Table(name = "users")
 @Getter
 public class User extends BaseUpdatableEntity {
 
+  @Column(length = 50, nullable = false, unique = true)
   private String username;
+
+  @Column(length = 100, nullable = false, unique = true)
   private String email;
+
+  @Column(length = 60, nullable = false, unique = true)
   private String password;
+
+  @OneToOne
+  @JoinColumn(name = "profile_id", referencedColumnName = "id")
   private BinaryContent profile;     // BinaryContent
+
+  @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private UserStatus userStatus;
+
+  public User() {
+  }
 
   public User(String username, String email, String password, BinaryContent profile,
       UserStatus userStatus) {

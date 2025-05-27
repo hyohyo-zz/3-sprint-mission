@@ -1,6 +1,9 @@
 package com.sprint.mission.discodeit.entity;
 
 import com.sprint.mission.discodeit.entity.base.BaseEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Getter;
 
 /*바이너리 데이터 표현 도메인
@@ -8,14 +11,25 @@ import lombok.Getter;
  * userId(messageId=null)-> 프로필이미지 반대면 메시지 첨부파일
  * 수정불가한 도메인
  * */
+@Entity
+@Table(name = "binary_contents")
 @Getter
 public class BinaryContent extends BaseEntity {
 
+  @Column(length = 225, nullable = false)
   private String fileName;
+
+  @Column(nullable = false)
   private Long size;
+
+  @Column(length = 100, nullable = false)
   private String contentType;
+
+  @Column(nullable = false)
   private byte[] bytes;
 
+  public BinaryContent() {
+  }
 
   public BinaryContent(String fileName, Long size, String contentType, byte[] bytes) {
     this.fileName = fileName;
