@@ -5,7 +5,9 @@ import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -24,7 +26,7 @@ public interface MessageApi {
       @ApiResponse(responseCode = "201", description = "Message가 성공적으로 생성됨",
           content = @Content(schema = @Schema(implementation = Message.class))),
       @ApiResponse(responseCode = "404", description = "Channel 또는 User를 찾을 수 없음",
-          content = @Content(mediaType = "text/plain"))
+          content = @Content(examples = @ExampleObject(value = "Channel | Author with id {channelId | authorId} not found")))
   })
   ResponseEntity<Message> create(
       @Parameter(
@@ -40,18 +42,21 @@ public interface MessageApi {
   @Operation(summary = "채널 메시지 조회", description = "채널의 모든 메시지를 조회합니다.")
   @ApiResponse(
       responseCode = "200", description = "Message 목록 조회 성공",
-      content = @Content(mediaType = "application/json",
-          schema = @Schema(type = "array", implementation = Message.class)))
+      content = @Content(array = @ArraySchema(schema = @Schema(implementation = Message.class)))
+  )
   ResponseEntity<List<Message>> findAllByChannelId(
       @Parameter(description = "조회할 채널 ID") UUID channelId
   );
 
   @Operation(summary = "메시지 수정", description = "기존 메시지를 수정합니다.")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "200", description = "Message가 성공적으로 수정됨",
+      @ApiResponse(
+          responseCode = "200", description = "Message가 성공적으로 수정됨",
           content = @Content(schema = @Schema(implementation = Message.class))),
-      @ApiResponse(responseCode = "404", description = "Message를 찾을 수 없음",
-          content = @Content(mediaType = "text/plain")),
+      @ApiResponse(
+          responseCode = "404", description = "Message를 찾을 수 없음",
+          content = @Content(examples = @ExampleObject(value = "Message with id {messageId} not found"))
+      ),
   })
   ResponseEntity<Message> update(
       @Parameter(description = "수정할 Message ID") UUID messageId,
@@ -65,7 +70,7 @@ public interface MessageApi {
       @ApiResponse(responseCode = "404", description = "Message를 찾을 수 없음",
           content = @Content(mediaType = "text/plain"))
   })
-  ResponseEntity<String> delete(
+  ResponseEntity<Void> delete(
       @Parameter(description = "삭제할 Message ID") UUID messageId
   );
 

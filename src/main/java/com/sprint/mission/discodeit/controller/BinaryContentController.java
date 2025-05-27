@@ -31,7 +31,7 @@ public class BinaryContentController implements BinaryContentApi {
   }
 
   @GetMapping
-  public ResponseEntity<List<BinaryContent>> findAll(
+  public ResponseEntity<List<BinaryContent>> findAllByIdIn(
       @RequestParam("binaryContentIds") List<UUID> binaryContentIds) {
     List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(binaryContentIds);
 

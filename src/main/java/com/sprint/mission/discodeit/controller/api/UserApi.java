@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.entity.UserStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -24,10 +25,13 @@ public interface UserApi {
 
   @Operation(summary = "유저 생성", description = "새로운 유저를 생성합니다.")
   @ApiResponses(value = {
-      @ApiResponse(responseCode = "201", description = "User가 성공적으로 생성됨",
-          content = @Content(schema = @Schema(implementation = User.class))),
-      @ApiResponse(responseCode = "400", description = "같은 email 또는 username을 사용하는 User가 이미 존재함",
-          content = @Content(mediaType = "text/plain"))
+      @ApiResponse(
+          responseCode = "201", description = "User가 성공적으로 생성됨",
+          content = @Content(schema = @Schema(implementation = User.class))
+      ),
+      @ApiResponse(
+          responseCode = "400", description = "같은 email 또는 username을 사용하는 User가 이미 존재함",
+          content = @Content(examples = @ExampleObject(value = "User with email {email} already exists")))
   })
   ResponseEntity<User> create(
       @Parameter(
@@ -68,7 +72,7 @@ public interface UserApi {
       @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음",
           content = @Content(mediaType = "text/plain"))
   })
-  ResponseEntity<String> delete(
+  ResponseEntity<Void> delete(
       @Parameter(description = "삭제할 User ID") UUID userId
   );
 
@@ -79,7 +83,7 @@ public interface UserApi {
       @ApiResponse(responseCode = "404", description = "해당 User의 UserStatus를 찾을 수 없음",
           content = @Content(mediaType = "text/plain")),
   })
-  ResponseEntity<UserStatus> updateUserStatusByUserId(
+  ResponseEntity<UserStatus> updateStatus(
       @Parameter(description = "상태를 변경할 User ID") UUID userId,
       @Parameter(description = "변경할 User 온라인 상태 정보") UserStatusUpdateRequest request
   );

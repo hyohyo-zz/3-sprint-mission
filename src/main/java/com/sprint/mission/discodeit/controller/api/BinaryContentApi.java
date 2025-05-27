@@ -40,7 +40,7 @@ public interface BinaryContentApi {
               array = @ArraySchema(schema = @Schema(implementation = BinaryContent.class)))
       )
   })
-  ResponseEntity<List<BinaryContent>> findAll(
+  ResponseEntity<List<BinaryContent>> findAllByIdIn(
       @Parameter(description = "조회할 첨부 파일 ID 목록") List<UUID> binaryContentIds
   );
 }

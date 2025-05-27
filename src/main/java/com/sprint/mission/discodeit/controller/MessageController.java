@@ -60,7 +60,7 @@ public class MessageController implements MessageApi {
     List<Message> messages = messageService.findAllByChannelId(channelId);
 
     return ResponseEntity
-        .status(HttpStatus.CREATED)
+        .status(HttpStatus.OK)
         .body(messages);
   }
 
@@ -72,12 +72,12 @@ public class MessageController implements MessageApi {
     Message updatedMessage = messageService.update(messageId, messageUpdateRequest);
 
     return ResponseEntity
-        .status(HttpStatus.CREATED)
+        .status(HttpStatus.OK)
         .body(updatedMessage);
   }
 
   @DeleteMapping(path = "/{messageId}")
-  public ResponseEntity<String> delete(@PathVariable UUID messageId) {
+  public ResponseEntity<Void> delete(@PathVariable UUID messageId) {
     messageService.delete(messageId);
 
     return ResponseEntity.noContent().build();
