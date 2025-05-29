@@ -9,10 +9,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.List;
-import java.util.UUID;
 import lombok.Getter;
 
 @Entity
@@ -36,16 +34,16 @@ public class Message extends BaseUpdatableEntity {
       joinColumns = @JoinColumn(name = "message_id"),
       inverseJoinColumns = @JoinColumn(name = "attachment_id")
   )
-  private List<BinaryContent> attachmentIds;
+  private List<BinaryContent> attachments;
 
   public Message() {
   }
 
-  public Message(String content, Channel channel, User author, List<BinaryContent> attachmentIds) {
+  public Message(String content, Channel channel, User author, List<BinaryContent> attachments) {
     this.content = content;
     this.channel = channel;
     this.author = author;
-    this.attachmentIds = attachmentIds;
+    this.attachments = attachments;
   }
 
   public void update(String newContent) {

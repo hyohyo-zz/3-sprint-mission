@@ -11,7 +11,9 @@ import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.UserService;
+import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -27,7 +29,9 @@ public class BasicUserService implements UserService {
   private final UserRepository userRepository;
   private final UserStatusRepository userStatusRepository;
   private final BinaryContentRepository binaryContentRepository;
+  private final BinaryContentService binaryContentService;
 
+  @Transactional
   public User create(UserCreateRequest request,
       Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
     if (userRepository.existsByEmail(request.email())) {
@@ -38,24 +42,23 @@ public class BasicUserService implements UserService {
           ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
     }
 
-    UUID nullableProfileId = optionalProfileCreateRequest
+    BinaryContent profile = optionalProfileCreateRequest
         .map(profileCreateRequest -> {
-          String fileName = profileCreateRequest.fileName();
-          String contentType = profileCreateRequest.contentType();
-          byte[] bytes = profileCreateRequest.bytes();
-
-          BinaryContent binaryContent = new BinaryContent(fileName, (long) bytes.length,
-              contentType, bytes);
-          return binaryContentRepository.save(binaryContent).getId();
+          BinaryContent binaryContent = new BinaryContent(
+              profileCreateRequest.fileName(),
+              (long) profileCreateRequest.bytes().length,
+              profileCreateRequest.contentType(),
+              profileCreateRequest.bytes()
+          );
+          return binaryContentRepository.save(binaryContent);
         })
         .orElse(null);
 
-    User user = new User(request.username(), request.email(), request.password(),
-        nullableProfileId);
+    User user = new User(request.username(), request.email(), request.password(), profile);
     User savedUser = userRepository.save(user);
 
     Instant now = Instant.now();
-    UserStatus userStatus = new UserStatus(savedUser.getId(), now);
+    UserStatus userStatus = new UserStatus(user, now);
     userStatusRepository.save(userStatus);
 
     return savedUser;
@@ -63,7 +66,7 @@ public class BasicUserService implements UserService {
 
   @Override
   public UserDto find(UUID userId) {
-    return userRepository.find(userId)
+    return userRepository.findById(userId)
         .map(this::toDto)
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
@@ -78,11 +81,12 @@ public class BasicUserService implements UserService {
         .toList();
   }
 
+  @Transactional
   @Override
   public User update(UUID userId, UserUpdateRequest userUpdateRequest,
       Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
     //1. 수정할 엔티티 조회
-    User user = userRepository.find(userId).orElseThrow(() -> new NoSuchElementException(
+    User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException(
         ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
     );
 
@@ -98,10 +102,10 @@ public class BasicUserService implements UserService {
           ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
     }
 
-    UUID nullableProfileId = optionalProfileCreateRequest
+    BinaryContent profile = optionalProfileCreateRequest
         .map(profileRequest -> {
-          Optional.ofNullable(user.getProfileId())
-              .ifPresent(binaryContentRepository::deleteById);
+          Optional.ofNullable(user.getProfile())
+              .ifPresent(binaryContentRepository::delete);
 
           String fileName = profileRequest.fileName();
           String contentType = profileRequest.contentType();
@@ -109,23 +113,23 @@ public class BasicUserService implements UserService {
 
           BinaryContent binaryContent = new BinaryContent(fileName, (long) bytes.length,
               contentType, bytes);
-          return binaryContentRepository.save(binaryContent).getId();
+          return binaryContentRepository.save(binaryContent);
         })
         .orElse(null);
 
     String newPassword = userUpdateRequest.newPassword();
-    user.update(newUsername, newEmail, newPassword, nullableProfileId);
+    user.update(newUsername, newEmail, newPassword, profile);
 
-    return userRepository.save(user);
+    return user;
   }
 
   @Override
   public void delete(UUID userId) {
-    User user = userRepository.find(userId).orElseThrow(() -> new NoSuchElementException(
+    User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException(
         ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
     );
-    Optional.ofNullable(user.getProfileId())
-        .ifPresent(binaryContentRepository::deleteById);
+    Optional.ofNullable(user.getProfile())
+        .ifPresent(binaryContentRepository::delete);
     userStatusRepository.deleteByUserId(userId);
 
     userRepository.deleteById(userId);
@@ -142,7 +146,7 @@ public class BasicUserService implements UserService {
         user.getUpdatedAt(),
         user.getUsername(),
         user.getEmail(),
-        user.getProfileId(),
+        user.getProfile(),
         online
     );
   }

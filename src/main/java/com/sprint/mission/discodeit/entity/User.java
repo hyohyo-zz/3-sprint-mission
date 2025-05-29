@@ -23,7 +23,7 @@ public class User extends BaseUpdatableEntity {
   @Column(length = 60, nullable = false, unique = true)
   private String password;
 
-  @OneToOne
+  @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "profile_id", referencedColumnName = "id")
   private BinaryContent profile;     // BinaryContent
 
@@ -33,17 +33,15 @@ public class User extends BaseUpdatableEntity {
   public User() {
   }
 
-  public User(String username, String email, String password, BinaryContent profile,
-      UserStatus userStatus) {
+  public User(String username, String email, String password, BinaryContent profile) {
     this.username = username;
     this.email = email;
     this.password = password;
     this.profile = profile;
-    this.userStatus = userStatus;
   }
 
   public void update(String newUsername, String newEmail, String newPassword,
-      BinaryContent newProfile, UserStatus newUserStatus) {
+      BinaryContent newProfile) {
     if (newUsername != null && !newUsername.equals(this.username)) {
       this.username = newUsername;
     }
@@ -56,8 +54,9 @@ public class User extends BaseUpdatableEntity {
     if (newProfile != null && !newProfile.equals(this.profile)) {
       this.profile = newProfile;
     }
-    if (newUserStatus != null && !newUserStatus.equals(this.userStatus)) {
-      this.userStatus = newUserStatus;
-    }
+  }
+
+  public void setUserStatus(UserStatus userStatus) {
+    this.userStatus = userStatus;
   }
 }

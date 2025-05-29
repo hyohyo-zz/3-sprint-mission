@@ -20,16 +20,17 @@ public class BasicBinaryContentService implements BinaryContentService {
 
   @Override
   public BinaryContent create(BinaryContentCreateRequest request) {
-    if (request.bytes() == null || request.bytes().length == 0) {
+    byte[] bytes = request.bytes();
+    if (bytes == null || bytes.length == 0) {
       throw new RuntimeException(
           ErrorMessages.format("binaryContent", ErrorMessages.ERROR_FILE_UPLOAD_INVALID));
     }
 
     BinaryContent file = new BinaryContent(
         request.fileName(),
-        (long) request.bytes().length,
+        (long) bytes.length,
         request.contentType(),
-        request.bytes()
+        bytes
     );
 
     return binaryContentRepository.save(file);
@@ -37,7 +38,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
   @Override
   public BinaryContent find(UUID id) {
-    return binaryContentRepository.find(id)
+    return binaryContentRepository.findById(id)
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("BinaryContent", ErrorMessages.ERROR_NOT_FOUND)
         ));

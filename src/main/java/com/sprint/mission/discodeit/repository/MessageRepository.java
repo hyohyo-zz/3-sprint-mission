@@ -4,12 +4,13 @@ import com.sprint.mission.discodeit.entity.Message;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MessageRepository {
+public interface MessageRepository extends JpaRepository<Message, UUID> {
 
   public Message save(Message message);
 
-  public Optional<Message> find(UUID id);
+  public Optional<Message> findById(UUID id);
 
   public List<Message> findAllByChannelId(UUID channelId);
 

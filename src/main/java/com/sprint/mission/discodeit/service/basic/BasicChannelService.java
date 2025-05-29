@@ -9,10 +9,13 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,9 +30,9 @@ import org.springframework.stereotype.Service;
 public class BasicChannelService implements ChannelService {
 
   private final ChannelRepository channelRepository;
-
   private final ReadStatusRepository readStatusRepository;
   private final MessageRepository messageRepository;
+  private final UserRepository userRepository;
 
   //private 채널생성
   @Override
@@ -38,7 +41,12 @@ public class BasicChannelService implements ChannelService {
     Channel createdChannel = channelRepository.save(channel);
 
     request.participantIds().stream()
-        .map(userId -> new ReadStatus(userId, createdChannel.getId(), channel.getCreatedAt()))
+        .map(userId -> {
+          User user = userRepository.findById(userId)
+              .orElseThrow(() -> new NoSuchElementException(
+                  ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)));
+          return new ReadStatus(user, createdChannel, createdChannel.getCreatedAt());
+        })
         .forEach(readStatusRepository::save);
 
     return createdChannel;
@@ -56,7 +64,7 @@ public class BasicChannelService implements ChannelService {
 
   @Override
   public ChannelDto find(UUID channelId) {
-    return channelRepository.find(channelId)
+    return channelRepository.findById(channelId)
         .map(this::toDto)
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
@@ -70,7 +78,7 @@ public class BasicChannelService implements ChannelService {
   @Override
   public List<ChannelDto> findAllByUserId(UUID userId) {
     List<UUID> mySubscribedChannelIds = readStatusRepository.findAllByUserId(userId).stream()
-        .map(ReadStatus::getChannelId)
+        .map(readStatus -> readStatus.getChannel().getId())
         .toList();
 
     return channelRepository.findAll().stream()
@@ -82,11 +90,12 @@ public class BasicChannelService implements ChannelService {
         .toList();
   }
 
+  @Transactional
   @Override
   public Channel update(UUID channelId, PublicChannelUpdateRequest request) {
     String newName = request.newName();
     String newDescription = request.newDescription();
-    Channel channel = channelRepository.find(channelId)
+    Channel channel = channelRepository.findById(channelId)
         .orElseThrow(() -> new IllegalArgumentException(
             ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
 
@@ -96,12 +105,12 @@ public class BasicChannelService implements ChannelService {
           ErrorMessages.format("Channel", ErrorMessages.ERROR_PRIVATE_CHANNEL_NOT_UPDATE));
     }
     channel.update(newName, newDescription);
-    return channelRepository.save(channel);
+    return channel;
   }
 
   @Override
   public void delete(UUID channelId) {
-    Channel channel = channelRepository.find(channelId)
+    Channel channel = channelRepository.findById(channelId)
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
 
@@ -120,12 +129,12 @@ public class BasicChannelService implements ChannelService {
         .findFirst()
         .orElse(Instant.MIN);
 
-    List<UUID> participantIds = new ArrayList<>();
+    List<User> participants = new ArrayList<>();
     if (channel.getType().equals(ChannelType.PRIVATE)) {
       readStatusRepository.findAllByChannelId(channel.getId())
           .stream()
-          .map(ReadStatus::getUserId)
-          .forEach(participantIds::add);
+          .map(ReadStatus::getUser)
+          .forEach(participants::add);
     }
 
     return new ChannelDto(
@@ -133,7 +142,7 @@ public class BasicChannelService implements ChannelService {
         channel.getType(),
         channel.getName(),
         channel.getDescription(),
-        participantIds,
+        participants,
         lastMessageAt
     );
   }
