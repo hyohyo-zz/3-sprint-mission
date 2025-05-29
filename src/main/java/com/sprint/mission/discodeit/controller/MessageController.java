@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,13 +40,12 @@ public class MessageController implements MessageApi {
       @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
       @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
   ) {
-    List<BinaryContentCreateRequest> attachmentRequests = new ArrayList<>();
+    List<MultipartFile> multipartAttachments = attachments != null ? attachments : List.of();
 
-    if (attachments != null) {
-      for (MultipartFile file : attachments) {
-        resolveAttachmentRequest(file).ifPresent(attachmentRequests::add);
-      }
-    }
+    List<BinaryContentCreateRequest> attachmentRequests = multipartAttachments.stream()
+        .map(this::resolveAttachmentRequest)
+        .flatMap(Optional::stream)
+        .collect(Collectors.toList());
 
     Message createdMessage = messageService.create(messageCreateRequest, attachmentRequests);
 
