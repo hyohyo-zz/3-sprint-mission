@@ -1,8 +1,12 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.controller.api.BinaryContentApi;
+import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class BinaryContentController implements BinaryContentApi {
 
   private final BinaryContentService binaryContentService;
+  private final BinaryContentStorage binaryContentStorage;
 
   @GetMapping("{binaryContentId}")
   public ResponseEntity<BinaryContent> find(@PathVariable UUID binaryContentId) {
@@ -38,5 +43,26 @@ public class BinaryContentController implements BinaryContentApi {
     return ResponseEntity
         .status(HttpStatus.OK)
         .body(binaryContents);
+  }
+
+  @GetMapping("/{binaryContentId}/download")
+  public ResponseEntity<?> download(@RequestParam("binaryContentId") UUID binaryContentId) {
+    try {
+      BinaryContent binaryContent = binaryContentService.find(binaryContentId);
+      byte[] bytes = binaryContentStorage.get(binaryContentId).readAllBytes();
+
+      BinaryContentDto binaryContentDto = new BinaryContentDto(
+          binaryContent.getId(),
+          binaryContent.getFileName(),
+          binaryContent.getSize(),
+          binaryContent.getContentType(),
+          bytes
+      );
+      return binaryContentStorage.download(binaryContentDto);
+
+    } catch (IOException e) {
+      throw new RuntimeException(
+          ErrorMessages.format("binaryContent", ErrorMessages.ERROR_FILE_DOWNLOAD_FAILED), e);
+    }
   }
 }

@@ -19,11 +19,11 @@ import lombok.Getter;
 public class ReadStatus extends BaseUpdatableEntity {
 
   @ManyToOne
-  @JoinColumn(name = "user_id", referencedColumnName = "id")
+  @JoinColumn(name = "user_id", referencedColumnName = "id", unique = true)
   private User user;
 
   @ManyToOne
-  @JoinColumn(name = "channel_id", referencedColumnName = "id")
+  @JoinColumn(name = "channel_id", referencedColumnName = "id", unique = true)
   private Channel channel;
 
   @Column(nullable = false)

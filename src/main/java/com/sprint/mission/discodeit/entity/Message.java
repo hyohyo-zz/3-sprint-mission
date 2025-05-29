@@ -22,6 +22,7 @@ public class Message extends BaseUpdatableEntity {
   private String content;     //내용
 
   @ManyToOne
+  @JoinColumn(name = "channel_id", referencedColumnName = "id", nullable = false)
   private Channel channel;
 
   @ManyToOne

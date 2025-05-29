@@ -20,7 +20,7 @@ import lombok.Getter;
 public class UserStatus extends BaseUpdatableEntity {
 
   @OneToOne
-  @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
+  @JoinColumn(name = "user_id", nullable = false, unique = true, referencedColumnName = "id")
   private User user;
 
   @Column(nullable = false)

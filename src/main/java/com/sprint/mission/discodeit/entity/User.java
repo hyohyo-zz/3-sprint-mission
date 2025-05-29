@@ -20,7 +20,7 @@ public class User extends BaseUpdatableEntity {
   @Column(length = 100, nullable = false, unique = true)
   private String email;
 
-  @Column(length = 60, nullable = false, unique = true)
+  @Column(length = 60, nullable = false)
   private String password;
 
   @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
