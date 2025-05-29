@@ -21,3 +21,9 @@ spring:
     init:
       mode: always
       schema-locations: classpath:schema.sql
+
+discodeit:
+  storage:
+    type: local
+    local:
+      root-path: uploads
