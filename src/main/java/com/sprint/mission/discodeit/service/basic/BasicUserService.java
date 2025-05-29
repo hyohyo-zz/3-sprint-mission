@@ -13,6 +13,7 @@ import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
@@ -31,6 +32,7 @@ public class BasicUserService implements UserService {
   private final BinaryContentRepository binaryContentRepository;
 
   private final UserMapper userMapper;
+  private final BinaryContentStorage binaryContentStorage;
 
   @Transactional
   public User create(UserCreateRequest request,
@@ -45,13 +47,18 @@ public class BasicUserService implements UserService {
 
     BinaryContent profile = optionalProfileCreateRequest
         .map(profileCreateRequest -> {
+          byte[] bytes = profileCreateRequest.bytes();
+
           BinaryContent binaryContent = new BinaryContent(
               profileCreateRequest.fileName(),
               (long) profileCreateRequest.bytes().length,
-              profileCreateRequest.contentType(),
-              profileCreateRequest.bytes()
+              profileCreateRequest.contentType()
           );
-          return binaryContentRepository.save(binaryContent);
+          BinaryContent savedProfileImage = binaryContentRepository.save(binaryContent);
+
+          // Storage에 bytes 저장
+          binaryContentStorage.put(savedProfileImage.getId(), bytes);
+          return savedProfileImage;
         })
         .orElse(null);
 
@@ -112,9 +119,9 @@ public class BasicUserService implements UserService {
           String contentType = profileRequest.contentType();
           byte[] bytes = profileRequest.bytes();
 
-          BinaryContent binaryContent = new BinaryContent(fileName, (long) bytes.length,
-              contentType, bytes);
-          return binaryContentRepository.save(binaryContent);
+          BinaryContent savedProfileImage = new BinaryContent(fileName, (long) bytes.length,
+              contentType);
+          return binaryContentRepository.save(savedProfileImage);
         })
         .orElse(null);
 

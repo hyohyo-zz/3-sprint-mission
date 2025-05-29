@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class BasicBinaryContentService implements BinaryContentService {
 
   public final BinaryContentRepository binaryContentRepository;
+  public final BinaryContentStorage binaryContentStorage;
 
   @Override
   public BinaryContent create(BinaryContentCreateRequest request) {
@@ -26,12 +28,18 @@ public class BasicBinaryContentService implements BinaryContentService {
           ErrorMessages.format("binaryContent", ErrorMessages.ERROR_FILE_UPLOAD_INVALID));
     }
 
+    //1. 메타데이터만 가진 BinaryContent 객체 생성
     BinaryContent file = new BinaryContent(
         request.fileName(),
         (long) bytes.length,
-        request.contentType(),
-        bytes
+        request.contentType()
     );
+
+    //2. DB 저장
+    BinaryContent savedFile = binaryContentRepository.save(file);
+
+    //3. 실제 바이너리 데이터 저장소에 따로 저장
+    binaryContentStorage.put(savedFile.getId(), bytes);
 
     return binaryContentRepository.save(file);
   }

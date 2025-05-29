@@ -12,6 +12,12 @@ public class ErrorMessages {
 
   public static final String ERROR_EMPTY = "%s 내용은 비어있을 수 없습니다.";
 
+  public static final String ERROR_FILE_SAVE_FAILED = "%s 저장 중 오류가 발생했습니다!";
+
+  public static final String ERROR_FILE_READ_FAILED = "%s 읽기 중 오류가 발생했습니다!";
+
+  public static final String ERROR_FILE_DOWNLOAD_FAILED = "%s 다운로드 중 오류가 발생했습니다!";
+
   public static String format(String entityName, String messageTemplate) {
     return String.format(messageTemplate, entityName);
   }

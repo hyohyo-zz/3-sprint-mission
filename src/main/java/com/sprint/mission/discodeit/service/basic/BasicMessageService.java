@@ -13,10 +13,12 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,8 @@ public class BasicMessageService implements MessageService {
   private final UserRepository userRepository;
   private final ChannelRepository channelRepository;
   private final BinaryContentRepository binaryContentRepository;
+
+  private final BinaryContentStorage binaryContentStorage;
 
   @Override
   @Transactional
@@ -45,10 +49,20 @@ public class BasicMessageService implements MessageService {
 
     List<BinaryContent> attachments = attachmentRequests.stream()
         .map(req ->
-            new BinaryContent(req.fileName(), (long) req.bytes().length, req.contentType(),
-                req.bytes()))
+            new BinaryContent(
+                req.fileName(),
+                (long) req.bytes().length,
+                req.contentType()
+            ))
         .map(binaryContentRepository::save)
         .toList();
+
+    IntStream.range(0, attachments.size())
+        .forEach(i -> {
+          BinaryContent savedAttachment = attachments.get(i);
+          var bytes = attachmentRequests.get(i).bytes();
+          binaryContentStorage.put(savedAttachment.getId(), bytes);
+        });
 
     Message message = new Message(
         request.content(),

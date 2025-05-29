@@ -41,9 +41,12 @@ public class UserStatus extends BaseUpdatableEntity {
     }
   }
 
+  private static final int ONLINE_THRESHOLD_MINUTES = 5;
+
   //지금 온라인 상태인지?(5분 이내 인지)
   public Boolean isOnline() {
-    Instant instantFiveMinutesAgo = Instant.now().minus(Duration.ofMinutes(5));
+    Instant instantFiveMinutesAgo = Instant.now().minus(
+        Duration.ofMinutes(ONLINE_THRESHOLD_MINUTES));
 
     return lastActiveAt.isAfter(instantFiveMinutesAgo);
   }
