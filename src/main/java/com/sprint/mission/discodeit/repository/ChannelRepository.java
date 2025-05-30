@@ -14,7 +14,8 @@ public interface ChannelRepository extends JpaRepository<Channel, UUID> {
 
   public List<Channel> findAll();
 
-  boolean existsById(UUID id);
+  public boolean existsById(UUID id);
 
-  void deleteById(UUID id);
+  public void deleteById(UUID id);
+
 }

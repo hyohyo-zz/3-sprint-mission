@@ -1,6 +1,9 @@
 package com.sprint.mission.discodeit.mapper;
 
+import com.sprint.mission.discodeit.dto.response.CursorExtractor;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
+import com.sprint.mission.discodeit.entity.Message;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
@@ -20,7 +23,9 @@ import org.springframework.stereotype.Component;
 public class PageResponseMapper {
 
   //다음페이지
-  public <T> PageResponse<T> fromSlice(Slice<T> slice) {
+  public <T> PageResponse<T> fromSlice(Slice<T> slice, CursorExtractor<T> extractor) {
+    Object nextCursor = slice.hasNext() ? extractor.nextCursor(slice.getContent()) : null;
+
     return new PageResponse<>(
         slice.getContent(),
         slice.getNumber(),
@@ -31,7 +36,7 @@ public class PageResponseMapper {
   }
 
   //전체 페이지
-  public <T> PageResponse<T> fromSlice(Page<T> page) {
+  public <T> PageResponse<T> fromPage(Page<T> page) {
     return new PageResponse<>(
         page.getContent(),
         page.getNumber(),
@@ -41,4 +46,17 @@ public class PageResponseMapper {
     );
 
   }
+
+  public <T> Object extractCursor(List<T> content) {
+    if (content.isEmpty()) {
+      return null;
+    }
+
+    if (content.get(content.size() - 1) instanceof Message message) {
+      return message.getCreatedAt();
+    }
+    return null;
+  }
+
 }
+

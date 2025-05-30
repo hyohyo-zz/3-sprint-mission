@@ -15,11 +15,17 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -106,5 +112,13 @@ public class BasicMessageService implements MessageService {
         ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
 
     messageRepository.deleteById(messageId);
+  }
+
+  @Override
+  public Slice<Message> findByChannelIdAfter(UUID channelId, Instant cursor, int size) {
+    //pageRequest로 정렬 기준 설정
+    Pageable pageable = PageRequest.of(0, size, Sort.by("createdAt").descending());
+
+    return messageRepository.findByChannelIdAfter(channelId, cursor, pageable);
   }
 }

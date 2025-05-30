@@ -19,12 +19,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConditionalOnProperty(prefix = "discodeit.storage", name = "type", havingValue = "local")
+@ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "local")
 public class LocalBinaryContentStorage implements BinaryContentStorage {
 
   private final Path root;
 
-  public LocalBinaryContentStorage(@Value("${discodeit.storage.local.root}") String rootPath) {
+  public LocalBinaryContentStorage(@Value("${discodeit.storage.local.root-path}") String rootPath) {
     this.root = Paths.get(rootPath);
   }
 
@@ -34,7 +34,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
       Files.createDirectories(root);
     } catch (IOException e) {
       throw new RuntimeException(ErrorMessages.format(
-          "LocalBinaryContentStorage", ErrorMessages.ERROR_FILE_SAVE_FAILED), e);
+          "LocalBinaryContentStorage", ErrorMessages.ERROR_FILE_INIT_FAILED), e);
     }
   }
 

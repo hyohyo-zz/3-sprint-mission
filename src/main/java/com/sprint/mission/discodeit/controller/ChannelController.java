@@ -2,14 +2,22 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.controller.api.ChannelApi;
 import com.sprint.mission.discodeit.dto.data.ChannelDto;
+import com.sprint.mission.discodeit.dto.data.MessageDto;
 import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,6 +36,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChannelController implements ChannelApi {
 
   private final ChannelService channelService;
+  private final MessageService messageService;
+  private final PageResponseMapper pageResponseMapper;
+  private final MessageMapper messageMapper;
 
   @PostMapping(path = "/public")
   public ResponseEntity<Channel> create(@RequestBody PublicChannelCreateRequest request) {
@@ -72,5 +83,22 @@ public class ChannelController implements ChannelApi {
     channelService.delete(channelId);
 
     return ResponseEntity.noContent().build();
+  }
+
+  @GetMapping("/channel")
+  public ResponseEntity<PageResponse<MessageDto>> getMessageByChannel(
+      @RequestParam("channelId") UUID channelId,
+      @RequestParam(value = "cursor", required = false) Instant cursor,
+      @RequestParam(value = "size", defaultValue = "50") int size
+  ) {
+    Slice<Message> messageSlice = messageService.findByChannelIdAfter(channelId, cursor, size);
+
+    Slice<MessageDto> dtoSlice = messageSlice.map(messageMapper::toDto);
+    //dto로 변환
+    PageResponse<MessageDto> response = pageResponseMapper.fromSlice(
+        dtoSlice,
+        content -> content.get(content.size() - 1).createdAt()
+    );
+    return ResponseEntity.ok(response);
   }
 }

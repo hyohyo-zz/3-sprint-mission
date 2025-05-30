@@ -18,6 +18,8 @@ public class ErrorMessages {
 
   public static final String ERROR_FILE_DOWNLOAD_FAILED = "%s 다운로드 중 오류가 발생했습니다!";
 
+  public static final String ERROR_FILE_INIT_FAILED = "%s 초기화 중 오류가 발생했습니다!";
+
   public static String format(String entityName, String messageTemplate) {
     return String.format(messageTemplate, entityName);
   }
