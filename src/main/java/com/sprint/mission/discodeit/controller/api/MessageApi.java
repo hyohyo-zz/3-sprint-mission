@@ -18,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "Message API", description = "메시지 관리")
+@Tag(name = "Message", description = "Message API")
 public interface MessageApi {
 
   @Operation(summary = "메시지 생성", description = "메시지를 생성합니다.")

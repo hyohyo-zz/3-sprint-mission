@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "ReadStatus API", description = "메시지 수신 정보 관리")
+@Tag(name = "ReadStatus", description = "Message 읽음 상태 API")
 public interface ReadStatusApi {
 
   @Operation(summary = "매시지 수신 정보 생성", description = "새로운 메시지 수신 정보를 생성합니다.")

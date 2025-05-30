@@ -20,7 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "User API", description = "사용자 관리")
+@Tag(name = "User", description = "User API")
 public interface UserApi {
 
   @Operation(summary = "유저 생성", description = "새로운 유저를 생성합니다.")

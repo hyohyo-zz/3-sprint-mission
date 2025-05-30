@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "Channel API", description = "채널 관리")
+@Tag(name = "Channel", description = "Channel API")
 public interface ChannelApi {
 
   @Operation(summary = "공개 채널 생성", description = "공개 채널을 생성합니다.")

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 
-@Tag(name = "BinaryContent API", description = "바이너리 파일 다운로드")
+@Tag(name = "BinaryContent", description = "첨부 파일 API")
 public interface BinaryContentApi {
 
   @Operation(summary = "단일 파일 조회", description = "파일 1개를 조회합니다.")
