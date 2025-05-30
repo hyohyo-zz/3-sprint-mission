@@ -25,7 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -116,7 +115,7 @@ public class BasicMessageService implements MessageService {
 
   @Override
   public Slice<Message> findByChannelIdAfter(UUID channelId, Instant cursor, int size) {
-    //pageRequest로 정렬 기준 설정
+    //pageRequest로 정렬 기준 설정(최신순)
     Pageable pageable = PageRequest.of(0, size, Sort.by("createdAt").descending());
 
     return messageRepository.findByChannelIdAfter(channelId, cursor, pageable);

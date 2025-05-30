@@ -23,14 +23,17 @@ import org.springframework.stereotype.Component;
 public class PageResponseMapper {
 
   //다음페이지
-  public <T> PageResponse<T> fromSlice(Slice<T> slice, CursorExtractor<T> extractor) {
-    Object nextCursor = slice.hasNext() ? extractor.nextCursor(slice.getContent()) : null;
+  public <T> PageResponse<T> fromSlice(Slice<T> slice) {
+    List<T> content = slice.getContent();
+    Object nextCursor = content.isEmpty() ? null : extractCursor(content);
+    int size = slice.getSize();
+    boolean hasNext = slice.hasNext();
 
     return new PageResponse<>(
-        slice.getContent(),
-        slice.getNumber(),
-        slice.getSize(),
-        slice.hasNext(),
+        content,
+        nextCursor,
+        size,
+        hasNext,
         null
     );
   }
@@ -47,15 +50,12 @@ public class PageResponseMapper {
 
   }
 
-  public <T> Object extractCursor(List<T> content) {
-    if (content.isEmpty()) {
-      return null;
+  public <T> Object extractCursor(T item) {
+    try {
+      return item.getClass().getMethod("getCreatedAt").invoke(item);
+    } catch (Exception e) {
+      throw new RuntimeException("nextCursor 추출 실패", e);
     }
-
-    if (content.get(content.size() - 1) instanceof Message message) {
-      return message.getCreatedAt();
-    }
-    return null;
   }
 
 }

@@ -23,5 +23,15 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
   public void deleteAllByChannelId(UUID channelId);
 
-  public Slice<Message> findByChannelIdAfter(UUID channelId, Instant cursor, Pageable pageable);
+  public Slice<Message> findByChannelIdAndCreatedAtBeforeOrderByCreatedAtDesc(UUID channelId,
+      Instant cursor, Pageable pageable);
+
+  default Slice<Message> findByChannelIdAfter(UUID channelId, Instant cursor, Pageable pageable) {
+    if (cursor == null) {
+      return findByChannelIdOrderByCreatedAtDesc(channelId, pageable);
+    }
+    return findByChannelIdAndCreatedAtBeforeOrderByCreatedAtDesc(channelId, cursor, pageable);
+  }
+
+  Slice<Message> findByChannelIdOrderByCreatedAtDesc(UUID channelId, Pageable pageable);
 }

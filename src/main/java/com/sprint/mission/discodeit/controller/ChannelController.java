@@ -94,11 +94,9 @@ public class ChannelController implements ChannelApi {
     Slice<Message> messageSlice = messageService.findByChannelIdAfter(channelId, cursor, size);
 
     Slice<MessageDto> dtoSlice = messageSlice.map(messageMapper::toDto);
+
+    PageResponse<MessageDto> pageResponse = pageResponseMapper.fromSlice(dtoSlice);
     //dto로 변환
-    PageResponse<MessageDto> response = pageResponseMapper.fromSlice(
-        dtoSlice,
-        content -> content.get(content.size() - 1).createdAt()
-    );
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(pageResponse);
   }
 }
