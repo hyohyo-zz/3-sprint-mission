@@ -1,13 +1,13 @@
 package com.sprint.mission.discodeit.repository;
 
 import com.sprint.mission.discodeit.entity.Message;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface MessageRepository extends JpaRepository<Message, UUID> {
 
@@ -23,15 +23,9 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
   public void deleteAllByChannelId(UUID channelId);
 
-  public Slice<Message> findByChannelIdAndCreatedAtBeforeOrderByCreatedAtDesc(UUID channelId,
-      Instant cursor, Pageable pageable);
+  @Query("SELECT m FROM Message m WHERE m.channel.id = :channelId AND m.createdAt > :cursor ORDER BY m.createdAt desc ")
+  public List<Message> findAllByChannelIdAfterCursor(@Param("channelId") UUID channelId,
+      @Param("cursor") String cursor, Pageable pageable);
 
-  default Slice<Message> findByChannelIdAfter(UUID channelId, Instant cursor, Pageable pageable) {
-    if (cursor == null) {
-      return findByChannelIdOrderByCreatedAtDesc(channelId, pageable);
-    }
-    return findByChannelIdAndCreatedAtBeforeOrderByCreatedAtDesc(channelId, cursor, pageable);
-  }
-
-  Slice<Message> findByChannelIdOrderByCreatedAtDesc(UUID channelId, Pageable pageable);
+  List<Message> findByChannelId(UUID channelId, Pageable pageable);
 }

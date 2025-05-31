@@ -35,11 +35,8 @@ public class BasicBinaryContentService implements BinaryContentService {
         request.contentType()
     );
 
-    //2. DB 저장
-    BinaryContent savedFile = binaryContentRepository.save(file);
-
-    //3. 실제 바이너리 데이터 저장소에 따로 저장
-    binaryContentStorage.put(savedFile.getId(), bytes);
+    //2. 실제 바이너리 데이터 저장소에 따로 저장
+    binaryContentStorage.put(file.getId(), bytes);
 
     return binaryContentRepository.save(file);
   }

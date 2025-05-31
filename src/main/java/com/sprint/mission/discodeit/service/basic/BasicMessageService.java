@@ -1,13 +1,17 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
+import com.sprint.mission.discodeit.dto.data.MessageDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -15,7 +19,6 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.transaction.Transactional;
-import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -23,8 +26,6 @@ import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -37,6 +38,7 @@ public class BasicMessageService implements MessageService {
   private final BinaryContentRepository binaryContentRepository;
 
   private final BinaryContentStorage binaryContentStorage;
+  private final MessageMapper messageMapper;
 
   @Override
   @Transactional
@@ -113,11 +115,25 @@ public class BasicMessageService implements MessageService {
     messageRepository.deleteById(messageId);
   }
 
+  @Transactional
   @Override
-  public Slice<Message> findByChannelIdAfter(UUID channelId, Instant cursor, int size) {
-    //pageRequest로 정렬 기준 설정(최신순)
-    Pageable pageable = PageRequest.of(0, size, Sort.by("createdAt").descending());
+  public PageResponse<MessageDto> findByChannelIdWithCursor(UUID channelId, String cursor,
+      Pageable pageable) {
 
-    return messageRepository.findByChannelIdAfter(channelId, cursor, pageable);
+    int size = pageable.getPageSize();
+
+    List<Message> messages = (cursor != null)
+        ? messageRepository.findAllByChannelIdAfterCursor(channelId, cursor,
+        PageRequest.of(0, size))
+        : messageRepository.findByChannelId(channelId, pageable);
+
+    List<MessageDto> dtos = messages.stream().map(messageMapper::toDto).toList();
+
+    String nextCursor = messages.isEmpty() ? null :
+        messages.get(messages.size() - 1).getCreatedAt().toString();
+
+    boolean hasNext = messages.size() == size;
+
+    return PageResponseMapper.toResponse(dtos, nextCursor, size, hasNext, (long) dtos.size());
   }
 }

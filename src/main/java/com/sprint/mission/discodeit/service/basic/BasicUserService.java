@@ -57,7 +57,7 @@ public class BasicUserService implements UserService {
           BinaryContent savedProfileImage = binaryContentRepository.save(binaryContent);
 
           // Storage에 bytes 저장
-          binaryContentStorage.put(savedProfileImage.getId(), bytes);
+          binaryContentStorage.put(binaryContent.getId(), bytes);
           return savedProfileImage;
         })
         .orElse(null);
@@ -68,6 +68,8 @@ public class BasicUserService implements UserService {
     Instant now = Instant.now();
     UserStatus userStatus = new UserStatus(user, now);
     userStatusRepository.save(userStatus);
+
+    savedUser.setUserStatus(userStatus);    //연관 관계 설정
 
     return savedUser;
   }
@@ -119,9 +121,13 @@ public class BasicUserService implements UserService {
           String contentType = profileRequest.contentType();
           byte[] bytes = profileRequest.bytes();
 
-          BinaryContent savedProfileImage = new BinaryContent(fileName, (long) bytes.length,
+          BinaryContent binaryContent = new BinaryContent(fileName, (long) bytes.length,
               contentType);
-          return binaryContentRepository.save(savedProfileImage);
+          BinaryContent saved = binaryContentRepository.save(binaryContent);
+
+          binaryContentStorage.put(saved.getId(), bytes);
+
+          return saved;
         })
         .orElse(null);
 
