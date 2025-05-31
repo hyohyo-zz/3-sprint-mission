@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS discodeit;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS channels CASCADE;
 DROP TABLE IF EXISTS messages CASCADE;
-DROP TABLE IF EXISTS binary_contents CASCADE;
+DROP TABLE IF EXISTS binary_contents cascade;
 DROP TABLE IF EXISTS user_statuses CASCADE;
 DROP TABLE IF EXISTS message_attachments CASCADE;
 
@@ -14,8 +14,7 @@ create table if not exists binary_contents
     created_at   timestamptz  not null,
     file_name    varchar(255) not null,
     size         bigint       not null,
-    content_type varchar(100) not null,
-    bytes        bytea        not null
+    content_type varchar(100) not null
 );
 
 create table if not exists users

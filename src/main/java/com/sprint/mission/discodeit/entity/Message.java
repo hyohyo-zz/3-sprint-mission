@@ -53,8 +53,11 @@ public class Message extends BaseUpdatableEntity {
     }
   }
 
-  public void validateContent() {
-    if (content == null || content.trim().isEmpty()) {
+  public void validateContent(List<BinaryContent> attachments) {
+    boolean isContentEmpty = (content == null || content.trim().isEmpty());
+    boolean hasNoAttachments = (attachments == null || attachments.isEmpty());
+
+    if (isContentEmpty && hasNoAttachments) {
       throw new IllegalArgumentException(
           ErrorMessages.format("MessageContent", ErrorMessages.ERROR_EMPTY)
       );

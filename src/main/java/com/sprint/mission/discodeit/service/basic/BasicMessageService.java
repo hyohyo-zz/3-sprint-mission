@@ -63,13 +63,18 @@ public class BasicMessageService implements MessageService {
             ))
         .map(binaryContentRepository::save)
         .toList();
+    try {
+      IntStream.range(0, attachments.size())
+              .forEach(i -> {
+                BinaryContent savedAttachment = attachments.get(i);
+                var bytes = attachmentRequests.get(i).bytes();
+                binaryContentStorage.put(savedAttachment.getId(), bytes);
+              });
+    } catch (Exception e) {
+      throw new RuntimeException(
+              ErrorMessages.format("BinaryContent", ErrorMessages.ERROR_FILE_SAVE_FAILED), e);
+    }
 
-    IntStream.range(0, attachments.size())
-        .forEach(i -> {
-          BinaryContent savedAttachment = attachments.get(i);
-          var bytes = attachmentRequests.get(i).bytes();
-          binaryContentStorage.put(savedAttachment.getId(), bytes);
-        });
 
     Message message = new Message(
         request.content(),
@@ -78,7 +83,7 @@ public class BasicMessageService implements MessageService {
         attachments
     );
 
-    message.validateContent();
+    message.validateContent(attachments);
     return messageRepository.save(message);
   }
 
