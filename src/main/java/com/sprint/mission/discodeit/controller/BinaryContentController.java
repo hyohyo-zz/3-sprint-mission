@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.controller.api.BinaryContentApi;
 import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.io.IOException;
@@ -25,44 +26,41 @@ public class BinaryContentController implements BinaryContentApi {
 
   private final BinaryContentService binaryContentService;
   private final BinaryContentStorage binaryContentStorage;
+  private final BinaryContentMapper binaryContentMapper;
 
   @GetMapping("{binaryContentId}")
-  public ResponseEntity<BinaryContent> find(@PathVariable UUID binaryContentId) {
+  public ResponseEntity<BinaryContentDto> find(@PathVariable UUID binaryContentId) {
     BinaryContent binaryContent = binaryContentService.find(binaryContentId);
+    BinaryContentDto binaryContentDto = binaryContentMapper.toDto(binaryContent);
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(binaryContent);
+        .body(binaryContentDto);
   }
 
   @GetMapping
-  public ResponseEntity<List<BinaryContent>> findAllByIdIn(
+  public ResponseEntity<List<BinaryContentDto>> findAllByIdIn(
       @RequestParam("binaryContentIds") List<UUID> binaryContentIds) {
     List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(binaryContentIds);
+    List<BinaryContentDto> binaryContentDtos = binaryContents.stream()
+        .map(binaryContentMapper::toDto)
+        .toList();
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(binaryContents);
+        .body(binaryContentDtos);
   }
 
   @GetMapping("/{binaryContentId}/download")
-  public ResponseEntity<?> download(@RequestParam("binaryContentId") UUID binaryContentId) {
-    try {
-      BinaryContent binaryContent = binaryContentService.find(binaryContentId);
-      byte[] bytes = binaryContentStorage.get(binaryContentId).readAllBytes();
+  public ResponseEntity<?> download(@PathVariable("binaryContentId") UUID binaryContentId) {
+    BinaryContent binaryContent = binaryContentService.find(binaryContentId);
 
-      BinaryContentDto binaryContentDto = new BinaryContentDto(
-          binaryContent.getId(),
-          binaryContent.getFileName(),
-          binaryContent.getSize(),
-          binaryContent.getContentType(),
-          bytes
-      );
-      return binaryContentStorage.download(binaryContentDto);
-
-    } catch (IOException e) {
-      throw new RuntimeException(
-          ErrorMessages.format("binaryContent", ErrorMessages.ERROR_FILE_DOWNLOAD_FAILED), e);
-    }
+    BinaryContentDto binaryContentDto = new BinaryContentDto(
+        binaryContent.getId(),
+        binaryContent.getFileName(),
+        binaryContent.getSize(),
+        binaryContent.getContentType()
+    );
+    return binaryContentStorage.download(binaryContentDto);
   }
 }

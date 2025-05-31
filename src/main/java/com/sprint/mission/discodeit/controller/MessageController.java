@@ -1,10 +1,13 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.controller.api.MessageApi;
+import com.sprint.mission.discodeit.dto.data.MessageDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.service.MessageService;
 import java.io.IOException;
 import java.util.List;
@@ -12,6 +15,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +38,10 @@ import org.springframework.web.multipart.MultipartFile;
 public class MessageController implements MessageApi {
 
   private final MessageService messageService;
+  private final MessageMapper messageMapper;
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<Message> create(
+  public ResponseEntity<MessageDto> create(
       @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
       @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
   ) {
@@ -47,32 +53,35 @@ public class MessageController implements MessageApi {
         .collect(Collectors.toList());
 
     Message createdMessage = messageService.create(messageCreateRequest, attachmentRequests);
+    MessageDto messageDto = messageMapper.toDto(createdMessage);
 
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(createdMessage);
+        .body(messageDto);
   }
 
   @GetMapping
-  public ResponseEntity<List<Message>> findAllByChannelId(
-      @RequestParam("channelId") UUID channelId) {
-    List<Message> messages = messageService.findAllByChannelId(channelId);
-
-    return ResponseEntity
-        .status(HttpStatus.OK)
-        .body(messages);
+  public ResponseEntity<PageResponse<MessageDto>> findAllByChannelId(
+      @RequestParam UUID channelId,
+      @RequestParam(required = false) String cursor,
+      @ParameterObject Pageable pageable
+  ) {
+    PageResponse<MessageDto> pageResponse = messageService.findByChannelIdWithCursor(channelId,
+        cursor, pageable);
+    return ResponseEntity.ok(pageResponse);
   }
 
   @PatchMapping(path = "/{messageId}")
-  public ResponseEntity<Message> update(
+  public ResponseEntity<MessageDto> update(
       @PathVariable UUID messageId,
       @RequestBody MessageUpdateRequest messageUpdateRequest
   ) {
     Message updatedMessage = messageService.update(messageId, messageUpdateRequest);
+    MessageDto messageDto = messageMapper.toDto(updatedMessage);
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(updatedMessage);
+        .body(messageDto);
   }
 
   @DeleteMapping(path = "/{messageId}")
@@ -98,5 +107,6 @@ public class MessageController implements MessageApi {
           }
         });
   }
+
 }
 

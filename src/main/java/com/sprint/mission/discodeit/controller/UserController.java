@@ -2,12 +2,15 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.controller.api.UserApi;
 import com.sprint.mission.discodeit.dto.data.UserDto;
+import com.sprint.mission.discodeit.dto.data.UserStatusDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.mapper.UserMapper;
+import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import java.io.IOException;
@@ -36,9 +39,11 @@ public class UserController implements UserApi {
 
   private final UserService userService;
   private final UserStatusService userStatusService;
+  private final UserMapper userMapper;
+  private final UserStatusMapper userStatusMapper;
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<User> create(
+  public ResponseEntity<UserDto> create(
       @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
       @RequestPart(value = "profile", required = false) MultipartFile profile
   ) {
@@ -47,10 +52,11 @@ public class UserController implements UserApi {
             .flatMap(this::resolveProfileRequest);
 
     User createdUser = userService.create(userCreateRequest, profileRequest);
+    UserDto userDto = userMapper.toDto(createdUser);
 
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(createdUser);
+        .body(userDto);
   }
 
   @GetMapping
@@ -66,7 +72,7 @@ public class UserController implements UserApi {
       path = "/{userId}",
       consumes = MediaType.MULTIPART_FORM_DATA_VALUE
   )
-  public ResponseEntity<User> update(
+  public ResponseEntity<UserDto> update(
       @PathVariable UUID userId,
       @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
       @RequestPart(value = "profile", required = false) MultipartFile profile
@@ -76,10 +82,11 @@ public class UserController implements UserApi {
             .flatMap(this::resolveProfileRequest);
 
     User updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
+    UserDto userDto = userMapper.toDto(updatedUser);
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(updatedUser);
+        .body(userDto);
   }
 
   @DeleteMapping(value = "/{userId}")
@@ -90,14 +97,15 @@ public class UserController implements UserApi {
   }
 
   @PatchMapping(value = "/{userId}/userStatus")
-  public ResponseEntity<UserStatus> updateStatus(
+  public ResponseEntity<UserStatusDto> updateUserStatusByUserId(
       @PathVariable UUID userId,
       @RequestBody UserStatusUpdateRequest request) {
     UserStatus updatedStatus = userStatusService.updateByUserId(userId, request);
+    UserStatusDto userStatusDto = userStatusMapper.toDto(updatedStatus);
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(updatedStatus);
+        .body(userStatusDto);
   }
 
   private Optional<BinaryContentCreateRequest> resolveProfileRequest(MultipartFile profile) {

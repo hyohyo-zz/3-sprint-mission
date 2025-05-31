@@ -2,22 +2,18 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.controller.api.ChannelApi;
 import com.sprint.mission.discodeit.dto.data.ChannelDto;
-import com.sprint.mission.discodeit.dto.data.MessageDto;
 import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
-import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -39,23 +35,26 @@ public class ChannelController implements ChannelApi {
   private final MessageService messageService;
   private final PageResponseMapper pageResponseMapper;
   private final MessageMapper messageMapper;
+  private final ChannelMapper channelMapper;
 
   @PostMapping(path = "/public")
-  public ResponseEntity<Channel> create(@RequestBody PublicChannelCreateRequest request) {
+  public ResponseEntity<ChannelDto> create(@RequestBody PublicChannelCreateRequest request) {
     Channel createdChannel = channelService.create(request);
+    ChannelDto channelDto = channelMapper.toDto(createdChannel);
 
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(createdChannel);
+        .body(channelDto);
   }
 
   @PostMapping(path = "/private")
-  public ResponseEntity<Channel> create(@RequestBody PrivateChannelCreateRequest request) {
+  public ResponseEntity<ChannelDto> create(@RequestBody PrivateChannelCreateRequest request) {
     Channel createdChannel = channelService.create(request);
+    ChannelDto channelDto = channelMapper.toDto(createdChannel);
 
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(createdChannel);
+        .body(channelDto);
   }
 
   @GetMapping
@@ -68,14 +67,15 @@ public class ChannelController implements ChannelApi {
   }
 
   @PatchMapping(path = "/{channelId}")
-  public ResponseEntity<Channel> update(
+  public ResponseEntity<ChannelDto> update(
       @PathVariable UUID channelId,
       @RequestBody PublicChannelUpdateRequest request) {
     Channel updatedChannel = channelService.update(channelId, request);
+    ChannelDto channelDto = channelMapper.toDto(updatedChannel);
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(updatedChannel);
+        .body(channelDto);
   }
 
   @DeleteMapping(path = "/{channelId}")
@@ -83,20 +83,5 @@ public class ChannelController implements ChannelApi {
     channelService.delete(channelId);
 
     return ResponseEntity.noContent().build();
-  }
-
-  @GetMapping("/channel")
-  public ResponseEntity<PageResponse<MessageDto>> getMessageByChannel(
-      @RequestParam("channelId") UUID channelId,
-      @RequestParam(value = "cursor", required = false) Instant cursor,
-      @RequestParam(value = "size", defaultValue = "50") int size
-  ) {
-    Slice<Message> messageSlice = messageService.findByChannelIdAfter(channelId, cursor, size);
-
-    Slice<MessageDto> dtoSlice = messageSlice.map(messageMapper::toDto);
-
-    PageResponse<MessageDto> pageResponse = pageResponseMapper.fromSlice(dtoSlice);
-    //dto로 변환
-    return ResponseEntity.ok(pageResponse);
   }
 }
