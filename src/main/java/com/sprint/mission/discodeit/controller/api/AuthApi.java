@@ -1,9 +1,8 @@
 package com.sprint.mission.discodeit.controller.api;
 
+import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.LoginRequest;
-import com.sprint.mission.discodeit.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,11 +14,11 @@ import org.springframework.http.ResponseEntity;
 @Tag(name = "Auth", description = "인증 API")
 public interface AuthApi {
 
-  @Operation(summary = "유저 로그인", description = "사용자가 로그인합니다.")
+  @Operation(summary = "로그인")
   @ApiResponses(value = {
       @ApiResponse(
           responseCode = "200", description = "로그인 성공",
-          content = @Content(schema = @Schema(implementation = User.class))
+          content = @Content(schema = @Schema(implementation = UserDto.class))
       ),
       @ApiResponse(
           responseCode = "400", description = "비밀번호가 일치하지 않음",
@@ -29,7 +28,7 @@ public interface AuthApi {
           content = @Content(examples = @ExampleObject(value = "User with username {username} not found"))
       )
   })
-  ResponseEntity<User> login(
-      @Parameter(description = "로그인 정보") LoginRequest loginRequest
+  ResponseEntity<UserDto> login(
+      LoginRequest loginRequest
   );
 }
