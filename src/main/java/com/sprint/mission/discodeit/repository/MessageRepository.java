@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.repository;
 
 import com.sprint.mission.discodeit.entity.Message;
+
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,7 +27,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
   @Query("SELECT m FROM Message m WHERE m.channel.id = :channelId AND m.createdAt > :cursor ORDER BY m.createdAt desc ")
   public List<Message> findAllByChannelIdAfterCursor(@Param("channelId") UUID channelId,
-      @Param("cursor") String cursor, Pageable pageable);
+                                                     @Param("cursor") Instant cursor, Pageable pageable);
 
   List<Message> findByChannelId(UUID channelId, Pageable pageable);
 }

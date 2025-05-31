@@ -19,6 +19,9 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.transaction.Transactional;
+
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -127,8 +130,17 @@ public class BasicMessageService implements MessageService {
 
     int size = pageable.getPageSize();
 
-    List<Message> messages = (cursor != null)
-        ? messageRepository.findAllByChannelIdAfterCursor(channelId, cursor,
+    Instant cursorInstant = null;
+    if (cursor != null) {
+      try {
+        cursorInstant = Instant.parse(cursor);
+      } catch (DateTimeParseException e) {
+        throw new IllegalArgumentException(ErrorMessages.ERROR_CURSOR_INVALID + cursor);
+      }
+    }
+
+    List<Message> messages = (cursorInstant != null)
+        ? messageRepository.findAllByChannelIdAfterCursor(channelId, cursorInstant,
         PageRequest.of(0, size))
         : messageRepository.findByChannelId(channelId, pageable);
 

@@ -20,6 +20,8 @@ public class ErrorMessages {
 
   public static final String ERROR_FILE_INIT_FAILED = "%s 초기화 중 오류가 발생했습니다!";
 
+  public static final String ERROR_CURSOR_INVALID = "잘못된 커서 형식입니다. ISO-8601 형식이어야 합니다.";
+
   public static String format(String entityName, String messageTemplate) {
     return String.format(messageTemplate, entityName);
   }
