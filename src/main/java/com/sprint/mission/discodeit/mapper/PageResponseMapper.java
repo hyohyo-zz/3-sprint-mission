@@ -1,8 +1,6 @@
 package com.sprint.mission.discodeit.mapper;
 
-import com.sprint.mission.discodeit.dto.response.CursorExtractor;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
-import com.sprint.mission.discodeit.entity.Message;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Slice;
@@ -24,16 +22,11 @@ public class PageResponseMapper {
 
   //다음페이지
   public <T> PageResponse<T> fromSlice(Slice<T> slice) {
-    List<T> content = slice.getContent();
-    Object nextCursor = content.isEmpty() ? null : extractCursor(content);
-    int size = slice.getSize();
-    boolean hasNext = slice.hasNext();
-
     return new PageResponse<>(
-        content,
-        nextCursor,
-        size,
-        hasNext,
+        slice.getContent(),
+        slice.getNumber(),
+        slice.getSize(),
+        slice.hasNext(),
         null
     );
   }
@@ -50,12 +43,16 @@ public class PageResponseMapper {
 
   }
 
-  public <T> Object extractCursor(T item) {
-    try {
-      return item.getClass().getMethod("getCreatedAt").invoke(item);
-    } catch (Exception e) {
-      throw new RuntimeException("nextCursor 추출 실패", e);
-    }
+  //커서기반
+  public static <D> PageResponse<D> toResponse(
+      List<D> content, Object nextCursor, int size, boolean hasNext, long totalElements) {
+    return new PageResponse<>(
+        content,
+        nextCursor,
+        size,
+        hasNext,
+        totalElements
+    );
   }
 
 }
