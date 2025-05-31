@@ -18,7 +18,6 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
-import jakarta.transaction.Transactional;
 
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
@@ -30,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -90,6 +90,7 @@ public class BasicMessageService implements MessageService {
     return messageRepository.save(message);
   }
 
+  @Transactional(readOnly = true)
   @Override
   public Message find(UUID id) {
     return messageRepository.findById(id).orElseThrow(() -> new NoSuchElementException(
@@ -97,6 +98,7 @@ public class BasicMessageService implements MessageService {
     ));
   }
 
+  @Transactional(readOnly = true)
   @Override
   public List<Message> findAllByChannelId(UUID channelId) {
     return messageRepository.findAllByChannelId(channelId).stream()
@@ -115,6 +117,7 @@ public class BasicMessageService implements MessageService {
     return message;
   }
 
+  @Transactional
   @Override
   public void delete(UUID messageId) {
     messageRepository.findById(messageId).orElseThrow(() -> new NoSuchElementException(
@@ -123,7 +126,7 @@ public class BasicMessageService implements MessageService {
     messageRepository.deleteById(messageId);
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   @Override
   public PageResponse<MessageDto> findByChannelIdWithCursor(UUID channelId, String cursor,
       Pageable pageable) {

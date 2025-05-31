@@ -8,13 +8,13 @@ import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
-import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -46,6 +46,7 @@ public class BasicUserStatusService implements UserStatusService {
     return userStatusRepository.save(status);
   }
 
+  @Transactional(readOnly = true)
   @Override
   public UserStatus find(UUID id) {
     return userStatusRepository.findById(id)
@@ -53,10 +54,10 @@ public class BasicUserStatusService implements UserStatusService {
             ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
   }
 
+  @Transactional(readOnly = true)
   @Override
   public List<UserStatus> findAll() {
-    return userStatusRepository.findAll().stream()
-        .toList();
+    return userStatusRepository.findAll();
   }
 
   @Transactional
@@ -86,6 +87,7 @@ public class BasicUserStatusService implements UserStatusService {
     return userStatus;
   }
 
+  @Transactional
   @Override
   public void delete(UUID id) {
     if (!userStatusRepository.existsById(id)) {

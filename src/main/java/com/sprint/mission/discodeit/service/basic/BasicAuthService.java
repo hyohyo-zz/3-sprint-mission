@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.service.AuthService;
 import java.util.NoSuchElementException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -15,6 +16,7 @@ public class BasicAuthService implements AuthService {
 
   private final UserRepository userRepository;
 
+  @Transactional(readOnly = true)
   @Override
   public User login(LoginRequest request) {
     //1. Username으로 user 찾기

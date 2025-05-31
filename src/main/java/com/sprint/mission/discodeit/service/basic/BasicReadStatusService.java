@@ -10,13 +10,13 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ReadStatusService;
-import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -53,12 +53,14 @@ public class BasicReadStatusService implements ReadStatusService {
     return readStatusRepository.save(readStatus);
   }
 
+  @Transactional(readOnly = true)
   @Override
   public ReadStatus find(UUID id) {
     return readStatusRepository.findById(id).orElseThrow(() -> new NoSuchElementException(
         ErrorMessages.format("ReadStatus", ErrorMessages.ERROR_NOT_FOUND)));
   }
 
+  @Transactional(readOnly = true)
   @Override
   public List<ReadStatus> findAllByUserId(UUID userId) {
     return readStatusRepository.findAllByUserId(userId).stream()
@@ -76,6 +78,7 @@ public class BasicReadStatusService implements ReadStatusService {
     return readStatus;
   }
 
+  @Transactional
   @Override
   public void delete(UUID id) {
     if (!readStatusRepository.existsById(id)) {

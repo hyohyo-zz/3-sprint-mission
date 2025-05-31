@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -20,6 +21,7 @@ public class BasicBinaryContentService implements BinaryContentService {
   public final BinaryContentRepository binaryContentRepository;
   public final BinaryContentStorage binaryContentStorage;
 
+  @Transactional
   @Override
   public BinaryContent create(BinaryContentCreateRequest request) {
     byte[] bytes = request.bytes();
@@ -41,6 +43,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     return binaryContentRepository.save(file);
   }
 
+  @Transactional(readOnly = true)
   @Override
   public BinaryContent find(UUID id) {
     return binaryContentRepository.findById(id)
@@ -49,6 +52,7 @@ public class BasicBinaryContentService implements BinaryContentService {
         ));
   }
 
+  @Transactional(readOnly = true)
   @Override
   public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
     return ids.stream()
@@ -57,6 +61,7 @@ public class BasicBinaryContentService implements BinaryContentService {
         .toList();
   }
 
+  @Transactional
   @Override
   public void delete(UUID id) {
     if (!binaryContentRepository.existsById(id)) {

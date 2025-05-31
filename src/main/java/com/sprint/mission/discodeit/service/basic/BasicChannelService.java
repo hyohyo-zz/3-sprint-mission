@@ -15,12 +15,12 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -34,6 +34,7 @@ public class BasicChannelService implements ChannelService {
   private final ChannelMapper channelMapper;
 
   //private 채널생성
+  @Transactional
   @Override
   public Channel create(PrivateChannelCreateRequest request) {
     Channel channel = new Channel(ChannelType.PRIVATE);
@@ -52,6 +53,7 @@ public class BasicChannelService implements ChannelService {
   }
 
   //public 채널생성
+  @Transactional
   @Override
   public Channel create(PublicChannelCreateRequest request) {
     String name = request.name();
@@ -61,6 +63,7 @@ public class BasicChannelService implements ChannelService {
     return channelRepository.save(channel);
   }
 
+  @Transactional(readOnly = true)
   @Override
   public ChannelDto find(UUID channelId) {
     return channelRepository.findById(channelId)
@@ -74,6 +77,7 @@ public class BasicChannelService implements ChannelService {
    * 2. 응답리스트 생성
    * 3. 채널 순회 하며 필터링(Private, Public)
    * 4. 반환*/
+  @Transactional(readOnly = true)
   @Override
   public List<ChannelDto> findAllByUserId(UUID userId) {
     List<UUID> mySubscribedChannelIds = readStatusRepository.findAllByUserId(userId).stream()
@@ -107,6 +111,7 @@ public class BasicChannelService implements ChannelService {
     return channel;
   }
 
+  @Transactional
   @Override
   public void delete(UUID channelId) {
     Channel channel = channelRepository.findById(channelId)
