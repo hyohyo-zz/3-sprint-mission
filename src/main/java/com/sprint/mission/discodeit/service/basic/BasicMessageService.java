@@ -19,7 +19,6 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -27,6 +26,8 @@ import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,7 @@ public class BasicMessageService implements MessageService {
 
   private final BinaryContentStorage binaryContentStorage;
   private final MessageMapper messageMapper;
+  private final PageResponseMapper pageResponseMapper;
 
   @Override
   @Transactional
@@ -104,30 +106,32 @@ public class BasicMessageService implements MessageService {
   @Override
   public PageResponse<MessageDto> findAllByChannelId(UUID channelId, String cursor,
       Pageable pageable) {
-    int size = pageable.getPageSize();
+    int size = (pageable != null && pageable.isPaged()) ? pageable.getPageSize() : 50;
 
-    Instant cursorInstant = null;
-    if (cursor != null) {
-      try {
-        cursorInstant = Instant.parse(cursor);
-      } catch (DateTimeParseException e) {
-        throw new IllegalArgumentException(ErrorMessages.ERROR_CURSOR_INVALID + cursor);
-      }
-    }
+    PageRequest pageRequest = PageRequest.of(0, size + 1,
+        Sort.by(Sort.Direction.DESC, "createdAt"));
 
-    List<Message> messages = (cursorInstant != null)
-        ? messageRepository.findAllByChannelIdAfterCursor(channelId, cursorInstant,
-        PageRequest.of(0, size))
-        : messageRepository.findByChannelId(channelId, pageable);
+    Slice<Message> messageSlice = (cursor != null)
+        ? messageRepository.findAllByChannelIdAfterCursor(channelId, Instant.parse(cursor),
+        pageRequest)
+        : messageRepository.findAllByChannelId(channelId, pageRequest);
 
-    List<MessageDto> dtos = messages.stream().map(messageMapper::toDto).toList();
+    List<MessageDto> contents = messageSlice.getContent().stream()
+        .map(messageMapper::toDto)
+        .toList();
 
-    String nextCursor = messages.isEmpty() ? null :
-        messages.get(messages.size() - 1).getCreatedAt().toString();
+    String nextCursor = messageSlice.hasNext()
+        ? messageSlice.getContent().get(messageSlice.getNumberOfElements() - 1).getCreatedAt()
+        .toString()
+        : null;
 
-    boolean hasNext = messages.size() == size;
-
-    return PageResponseMapper.toResponse(dtos, nextCursor, size, hasNext, (long) dtos.size());
+    return pageResponseMapper.toResponse(
+        contents,
+        nextCursor,
+        size,
+        messageSlice.hasNext(),
+        contents.size()
+    );
   }
 
   @Override

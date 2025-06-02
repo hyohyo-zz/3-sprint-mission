@@ -44,8 +44,8 @@ public class PageResponseMapper {
   }
 
   //커서기반
-  public static <D> PageResponse<D> toResponse(
-      List<D> content, Object nextCursor, int size, boolean hasNext, long totalElements) {
+  public static <T> PageResponse<T> toResponse(
+      List<T> content, Object nextCursor, int size, boolean hasNext, long totalElements) {
     return new PageResponse<>(
         content,
         nextCursor,
