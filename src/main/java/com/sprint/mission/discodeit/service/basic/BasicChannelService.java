@@ -36,7 +36,7 @@ public class BasicChannelService implements ChannelService {
   //private 채널생성
   @Transactional
   @Override
-  public Channel create(PrivateChannelCreateRequest request) {
+  public ChannelDto create(PrivateChannelCreateRequest request) {
     Channel channel = new Channel(ChannelType.PRIVATE);
     Channel createdChannel = channelRepository.save(channel);
 
@@ -49,18 +49,20 @@ public class BasicChannelService implements ChannelService {
         })
         .forEach(readStatusRepository::save);
 
-    return createdChannel;
+    return channelMapper.toDto(createdChannel);
   }
 
   //public 채널생성
   @Transactional
   @Override
-  public Channel create(PublicChannelCreateRequest request) {
+  public ChannelDto create(PublicChannelCreateRequest request) {
     String name = request.name();
     String description = request.description();
     Channel channel = new Channel(ChannelType.PUBLIC, name, description);
 
-    return channelRepository.save(channel);
+    Channel savedChannel = channelRepository.save(channel);
+
+    return channelMapper.toDto(savedChannel);
   }
 
   @Transactional(readOnly = true)
@@ -95,7 +97,7 @@ public class BasicChannelService implements ChannelService {
 
   @Transactional
   @Override
-  public Channel update(UUID channelId, PublicChannelUpdateRequest request) {
+  public ChannelDto update(UUID channelId, PublicChannelUpdateRequest request) {
     String newName = request.newName();
     String newDescription = request.newDescription();
     Channel channel = channelRepository.findById(channelId)
@@ -108,7 +110,8 @@ public class BasicChannelService implements ChannelService {
           ErrorMessages.format("Channel", ErrorMessages.ERROR_PRIVATE_CHANNEL_NOT_UPDATE));
     }
     channel.update(newName, newDescription);
-    return channel;
+
+    return channelMapper.toDto(channel);
   }
 
   @Transactional

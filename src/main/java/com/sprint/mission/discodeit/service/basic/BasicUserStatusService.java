@@ -1,10 +1,12 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
+import com.sprint.mission.discodeit.dto.data.UserStatusDto;
 import com.sprint.mission.discodeit.dto.request.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -12,6 +14,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +25,11 @@ public class BasicUserStatusService implements UserStatusService {
 
   public final UserRepository userRepository;
   public final UserStatusRepository userStatusRepository;
+  public final UserStatusMapper userStatusMapper;
 
   @Transactional
   @Override
-  public UserStatus create(UserStatusCreateRequest request) {
+  public UserStatusDto create(UserStatusCreateRequest request) {
     UUID userId = request.userId();
 
     User user = userRepository.findById(userId)
@@ -43,26 +47,34 @@ public class BasicUserStatusService implements UserStatusService {
 
     //양방향 연관관계 명확히 하기위해
     user.setUserStatus(status);
-    return userStatusRepository.save(status);
+    UserStatus savedStatus = userStatusRepository.save(status);
+
+    return userStatusMapper.toDto(savedStatus);
   }
 
   @Transactional(readOnly = true)
   @Override
-  public UserStatus find(UUID id) {
-    return userStatusRepository.findById(id)
+  public UserStatusDto find(UUID id) {
+    UserStatus userStatus = userStatusRepository.findById(id)
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
+
+    return userStatusMapper.toDto(userStatus);
   }
 
   @Transactional(readOnly = true)
   @Override
-  public List<UserStatus> findAll() {
-    return userStatusRepository.findAll();
+  public List<UserStatusDto> findAll() {
+    List<UserStatus> userStatuses = userStatusRepository.findAll();
+
+    return userStatuses.stream()
+        .map(userStatusMapper::toDto)
+        .collect(Collectors.toList());
   }
 
   @Transactional
   @Override
-  public UserStatus update(UUID userStatusId, UserStatusUpdateRequest request) {
+  public UserStatusDto update(UUID userStatusId, UserStatusUpdateRequest request) {
     Instant newLastActiveAt = request.newLastActiveAt();
 
     UserStatus userStatus = userStatusRepository.findById(userStatusId)
@@ -70,12 +82,13 @@ public class BasicUserStatusService implements UserStatusService {
             ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
 
     userStatus.update(newLastActiveAt);
-    return userStatus;
+
+    return userStatusMapper.toDto(userStatus);
   }
 
   @Transactional
   @Override
-  public UserStatus updateByUserId(UUID userId, UserStatusUpdateRequest request) {
+  public UserStatusDto updateByUserId(UUID userId, UserStatusUpdateRequest request) {
     Instant newLastActiveAt = request.newLastActiveAt();
 
     UserStatus userStatus = userStatusRepository.findByUserId(userId)
@@ -84,7 +97,7 @@ public class BasicUserStatusService implements UserStatusService {
                 ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
     userStatus.update(newLastActiveAt);
 
-    return userStatus;
+    return userStatusMapper.toDto(userStatus);
   }
 
   @Transactional

@@ -18,7 +18,6 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
-
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -45,7 +44,7 @@ public class BasicMessageService implements MessageService {
 
   @Override
   @Transactional
-  public Message create(MessageCreateRequest request,
+  public MessageDto create(MessageCreateRequest request,
       List<BinaryContentCreateRequest> attachmentRequests) {
 
     User author = userRepository.findById(request.authorId())
@@ -68,16 +67,15 @@ public class BasicMessageService implements MessageService {
         .toList();
     try {
       IntStream.range(0, attachments.size())
-              .forEach(i -> {
-                BinaryContent savedAttachment = attachments.get(i);
-                var bytes = attachmentRequests.get(i).bytes();
-                binaryContentStorage.put(savedAttachment.getId(), bytes);
-              });
+          .forEach(i -> {
+            BinaryContent savedAttachment = attachments.get(i);
+            var bytes = attachmentRequests.get(i).bytes();
+            binaryContentStorage.put(savedAttachment.getId(), bytes);
+          });
     } catch (Exception e) {
       throw new RuntimeException(
-              ErrorMessages.format("BinaryContent", ErrorMessages.ERROR_FILE_SAVE_FAILED), e);
+          ErrorMessages.format("BinaryContent", ErrorMessages.ERROR_FILE_SAVE_FAILED), e);
     }
-
 
     Message message = new Message(
         request.content(),
@@ -87,50 +85,25 @@ public class BasicMessageService implements MessageService {
     );
 
     message.validateContent(attachments);
-    return messageRepository.save(message);
+    Message savedMessage = messageRepository.save(message);
+
+    return messageMapper.toDto(savedMessage);
   }
 
   @Transactional(readOnly = true)
   @Override
-  public Message find(UUID id) {
-    return messageRepository.findById(id).orElseThrow(() -> new NoSuchElementException(
+  public MessageDto find(UUID id) {
+    Message message = messageRepository.findById(id).orElseThrow(() -> new NoSuchElementException(
         ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)
     ));
+
+    return messageMapper.toDto(message);
   }
 
   @Transactional(readOnly = true)
   @Override
-  public List<Message> findAllByChannelId(UUID channelId) {
-    return messageRepository.findAllByChannelId(channelId).stream()
-        .toList();
-  }
-
-  @Override
-  @Transactional
-  public Message update(UUID messageId, MessageUpdateRequest request) {
-    String newContent = request.newContent();
-    Message message = messageRepository.findById(messageId)
-        .orElseThrow(() -> new NoSuchElementException(
-            ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
-
-    message.update(newContent);
-    return message;
-  }
-
-  @Transactional
-  @Override
-  public void delete(UUID messageId) {
-    messageRepository.findById(messageId).orElseThrow(() -> new NoSuchElementException(
-        ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
-
-    messageRepository.deleteById(messageId);
-  }
-
-  @Transactional(readOnly = true)
-  @Override
-  public PageResponse<MessageDto> findByChannelIdWithCursor(UUID channelId, String cursor,
+  public PageResponse<MessageDto> findAllByChannelId(UUID channelId, String cursor,
       Pageable pageable) {
-
     int size = pageable.getPageSize();
 
     Instant cursorInstant = null;
@@ -155,5 +128,26 @@ public class BasicMessageService implements MessageService {
     boolean hasNext = messages.size() == size;
 
     return PageResponseMapper.toResponse(dtos, nextCursor, size, hasNext, (long) dtos.size());
+  }
+
+  @Override
+  @Transactional
+  public MessageDto update(UUID messageId, MessageUpdateRequest request) {
+    String newContent = request.newContent();
+    Message message = messageRepository.findById(messageId)
+        .orElseThrow(() -> new NoSuchElementException(
+            ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
+
+    message.update(newContent);
+    return messageMapper.toDto(message);
+  }
+
+  @Transactional
+  @Override
+  public void delete(UUID messageId) {
+    messageRepository.findById(messageId).orElseThrow(() -> new NoSuchElementException(
+        ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
+
+    messageRepository.deleteById(messageId);
   }
 }

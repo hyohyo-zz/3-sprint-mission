@@ -6,8 +6,6 @@ import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.service.MessageService;
 import java.io.IOException;
 import java.util.List;
@@ -38,7 +36,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class MessageController implements MessageApi {
 
   private final MessageService messageService;
-  private final MessageMapper messageMapper;
 
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<MessageDto> create(
@@ -52,12 +49,11 @@ public class MessageController implements MessageApi {
         .flatMap(Optional::stream)
         .collect(Collectors.toList());
 
-    Message createdMessage = messageService.create(messageCreateRequest, attachmentRequests);
-    MessageDto messageDto = messageMapper.toDto(createdMessage);
+    MessageDto createdMessage = messageService.create(messageCreateRequest, attachmentRequests);
 
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(messageDto);
+        .body(createdMessage);
   }
 
   @GetMapping
@@ -66,7 +62,7 @@ public class MessageController implements MessageApi {
       @RequestParam(required = false) String cursor,
       @ParameterObject Pageable pageable
   ) {
-    PageResponse<MessageDto> pageResponse = messageService.findByChannelIdWithCursor(channelId,
+    PageResponse<MessageDto> pageResponse = messageService.findAllByChannelId(channelId,
         cursor, pageable);
     return ResponseEntity.ok(pageResponse);
   }
@@ -76,12 +72,11 @@ public class MessageController implements MessageApi {
       @PathVariable UUID messageId,
       @RequestBody MessageUpdateRequest messageUpdateRequest
   ) {
-    Message updatedMessage = messageService.update(messageId, messageUpdateRequest);
-    MessageDto messageDto = messageMapper.toDto(updatedMessage);
+    MessageDto updatedMessage = messageService.update(messageId, messageUpdateRequest);
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(messageDto);
+        .body(updatedMessage);
   }
 
   @DeleteMapping(path = "/{messageId}")

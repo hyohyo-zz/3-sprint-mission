@@ -5,12 +5,7 @@ import com.sprint.mission.discodeit.dto.data.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.mapper.ChannelMapper;
-import com.sprint.mission.discodeit.mapper.MessageMapper;
-import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -32,29 +27,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChannelController implements ChannelApi {
 
   private final ChannelService channelService;
-  private final MessageService messageService;
-  private final PageResponseMapper pageResponseMapper;
-  private final MessageMapper messageMapper;
-  private final ChannelMapper channelMapper;
 
   @PostMapping(path = "/public")
   public ResponseEntity<ChannelDto> create(@RequestBody PublicChannelCreateRequest request) {
-    Channel createdChannel = channelService.create(request);
-    ChannelDto channelDto = channelMapper.toDto(createdChannel);
+    ChannelDto createdChannel = channelService.create(request);
 
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(channelDto);
+        .body(createdChannel);
   }
 
   @PostMapping(path = "/private")
   public ResponseEntity<ChannelDto> create(@RequestBody PrivateChannelCreateRequest request) {
-    Channel createdChannel = channelService.create(request);
-    ChannelDto channelDto = channelMapper.toDto(createdChannel);
+    ChannelDto createdChannel = channelService.create(request);
 
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(channelDto);
+        .body(createdChannel);
   }
 
   @GetMapping
@@ -70,12 +59,11 @@ public class ChannelController implements ChannelApi {
   public ResponseEntity<ChannelDto> update(
       @PathVariable UUID channelId,
       @RequestBody PublicChannelUpdateRequest request) {
-    Channel updatedChannel = channelService.update(channelId, request);
-    ChannelDto channelDto = channelMapper.toDto(updatedChannel);
+    ChannelDto updatedChannel = channelService.update(channelId, request);
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(channelDto);
+        .body(updatedChannel);
   }
 
   @DeleteMapping(path = "/{channelId}")

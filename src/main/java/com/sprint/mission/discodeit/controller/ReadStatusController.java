@@ -4,8 +4,6 @@ import com.sprint.mission.discodeit.controller.api.ReadStatusApi;
 import com.sprint.mission.discodeit.dto.data.ReadStatusDto;
 import com.sprint.mission.discodeit.dto.request.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.ReadStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.ReadStatus;
-import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 import java.util.List;
 import java.util.UUID;
@@ -27,28 +25,23 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReadStatusController implements ReadStatusApi {
 
   private final ReadStatusService readStatusService;
-  private final ReadStatusMapper readStatusMapper;
 
   @PostMapping
   public ResponseEntity<ReadStatusDto> create(@RequestBody ReadStatusCreateRequest request) {
-    ReadStatus createStatus = readStatusService.create(request);
-    ReadStatusDto createStatusDto = readStatusMapper.toDto(createStatus);
+    ReadStatusDto createStatus = readStatusService.create(request);
 
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(createStatusDto);
+        .body(createStatus);
   }
 
   @GetMapping
   public ResponseEntity<List<ReadStatusDto>> findAllByUserId(@RequestParam("userId") UUID userId) {
-    List<ReadStatus> readStatuses = readStatusService.findAllByUserId(userId);
-    List<ReadStatusDto> readStatusDtos = readStatuses.stream()
-        .map(readStatusMapper::toDto)
-        .toList();
+    List<ReadStatusDto> readStatuses = readStatusService.findAllByUserId(userId);
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(readStatusDtos);
+        .body(readStatuses);
   }
 
   @PatchMapping(path = "/{readStatusId}")
@@ -56,11 +49,10 @@ public class ReadStatusController implements ReadStatusApi {
       @PathVariable(required = false) UUID readStatusId,
       @RequestBody ReadStatusUpdateRequest request
   ) {
-    ReadStatus updatedStatus = readStatusService.update(readStatusId, request);
-    ReadStatusDto updatedStatusDto = readStatusMapper.toDto(updatedStatus);
+    ReadStatusDto updatedStatus = readStatusService.update(readStatusId, request);
 
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(updatedStatusDto);
+        .body(updatedStatus);
   }
 }

@@ -1,8 +1,10 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.common.ErrorMessages;
+import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
@@ -20,10 +22,11 @@ public class BasicBinaryContentService implements BinaryContentService {
 
   public final BinaryContentRepository binaryContentRepository;
   public final BinaryContentStorage binaryContentStorage;
+  public final BinaryContentMapper binaryContentMapper;
 
   @Transactional
   @Override
-  public BinaryContent create(BinaryContentCreateRequest request) {
+  public BinaryContentDto create(BinaryContentCreateRequest request) {
     byte[] bytes = request.bytes();
     if (bytes == null || bytes.length == 0) {
       throw new RuntimeException(
@@ -40,21 +43,25 @@ public class BasicBinaryContentService implements BinaryContentService {
     //2. 실제 바이너리 데이터 저장소에 따로 저장
     binaryContentStorage.put(file.getId(), bytes);
 
-    return binaryContentRepository.save(file);
+    BinaryContent savedBinaryContent = binaryContentRepository.save(file);
+
+    return binaryContentMapper.toDto(savedBinaryContent);
   }
 
   @Transactional(readOnly = true)
   @Override
-  public BinaryContent find(UUID id) {
-    return binaryContentRepository.findById(id)
+  public BinaryContentDto find(UUID id) {
+    BinaryContent binaryContent = binaryContentRepository.findById(id)
         .orElseThrow(() -> new NoSuchElementException(
             ErrorMessages.format("BinaryContent", ErrorMessages.ERROR_NOT_FOUND)
         ));
+
+    return binaryContentMapper.toDto(binaryContent);
   }
 
   @Transactional(readOnly = true)
   @Override
-  public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
+  public List<BinaryContentDto> findAllByIdIn(List<UUID> ids) {
     return ids.stream()
         .map(this::find)
         .filter(Objects::nonNull)

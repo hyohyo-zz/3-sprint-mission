@@ -35,7 +35,7 @@ public class BasicUserService implements UserService {
   private final BinaryContentStorage binaryContentStorage;
 
   @Transactional
-  public User create(UserCreateRequest request,
+  public UserDto create(UserCreateRequest request,
       Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
     if (userRepository.existsByEmail(request.email())) {
       throw new IllegalArgumentException(ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
@@ -71,7 +71,7 @@ public class BasicUserService implements UserService {
 
     savedUser.setUserStatus(userStatus);    //연관 관계 설정
 
-    return savedUser;
+    return userMapper.toDto(savedUser);
   }
 
   @Transactional(readOnly = true)
@@ -95,7 +95,7 @@ public class BasicUserService implements UserService {
 
   @Transactional
   @Override
-  public User update(UUID userId, UserUpdateRequest userUpdateRequest,
+  public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest,
       Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
     //1. 수정할 엔티티 조회
     User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException(
@@ -136,7 +136,7 @@ public class BasicUserService implements UserService {
     String newPassword = userUpdateRequest.newPassword();
     user.update(newUsername, newEmail, newPassword, profile);
 
-    return user;
+    return userMapper.toDto(user);
   }
 
   @Transactional
