@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.springdoc.core.annotations.ParameterObject;
@@ -48,13 +49,16 @@ public interface MessageApi {
       content = @Content(schema = @Schema(implementation = PageResponse.class))
   )
   ResponseEntity<PageResponse<MessageDto>> findAllByChannelId(
-      @Parameter(description = "조회할 Channel ID", required = true)
+      @Parameter(description = "조회할 Channel ID")
       @RequestParam UUID channelId,
 
-      @Parameter(description = "페이징 커서 정보",
-          schema = @Schema(type = "string", format = "date-time"))
-      @RequestParam(required = false) String cursor,
+      @Parameter(description = "페이징 커서 정보")
+      @RequestParam(required = false) Instant cursor,
 
+      @Parameter(
+          name = "pageable",
+          example = "{\"size\": 50, \"sort\": \"createdAt,desc\"}"
+      )
       @ParameterObject Pageable pageable
   );
 

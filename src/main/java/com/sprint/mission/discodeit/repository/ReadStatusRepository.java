@@ -4,9 +4,11 @@ import com.sprint.mission.discodeit.entity.ReadStatus;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface ReadStatusRepository extends JpaRepository<ReadStatus, UUID> {
 
   public List<ReadStatus> findAllByUserId(UUID userId);
@@ -16,6 +18,6 @@ public interface ReadStatusRepository extends JpaRepository<ReadStatus, UUID> {
   Optional<Object> findByUserIdAndChannelId(UUID userId, UUID channelId);
 
   //비공개 채널 참여자 추출
-  @Query("SELECT rs FROM ReadStatus rs join fetch rs.user WHERE rs.channel.id = :channelId")
-  public List<ReadStatus> findAllByChannelIdWithUser(UUID channelId);
+  @EntityGraph(attributePaths = {"user"})
+  public List<ReadStatus> findAllByChannelId(UUID channelId);
 }

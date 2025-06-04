@@ -37,19 +37,20 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   @Override
   public ChannelDto create(PrivateChannelCreateRequest request) {
-    Channel channel = new Channel(ChannelType.PRIVATE);
-    Channel createdChannel = channelRepository.save(channel);
+    Channel privateChannel = channelRepository.save(new Channel(ChannelType.PRIVATE));
 
-    request.participantIds().stream()
+    List<ReadStatus> readStatuses = request.participantIds().stream()
         .map(userId -> {
-          User user = userRepository.findById(userId)
-              .orElseThrow(() -> new NoSuchElementException(
-                  ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)));
-          return new ReadStatus(user, createdChannel, createdChannel.getCreatedAt());
+          User user = userRepository.findById(userId).orElseThrow(
+              () -> new NoSuchElementException(
+                  ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)
+              ));
+          return new ReadStatus(user, privateChannel, privateChannel.getCreatedAt());
         })
-        .forEach(readStatusRepository::save);
+        .toList();
 
-    return channelMapper.toDto(createdChannel);
+    readStatusRepository.saveAll(readStatuses);
+    return channelMapper.toDto(privateChannel);
   }
 
   //public 채널생성
@@ -74,23 +75,10 @@ public class BasicChannelService implements ChannelService {
             ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
   }
 
-  /*
-   * 1. 저장소에서 전체 채널 불러오기
-   * 2. 응답리스트 생성
-   * 3. 채널 순회 하며 필터링(Private, Public)
-   * 4. 반환*/
   @Transactional(readOnly = true)
   @Override
   public List<ChannelDto> findAllByUserId(UUID userId) {
-    List<UUID> mySubscribedChannelIds = readStatusRepository.findAllByUserId(userId).stream()
-        .map(readStatus -> readStatus.getChannel().getId())
-        .toList();
-
-    return channelRepository.findAll().stream()
-        .filter(channel ->
-            channel.getType().equals(ChannelType.PUBLIC)
-                || mySubscribedChannelIds.contains(channel.getId())
-        )
+    return channelRepository.findAllAccessibleByUser(userId).stream()
         .map(channelMapper::toDto)
         .toList();
   }
@@ -117,13 +105,12 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   @Override
   public void delete(UUID channelId) {
-    Channel channel = channelRepository.findById(channelId)
-        .orElseThrow(() -> new NoSuchElementException(
-            ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND)));
-
-    messageRepository.deleteAllByChannelId(channel.getId());
-    readStatusRepository.deleteAllByChannelId(channel.getId());
-
+    if (channelRepository.existsById(channelId)) {
+      throw new NoSuchElementException(
+          ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
+    }
+    messageRepository.deleteAllByChannelId(channelId);
+    readStatusRepository.deleteAllByChannelId(channelId);
     channelRepository.deleteById(channelId);
   }
 }

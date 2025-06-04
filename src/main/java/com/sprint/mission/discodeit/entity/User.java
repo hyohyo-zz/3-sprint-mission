@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "users")
@@ -28,6 +29,7 @@ public class User extends BaseUpdatableEntity {
   private BinaryContent profile;     // BinaryContent
 
   @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  @Setter
   private UserStatus userStatus;
 
   public User() {
@@ -54,9 +56,5 @@ public class User extends BaseUpdatableEntity {
     if (newProfile != null && !newProfile.equals(this.profile)) {
       this.profile = newProfile;
     }
-  }
-
-  public void setUserStatus(UserStatus userStatus) {
-    this.userStatus = userStatus;
   }
 }

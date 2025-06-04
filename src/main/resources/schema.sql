@@ -1,11 +1,11 @@
 CREATE SCHEMA IF NOT EXISTS discodeit;
 
-DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS channels CASCADE;
-DROP TABLE IF EXISTS messages CASCADE;
-DROP TABLE IF EXISTS binary_contents cascade;
-DROP TABLE IF EXISTS user_statuses CASCADE;
-DROP TABLE IF EXISTS message_attachments CASCADE;
+-- DROP TABLE IF EXISTS users CASCADE;
+-- DROP TABLE IF EXISTS channels CASCADE;
+-- DROP TABLE IF EXISTS messages CASCADE;
+-- DROP TABLE IF EXISTS binary_contents cascade;
+-- DROP TABLE IF EXISTS user_statuses CASCADE;
+-- DROP TABLE IF EXISTS message_attachments CASCADE;
 
 -- binary_contents
 create table if not exists binary_contents

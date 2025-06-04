@@ -37,8 +37,8 @@ public class ChannelMapper {
         .map(Message::getCreatedAt)
         .findFirst().orElse(Instant.MIN);
 
-    List<ReadStatus> readStatuses = readStatusRepository.findAllByChannelIdWithUser(
-        channel.getId());
+    List<ReadStatus> readStatuses = readStatusRepository.findAllByChannelId(channel.getId());
+    
     List<UserDto> participants = readStatuses.stream()
         .map(ReadStatus::getUser)
         .map(userMapper::toDto)

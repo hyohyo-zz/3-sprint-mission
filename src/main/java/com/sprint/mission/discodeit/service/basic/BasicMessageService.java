@@ -22,7 +22,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
-import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -59,25 +58,14 @@ public class BasicMessageService implements MessageService {
         );
 
     List<BinaryContent> attachments = attachmentRequests.stream()
-        .map(req ->
-            new BinaryContent(
-                req.fileName(),
-                (long) req.bytes().length,
-                req.contentType()
-            ))
-        .map(binaryContentRepository::save)
+        .map(req -> {
+          BinaryContent binaryContent = new BinaryContent(req.fileName(), (long) req.bytes().length,
+              req.contentType());
+          BinaryContent savedAttachment = binaryContentRepository.save(binaryContent);
+          binaryContentStorage.put(savedAttachment.getId(), req.bytes());
+          return savedAttachment;
+        })
         .toList();
-    try {
-      IntStream.range(0, attachments.size())
-          .forEach(i -> {
-            BinaryContent savedAttachment = attachments.get(i);
-            var bytes = attachmentRequests.get(i).bytes();
-            binaryContentStorage.put(savedAttachment.getId(), bytes);
-          });
-    } catch (Exception e) {
-      throw new RuntimeException(
-          ErrorMessages.format("BinaryContent", ErrorMessages.ERROR_FILE_SAVE_FAILED), e);
-    }
 
     Message message = new Message(
         request.content(),
@@ -104,34 +92,18 @@ public class BasicMessageService implements MessageService {
 
   @Transactional(readOnly = true)
   @Override
-  public PageResponse<MessageDto> findAllByChannelId(UUID channelId, String cursor,
+  public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor,
       Pageable pageable) {
     int size = (pageable != null && pageable.isPaged()) ? pageable.getPageSize() : 50;
 
-    PageRequest pageRequest = PageRequest.of(0, size + 1,
-        Sort.by(Sort.Direction.DESC, "createdAt"));
+    PageRequest pageRequest = PageRequest.of(0, size + 1, Sort.by("createdAt").descending());
 
     Slice<Message> messageSlice = (cursor != null)
-        ? messageRepository.findAllByChannelIdAfterCursor(channelId, Instant.parse(cursor),
-        pageRequest)
+        ? messageRepository.findAllByChannelIdAndCreatedAtBefore(
+        channelId, cursor, pageRequest)
         : messageRepository.findAllByChannelId(channelId, pageRequest);
 
-    List<MessageDto> contents = messageSlice.getContent().stream()
-        .map(messageMapper::toDto)
-        .toList();
-
-    String nextCursor = messageSlice.hasNext()
-        ? messageSlice.getContent().get(messageSlice.getNumberOfElements() - 1).getCreatedAt()
-        .toString()
-        : null;
-
-    return pageResponseMapper.toResponse(
-        contents,
-        nextCursor,
-        size,
-        messageSlice.hasNext(),
-        contents.size()
-    );
+    return pageResponseMapper.fromSlice(messageSlice.map(messageMapper::toDto));
   }
 
   @Override
