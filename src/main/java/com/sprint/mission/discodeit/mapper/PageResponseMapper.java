@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.mapper;
 
+import com.sprint.mission.discodeit.dto.data.MessageDto;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
@@ -19,27 +21,39 @@ import org.springframework.stereotype.Component;
 @Component
 public class PageResponseMapper {
 
-  //다음페이지
-  public <T> PageResponse<T> fromSlice(Slice<T> slice) {
-    return new PageResponse<>(
-        slice.getContent(),
-        slice.getNumber(),
-        slice.getSize(),
-        slice.hasNext(),
-        null
-    );
-  }
+    //다음페이지
+    public <T> PageResponse<T> fromSlice(Slice<T> slice) {
+        return new PageResponse<>(
+            slice.getContent(),
+            calculateNextCursor(slice),
+            slice.getSize(),
+            slice.hasNext(),
+            null
+        );
+    }
 
-  //전체 페이지
-  public <T> PageResponse<T> fromPage(Page<T> page) {
-    return new PageResponse<>(
-        page.getContent(),
-        page.getNumber(),
-        page.getSize(),
-        page.hasNext(),
-        page.getTotalElements()
-    );
+    //전체 페이지
+    public <T> PageResponse<T> fromPage(Page<T> page) {
+        return new PageResponse<>(
+            page.getContent(),
+            page.getNumber(),
+            page.getSize(),
+            page.hasNext(),
+            page.getTotalElements()
+        );
+    }
+    
+    private <T> Object calculateNextCursor(Slice<T> slice) {
+        if (!slice.hasNext() || slice.getContent().isEmpty()) {
+            return null;
+        }
 
-  }
+        T lastElement = slice.getContent().get(slice.getContent().size() - 1);
+
+        if (lastElement instanceof MessageDto) {
+            return ((MessageDto) lastElement).createdAt();
+        }
+        return null;
+    }
 }
 
