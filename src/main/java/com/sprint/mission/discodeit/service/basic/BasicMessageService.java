@@ -18,10 +18,6 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
-import java.time.Instant;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +26,11 @@ import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -48,7 +49,7 @@ public class BasicMessageService implements MessageService {
     @Override
     @Transactional
     public MessageDto create(MessageCreateRequest request,
-        List<BinaryContentCreateRequest> attachmentRequests) {
+                             List<BinaryContentCreateRequest> attachmentRequests) {
 
         User author = userRepository.findById(request.authorId())
             .orElseThrow(() -> new NoSuchElementException(
@@ -61,15 +62,15 @@ public class BasicMessageService implements MessageService {
 
         List<BinaryContent> attachments = attachmentRequests == null ? List.of() :
             attachmentRequests.stream()
-            .map(req -> {
-                BinaryContent binaryContent = new BinaryContent(req.fileName(),
-                    (long) req.bytes().length,
-                    req.contentType());
-                BinaryContent savedAttachment = binaryContentRepository.save(binaryContent);
-                binaryContentStorage.put(savedAttachment.getId(), req.bytes());
-                return savedAttachment;
-            })
-            .toList();
+                .map(req -> {
+                    BinaryContent binaryContent = new BinaryContent(req.fileName(),
+                        (long) req.bytes().length,
+                        req.contentType());
+                    BinaryContent savedAttachment = binaryContentRepository.save(binaryContent);
+                    binaryContentStorage.put(savedAttachment.getId(), req.bytes());
+                    return savedAttachment;
+                })
+                .toList();
 
         Message message = new Message(
             request.content(),
@@ -98,7 +99,7 @@ public class BasicMessageService implements MessageService {
     @Transactional(readOnly = true)
     @Override
     public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor,
-        Pageable pageable) {
+                                                       Pageable pageable) {
         int pageSize = (pageable != null && pageable.isPaged()) ? pageable.getPageSize() : 50;
 
         PageRequest pageRequest = PageRequest.of(0, pageSize + 1,

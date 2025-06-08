@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.mapper;
 
 import com.sprint.mission.discodeit.dto.data.MessageDto;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Component;
@@ -42,7 +41,7 @@ public class PageResponseMapper {
             page.getTotalElements()
         );
     }
-    
+
     private <T> Object calculateNextCursor(Slice<T> slice) {
         if (!slice.hasNext() || slice.getContent().isEmpty()) {
             return null;

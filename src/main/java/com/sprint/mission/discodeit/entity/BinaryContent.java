@@ -16,21 +16,21 @@ import lombok.Getter;
 @Getter
 public class BinaryContent extends BaseEntity {
 
-  @Column(length = 225, nullable = false)
-  private String fileName;
+    @Column(length = 225, nullable = false)
+    private String fileName;
 
-  @Column(nullable = false)
-  private Long size;
+    @Column(nullable = false)
+    private Long size;
 
-  @Column(length = 100, nullable = false)
-  private String contentType;
+    @Column(length = 100, nullable = false)
+    private String contentType;
 
-  public BinaryContent() {
-  }
+    public BinaryContent() {
+    }
 
-  public BinaryContent(String fileName, Long size, String contentType) {
-    this.fileName = fileName;
-    this.size = size;
-    this.contentType = contentType;
-  }
+    public BinaryContent(String fileName, Long size, String contentType) {
+        this.fileName = fileName;
+        this.size = size;
+        this.contentType = contentType;
+    }
 }
