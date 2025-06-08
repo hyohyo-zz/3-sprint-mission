@@ -3,12 +3,15 @@ package com.sprint.mission.discodeit.mapper;
 import com.sprint.mission.discodeit.dto.data.ChannelDto;
 import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Slice;
@@ -28,21 +31,20 @@ public class ChannelMapper {
             return null;
         }
 
-        //첫번째 페이지에서 1개만 조회, createdAt 기준 내림차순(가장 최근 메시지)
-        Slice<Message> latestMessages = messageRepository.findAllByChannelIdOrderByCreatedAtDesc(
-            channel.getId(), PageRequest.of(0, 1, Sort.by(Sort.Direction.DESC, "createdAt"))
-        );
-
-        Instant lastMessageAt = latestMessages.stream()
+        // 가장 최근 메시지 조회
+        Instant lastMessageAt = messageRepository
+            .findTop1ByChannelIdOrderByCreatedAtDesc(channel.getId())
             .map(Message::getCreatedAt)
-            .findFirst().orElse(Instant.MIN);
+            .orElse(Instant.MIN);
 
-        List<ReadStatus> readStatuses = readStatusRepository.findAllByChannelId(channel.getId());
-
-        List<UserDto> participants = readStatuses.stream()
-            .map(ReadStatus::getUser)
-            .map(userMapper::toDto)
-            .toList();
+        // PRIVATE 채널인 경우에만 참가자 조회
+        List<UserDto> participants = null;
+        if (ChannelType.PRIVATE.equals(channel.getType())) {
+            participants = readStatusRepository.findAllByChannelId(channel.getId()).stream()
+                .map(ReadStatus::getUser)
+                .map(userMapper::toDto)
+                .toList();
+        }
 
         return new ChannelDto(
             channel.getId(),

@@ -105,7 +105,7 @@ public class BasicChannelService implements ChannelService {
   @Transactional
   @Override
   public void delete(UUID channelId) {
-    if (channelRepository.existsById(channelId)) {
+    if (! channelRepository.existsById(channelId)) {
       throw new NoSuchElementException(
           ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
     }

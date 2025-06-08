@@ -59,7 +59,8 @@ public class BasicMessageService implements MessageService {
                 ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
             );
 
-        List<BinaryContent> attachments = attachmentRequests.stream()
+        List<BinaryContent> attachments = attachmentRequests == null ? List.of() :
+            attachmentRequests.stream()
             .map(req -> {
                 BinaryContent binaryContent = new BinaryContent(req.fileName(),
                     (long) req.bytes().length,

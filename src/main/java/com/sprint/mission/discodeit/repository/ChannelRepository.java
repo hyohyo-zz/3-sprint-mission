@@ -20,5 +20,4 @@ public interface ChannelRepository extends JpaRepository<Channel, UUID> {
         """)
     public List<Channel> findAllAccessibleByUser(UUID userId);
 
-    List<Channel> findAll();
 }
