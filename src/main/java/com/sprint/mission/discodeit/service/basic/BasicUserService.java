@@ -43,12 +43,15 @@ public class BasicUserService implements UserService {
         String email = request.email();
         String userName = request.username();
         String password = request.password();
+        log.info("[user] 생성 요청: email={}, userName={}", email, userName);
 
         if (userRepository.existsByEmail(email)) {
+            log.warn("[user] 생성 실패 - email 중복됨: email={}", email);
             throw new IllegalArgumentException(
                 ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
         }
         if (userRepository.existsByUsername(userName)) {
+            log.warn("[user] 생성 실패 - userName 중복됨: name={}", userName);
             throw new IllegalArgumentException(
                 ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
         }
@@ -77,6 +80,8 @@ public class BasicUserService implements UserService {
         Instant now = Instant.now();
         UserStatus userStatus = new UserStatus(user, now);
         userStatusRepository.save(userStatus);
+        log.info("[user] 생성 완료: userId={}, name={}, email={}, isProfile={}",
+            user.getId(), userName, email, nullableProfile != null);
 
         return userMapper.toDto(user);
     }
@@ -84,46 +89,64 @@ public class BasicUserService implements UserService {
     @Transactional(readOnly = true)
     @Override
     public UserDto find(UUID userId) {
+        log.info("[user] 조회 요청: id={}", userId);
+
         return userRepository.findById(userId)
             .map(userMapper::toDto)
-            .orElseThrow(() -> new NoSuchElementException(
-                ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
-            );
+            .orElseThrow(() -> {
+                log.warn("[user] 조회 실패 - 존재하지 않는 id: id={}", userId);
+                return new NoSuchElementException(
+                    ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND));
+            });
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<UserDto> findAll() {
-        return userRepository.findAll()
+        log.info("[user] 전체 조회 요청");
+
+        List<UserDto> userDtos = userRepository.findAll()
             .stream()
             .map(userMapper::toDto)
             .toList();
+
+        log.info("[user] 전체 조회 응답: size={}", userDtos.size());
+        return userDtos;
     }
 
     @Transactional
     @Override
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest,
         Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
-        //1. 수정할 엔티티 조회
-        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException(
-            ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
-        );
-
         String newUsername = userUpdateRequest.newUsername();
         String newEmail = userUpdateRequest.newEmail();
         String newPassword = userUpdateRequest.newPassword();
 
+        // update시 요청된 값만 로그 출력
+        String logMessage = makeUpdateLog(userId, userUpdateRequest, optionalProfileCreateRequest);
+        log.info("[user] 수정 요청: {}", logMessage);
+
+        //1. 수정할 엔티티 조회
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+            log.warn("[user] 수정 실패 - 존재하지 않는 id: id={}", userId);
+            return new NoSuchElementException(
+                ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND));
+        });
+
         //2. username/email 중복 체크
-        if (userRepository.existsByEmail(newEmail)) {
+        if (!user.getEmail().equals(newEmail) && userRepository.existsByEmail(newEmail)) {
+            log.warn("[user] 수정 실패 - email 중복됨: id={}", newEmail);
             throw new IllegalArgumentException(
                 ErrorMessages.format("Email", ErrorMessages.ERROR_EXISTS));
         }
-        if (userRepository.existsByUsername(newUsername)) {
+        if (!user.getUsername().equals(newUsername) && userRepository.existsByUsername(
+            newUsername)) {
+            log.warn("[user] 수정 실패 - userName 중복됨: id={}", newUsername);
             throw new IllegalArgumentException(
                 ErrorMessages.format("UserName", ErrorMessages.ERROR_EXISTS));
         }
 
-        BinaryContent nullableProfile = optionalProfileCreateRequest
+        BinaryContent newNullableProfile = optionalProfileCreateRequest
             .map(profileRequest -> {
                 Optional.ofNullable(user.getProfile())
                     .ifPresent(binaryContentRepository::delete);
@@ -141,7 +164,8 @@ public class BasicUserService implements UserService {
             })
             .orElse(null);
 
-        user.update(newUsername, newEmail, newPassword, nullableProfile);
+        user.update(newUsername, newEmail, newPassword, newNullableProfile);
+        log.info("[user] 수정 완료: {}", logMessage);
 
         return userMapper.toDto(user);
     }
@@ -149,12 +173,40 @@ public class BasicUserService implements UserService {
     @Transactional
     @Override
     public void delete(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException(
-            ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+                log.warn("[user] 삭제 실패 - 존재하지 않는 id: id={}", userId);
+                return new NoSuchElementException(
+                    ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND));
+            }
         );
         Optional.ofNullable(user.getProfile()).ifPresent(binaryContentRepository::delete);
         userStatusRepository.deleteByUserId(userId);
 
         userRepository.deleteById(userId);
+        log.info("[user] 삭제 완료: id={}", userId);
+    }
+
+    private String makeUpdateLog(UUID userId, UserUpdateRequest request,
+        Optional<BinaryContentCreateRequest> newProfile) {
+        StringBuilder logMessage = new StringBuilder("userId=" + userId);
+
+        String newUsername = request.newUsername();
+        String newEmail = request.newEmail();
+        String newPassword = request.newPassword();
+
+        if (newUsername != null) {
+            logMessage.append(", newUsername=").append(newUsername);
+        }
+        if (newEmail != null) {
+            logMessage.append(", newEmail=").append(newEmail);
+        }
+        if (newPassword != null) {
+            logMessage.append(", newPassword=******");
+        }
+        if (newProfile.isPresent()) {
+            logMessage.append(", newProfileImage=true");
+        }
+
+        return logMessage.toString();
     }
 }

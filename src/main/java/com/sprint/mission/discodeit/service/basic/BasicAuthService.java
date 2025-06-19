@@ -25,16 +25,30 @@ public class BasicAuthService implements AuthService {
     @Transactional(readOnly = true)
     @Override
     public UserDto login(LoginRequest request) {
-        //1. Username으로 user 찾기
-        User user = userRepository.findByUsername(request.username())
-            .orElseThrow(() -> new NoSuchElementException(
-                ErrorMessages.format("user", ErrorMessages.ERROR_NOT_FOUND)));
+        log.info("[로그인] 요청: {}", request);
+
+        String userName = request.username();
+        String password = request.password();
+
+        //1. userName 으로 user 찾기
+        User user = userRepository.findByUsername(userName)
+            .orElseThrow(() -> {
+                log.warn("[로그인 실패] 존재하지 않는 사용자: {}", userName);
+
+                return new NoSuchElementException(
+                    ErrorMessages.format("user", ErrorMessages.ERROR_NOT_FOUND));
+            });
 
         //2. password 일치 여부 확인
-        if (!user.getPassword().equals(request.password())) {
+        if (!user.getPassword().equals(password)) {
+            log.warn("[로그인 실패] 비밀번호 불일치. 입력값: {}", password);
+
             throw new IllegalArgumentException(
                 ErrorMessages.format("password", ErrorMessages.ERROR_MISMATCH));
         }
+
+        log.info("[로그인 성공] userId={}, userName={}", user.getId(), user.getUsername());
+
         return userMapper.toDto(user);
     }
 }

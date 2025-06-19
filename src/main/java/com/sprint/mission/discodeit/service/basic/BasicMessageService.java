@@ -51,15 +51,23 @@ public class BasicMessageService implements MessageService {
     @Transactional
     public MessageDto create(MessageCreateRequest request,
         List<BinaryContentCreateRequest> attachmentRequests) {
+        UUID authorId = request.authorId();
+        UUID channelId = request.channelId();
+        log.info("[message] 생성 요청: authorId={}, channelId={}", authorId, channelId);
 
-        User author = userRepository.findById(request.authorId())
-            .orElseThrow(() -> new NoSuchElementException(
-                ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND))
-            );
-        Channel channel = channelRepository.findById(request.channelId())
-            .orElseThrow(() -> new NoSuchElementException(
-                ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND))
-            );
+        User author = userRepository.findById(authorId)
+            .orElseThrow(() -> {
+                log.warn("[message] 생성 실패 - 존재하지 않는 userId: userId={}", authorId);
+                return new NoSuchElementException(
+                    ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND));
+            });
+
+        Channel channel = channelRepository.findById(channelId)
+            .orElseThrow(() -> {
+                log.warn("[message] 생성 실패 - 존재하지 않는 channelId: channelId={}", channelId);
+                return new NoSuchElementException(
+                    ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
+            });
 
         List<BinaryContent> attachments = attachmentRequests == null ? List.of() :
             attachmentRequests.stream()
@@ -72,6 +80,8 @@ public class BasicMessageService implements MessageService {
                     return savedAttachment;
                 })
                 .toList();
+        log.debug("[message] 첨부파일 요청 수: {}",
+            attachmentRequests != null ? attachmentRequests.size() : 0);
 
         Message message = new Message(
             request.content(),
@@ -81,20 +91,25 @@ public class BasicMessageService implements MessageService {
         );
 
         message.validateContent(attachments);
-        Message savedMessage = messageRepository.save(message);
+        messageRepository.save(message);
+        log.info("[message] 생성 완료: messageId={}, authorId={}, channelId={}",
+            message.getId(), authorId, channelId);
 
-        return messageMapper.toDto(savedMessage);
+        return messageMapper.toDto(message);
     }
 
     @Transactional(readOnly = true)
     @Override
     public MessageDto find(UUID id) {
-        Message message = messageRepository.findById(id)
-            .orElseThrow(() -> new NoSuchElementException(
-                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)
-            ));
+        log.info("[message] 조회 요청: id={}", id);
 
-        return messageMapper.toDto(message);
+        return messageRepository.findById(id)
+            .map(messageMapper::toDto)
+            .orElseThrow(() -> {
+                log.warn("[message] 조회 실패 - 존재하지 않는 id: id={}", id);
+                return new NoSuchElementException(
+                    ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
+            });
     }
 
     @Transactional(readOnly = true)
@@ -105,12 +120,17 @@ public class BasicMessageService implements MessageService {
                 Optional.ofNullable(createAt).orElse(Instant.now()), pageable)
             .map(messageMapper::toDto);
 
+        log.info("[message] 전체 조회 요청: channelId={}, size={}", channelId, slice.getContent().size());
+        log.debug("[message] Slice 정보: {}", slice);
+
         Instant nextCursor = null;
         if (slice.hasContent()) {
             nextCursor = slice.getContent().get(slice.getContent().size() - 1)
                 .createdAt();
         }
 
+        log.info("[message] 전체 조회 응답: channelId={}, 결과 개수={}, nextCursor={}",
+            channelId, slice.getContent().size(), nextCursor);
         return pageResponseMapper.fromSlice(slice, nextCursor);
     }
 
@@ -118,11 +138,18 @@ public class BasicMessageService implements MessageService {
     @Transactional
     public MessageDto update(UUID messageId, MessageUpdateRequest request) {
         String newContent = request.newContent();
+        log.info("[message] 수정 요청: messageId={}, newContent={}", messageId, request.newContent());
+
         Message message = messageRepository.findById(messageId)
-            .orElseThrow(() -> new NoSuchElementException(
-                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
+            .orElseThrow(() -> {
+                log.warn("[message] 수정 실패 - 존재하지 않는 id: id={}", messageId);
+                return new NoSuchElementException(
+                    ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
+            });
 
         message.update(newContent);
+        log.info("[message] 수정 완료: messageId={}, newContent={}", messageId, request.newContent());
+
         return messageMapper.toDto(message);
     }
 
@@ -130,10 +157,12 @@ public class BasicMessageService implements MessageService {
     @Override
     public void delete(UUID messageId) {
         if (!messageRepository.existsById(messageId)) {
+            log.warn("[message] 삭제 실패 - 존재하지 않는 id: id={}", messageId);
             throw new NoSuchElementException(
                 ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
         }
 
         messageRepository.deleteById(messageId);
+        log.info("[message] 삭제 완료: id={}", messageId);
     }
 }
