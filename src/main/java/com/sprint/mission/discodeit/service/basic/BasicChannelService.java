@@ -40,14 +40,14 @@ public class BasicChannelService implements ChannelService {
     public ChannelDto create(PrivateChannelCreateRequest request) {
         Channel privateChannel = channelRepository.save(new Channel(ChannelType.PRIVATE));
 
-        List<ReadStatus> readStatuses = request.participantIds().stream()
-            .map(userId -> {
-                User user = userRepository.findById(userId).orElseThrow(
-                    () -> new NoSuchElementException(
-                        ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)
-                    ));
-                return new ReadStatus(user, privateChannel, privateChannel.getCreatedAt());
-            })
+        List<User> users = userRepository.findAllById(request.participantIds());
+
+        if (users.size() != request.participantIds().size()) {
+            throw new IllegalArgumentException("유효하지 않은 사용자 ID가 포함됨");
+        }
+
+        List<ReadStatus> readStatuses = users.stream()
+            .map(user -> new ReadStatus(user, privateChannel, privateChannel.getCreatedAt()))
             .toList();
 
         readStatusRepository.saveAll(readStatuses);
@@ -62,9 +62,9 @@ public class BasicChannelService implements ChannelService {
         String description = request.description();
         Channel channel = new Channel(ChannelType.PUBLIC, name, description);
 
-        Channel savedChannel = channelRepository.save(channel);
+        channelRepository.save(channel);
 
-        return channelMapper.toDto(savedChannel);
+        return channelMapper.toDto(channel);
     }
 
     @Transactional(readOnly = true)
@@ -79,7 +79,13 @@ public class BasicChannelService implements ChannelService {
     @Transactional(readOnly = true)
     @Override
     public List<ChannelDto> findAllByUserId(UUID userId) {
-        return channelRepository.findAllAccessibleByUser(userId).stream()
+        List<UUID> mySubscribedChannelIds = readStatusRepository.findAllByUserId(userId).stream()
+            .map(ReadStatus::getChannel)
+            .map(Channel::getId)
+            .toList();
+
+        return channelRepository.findAllByTypeOrIdIn(ChannelType.PUBLIC, mySubscribedChannelIds)
+            .stream()
             .map(channelMapper::toDto)
             .toList();
     }

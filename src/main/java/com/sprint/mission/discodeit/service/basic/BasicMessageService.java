@@ -18,6 +18,7 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -49,7 +50,7 @@ public class BasicMessageService implements MessageService {
     @Override
     @Transactional
     public MessageDto create(MessageCreateRequest request,
-                             List<BinaryContentCreateRequest> attachmentRequests) {
+        List<BinaryContentCreateRequest> attachmentRequests) {
 
         User author = userRepository.findById(request.authorId())
             .orElseThrow(() -> new NoSuchElementException(
@@ -98,19 +99,19 @@ public class BasicMessageService implements MessageService {
 
     @Transactional(readOnly = true)
     @Override
-    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor,
-                                                       Pageable pageable) {
-        int pageSize = (pageable != null && pageable.isPaged()) ? pageable.getPageSize() : 50;
+    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant createAt,
+        Pageable pageable) {
+        Slice<MessageDto> slice = messageRepository.findByChannelIdAndCreatedAtLessThan(channelId,
+                Optional.ofNullable(createAt).orElse(Instant.now()), pageable)
+            .map(messageMapper::toDto);
 
-        PageRequest pageRequest = PageRequest.of(0, pageSize + 1,
-            Sort.by("createdAt").descending());
+        Instant nextCursor = null;
+        if (slice.hasContent()) {
+            nextCursor = slice.getContent().get(slice.getContent().size() - 1)
+                .createdAt();
+        }
 
-        Slice<Message> messageSlice = (cursor != null)
-            ? messageRepository.findAllByChannelIdAndCreatedAtLessThanOrderByCreatedAtDesc(
-            channelId, cursor, pageRequest)
-            : messageRepository.findAllByChannelIdOrderByCreatedAtDesc(channelId, pageRequest);
-
-        return pageResponseMapper.fromSlice(messageSlice.map(messageMapper::toDto));
+        return pageResponseMapper.fromSlice(slice, nextCursor);
     }
 
     @Override
@@ -128,8 +129,10 @@ public class BasicMessageService implements MessageService {
     @Transactional
     @Override
     public void delete(UUID messageId) {
-        messageRepository.findById(messageId).orElseThrow(() -> new NoSuchElementException(
-            ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND)));
+        if (!messageRepository.existsById(messageId)) {
+            throw new NoSuchElementException(
+                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
+        }
 
         messageRepository.deleteById(messageId);
     }

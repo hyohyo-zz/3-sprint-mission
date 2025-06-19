@@ -10,6 +10,7 @@ import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,39 +39,33 @@ public class BasicUserStatusService implements UserStatusService {
                 ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND)
             ));
 
-        if (userStatusRepository.findByUserId(userId).isPresent()) {
+        Optional.ofNullable(user.getStatus()).ifPresent(status -> {
             throw new IllegalArgumentException(
                 ErrorMessages.format("UserStatus", ErrorMessages.ERROR_EXISTS));
-        }
+        });
 
-        Instant lastOnlineTime = request.lastActiveAt();
-        UserStatus status = new UserStatus(user, lastOnlineTime);
+        Instant lastActiveAt = request.lastActiveAt();
+        UserStatus status = new UserStatus(user, lastActiveAt);
+        userStatusRepository.save(status);
 
-        //양방향 연관관계 명확히 하기위해
-        user.setUserStatus(status);
-        UserStatus savedStatus = userStatusRepository.save(status);
-
-        return userStatusMapper.toDto(savedStatus);
+        return userStatusMapper.toDto(status);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public UserStatusDto find(UUID id) {
-        UserStatus userStatus = userStatusRepository.findById(id)
+    public UserStatusDto find(UUID userStatusId) {
+        return userStatusRepository.findById(userStatusId)
+            .map(userStatusMapper::toDto)
             .orElseThrow(() -> new NoSuchElementException(
                 ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
-
-        return userStatusMapper.toDto(userStatus);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<UserStatusDto> findAll() {
-        List<UserStatus> userStatuses = userStatusRepository.findAll();
-
-        return userStatuses.stream()
+        return userStatusRepository.findAll().stream()
             .map(userStatusMapper::toDto)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Transactional

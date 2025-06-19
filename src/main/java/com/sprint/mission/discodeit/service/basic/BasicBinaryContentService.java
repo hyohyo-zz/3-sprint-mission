@@ -52,20 +52,18 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Transactional(readOnly = true)
     @Override
     public BinaryContentDto find(UUID id) {
-        BinaryContent binaryContent = binaryContentRepository.findById(id)
+        return binaryContentRepository.findById(id)
+            .map(binaryContentMapper::toDto)
             .orElseThrow(() -> new NoSuchElementException(
                 ErrorMessages.format("BinaryContent", ErrorMessages.ERROR_NOT_FOUND)
             ));
-
-        return binaryContentMapper.toDto(binaryContent);
     }
 
     @Transactional(readOnly = true)
     @Override
-    public List<BinaryContentDto> findAllByIdIn(List<UUID> ids) {
-        return ids.stream()
-            .map(this::find)
-            .filter(Objects::nonNull)
+    public List<BinaryContentDto> findAllByIdIn(List<UUID> binaryContentIds) {
+        return binaryContentRepository.findAllById(binaryContentIds).stream()
+            .map(binaryContentMapper::toDto)
             .toList();
     }
 

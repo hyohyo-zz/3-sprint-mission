@@ -9,17 +9,24 @@ import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
@@ -29,7 +36,7 @@ public class UserController implements UserApi {
     private final UserService userService;
     private final UserStatusService userStatusService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<UserDto> create(
         @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
         @RequestPart(value = "profile", required = false) MultipartFile profile
@@ -56,10 +63,10 @@ public class UserController implements UserApi {
 
     @PatchMapping(
         path = "/{userId}",
-        consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+        consumes = {MediaType.MULTIPART_FORM_DATA_VALUE}
     )
     public ResponseEntity<UserDto> update(
-        @PathVariable UUID userId,
+        @PathVariable("userId") UUID userId,
         @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
         @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
@@ -78,12 +85,14 @@ public class UserController implements UserApi {
     public ResponseEntity<Void> delete(@PathVariable UUID userId) {
         userService.delete(userId);
 
-        return ResponseEntity.noContent().build(); // 204
+        return ResponseEntity
+            .status(HttpStatus.NO_CONTENT)
+            .build();
     }
 
     @PatchMapping(value = "/{userId}/userStatus")
     public ResponseEntity<UserStatusDto> updateUserStatusByUserId(
-        @PathVariable UUID userId,
+        @PathVariable("userId") UUID userId,
         @RequestBody UserStatusUpdateRequest request) {
         UserStatusDto updatedStatus = userStatusService.updateByUserId(userId, request);
 

@@ -13,16 +13,16 @@ import java.util.UUID;
 
 public interface MessageService {
 
-    public MessageDto create(MessageCreateRequest request,
-                             List<BinaryContentCreateRequest> attachmentRequests);
+    MessageDto create(MessageCreateRequest request,
+        List<BinaryContentCreateRequest> attachmentRequests);
 
-    public MessageDto find(UUID id);
+    MessageDto find(UUID id);
 
-    public PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor,
-                                                       Pageable pageable);
+    PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant createAt,
+        Pageable pageable);
 
-    public MessageDto update(UUID messageId, MessageUpdateRequest request);
+    MessageDto update(UUID messageId, MessageUpdateRequest request);
 
-    public void delete(UUID id);
+    void delete(UUID id);
 
 }
