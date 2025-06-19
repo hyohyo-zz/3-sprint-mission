@@ -1,72 +1,70 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.sprint.mission.discodeit.common.ErrorMessages;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
-public class Message {
-    private UUID id;
-    private User sender;        //보낸사람
-    private Channel channel;
-    private String category;
+@Entity
+@Getter
+@Table(name = "messages")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Message extends BaseUpdatableEntity {
+
+    @Column(columnDefinition = "text", nullable = false)
     private String content;     //내용
-    private long createdAt;
-    private long updatedAt;
 
-    public Message(User sender,Channel channel, String category, String content) {
-        this.id = UUID.randomUUID();
-        this.sender = sender;
-        this.channel = channel;
-        this.category = category;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "channel_id", columnDefinition = "uuid")
+    private Channel channel;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", columnDefinition = "uuid")
+    private User author;        //보낸사람
+
+    @BatchSize(size = 100)
+    @OneToMany(fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.ALL)
+    @JoinTable(
+        name = "message_attachments",
+        joinColumns = @JoinColumn(name = "message_id"),
+        inverseJoinColumns = @JoinColumn(name = "attachment_id")
+    )
+    private List<BinaryContent> attachments = new ArrayList<>();
+
+    public Message(String content, Channel channel, User author, List<BinaryContent> attachments) {
         this.content = content;
-        this.createdAt = System.currentTimeMillis();
-        this.updatedAt = this.createdAt;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public User getSender() {
-        return sender;
-    }
-    public void setSender(User sender) {
-        this.sender = sender;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-    public void setChannel(Channel channel) {
         this.channel = channel;
+        this.author = author;
+        this.attachments = attachments;
     }
 
-    public String getCategory() {return category;}
-    public void setCategory(String category) {
-        this.category = category;
+    public void update(String newContent) {
+        if (newContent != null && !newContent.equals(this.content)) {
+            this.content = newContent;
+        }
     }
 
-    public long getCreatedAt() {
-        return createdAt;
-    }
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
+    public void validateContent(List<BinaryContent> attachments) {
+        boolean isContentEmpty = (content == null || content.trim().isEmpty());
+        boolean hasNoAttachments = (attachments == null || attachments.isEmpty());
 
-    public String getContent() {
-        return content;
+        if (isContentEmpty && hasNoAttachments) {
+            throw new IllegalArgumentException(
+                ErrorMessages.format("MessageContent", ErrorMessages.ERROR_EMPTY)
+            );
+        }
     }
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public long getUpdatedAt() {
-        return updatedAt;
-    }
-    public void setUpdatedAt(long updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-
-
 }

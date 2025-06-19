@@ -1,85 +1,63 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-public class User {
-    private UUID id;
-    private String gender;
-    private String name;
+@Entity
+@Table(name = "users")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class User extends BaseUpdatableEntity {
+
+    @Column(length = 50, nullable = false, unique = true)
+    private String username;
+
+    @Column(length = 100, nullable = false, unique = true)
     private String email;
-    private String phone;
+
+    @Column(length = 60, nullable = false)
     private String password;
-    private long createdAt;
-    private long updatedAt;
 
-    public User(String name, String gender, String email, String phone, String password) {
-        this.id = UUID.randomUUID();
-        this.name = name;
-        this.gender = gender;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id", columnDefinition = "uuid")
+    private BinaryContent profile;
+
+    @JsonManagedReference
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Setter(AccessLevel.PROTECTED)
+    private UserStatus status;
+
+    public User(String username, String email, String password, BinaryContent profile) {
+        this.username = username;
         this.email = email;
-        this.phone = phone;
         this.password = password;
-        this.createdAt = System.currentTimeMillis();
-        this.updatedAt = this.createdAt;
+        this.profile = profile;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getGender() {return gender;}
-    public void setGender(String gender) {this.gender = gender;}
-
-    public String getEmail() {
-        return email;
-    }
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public long getCreatedAt() {
-        return createdAt;
-    }
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public long getUpdatedAt() {
-        return updatedAt;
-    }
-    public void setUpdatedAt(long updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String toString() {
-        return "User{" +
-                "Id='" + id + '\'' +
-                ", UserName='" + name + '\'' +
-                ", Gender='" + gender + '\'' +
-                ", email=" + email + '\'' +
-                ", phone=" + phone + '\'' +
-                ", password=" + password + '\'' +
-                '}';
+    public void update(String newUsername, String newEmail, String newPassword,
+        BinaryContent newProfile) {
+        if (newUsername != null && !newUsername.equals(this.username)) {
+            this.username = newUsername;
+        }
+        if (newEmail != null && !newEmail.equals(this.email)) {
+            this.email = newEmail;
+        }
+        if (newPassword != null && !newPassword.equals(this.password)) {
+            this.password = newPassword;
+        }
+        if (newProfile != null && !newProfile.equals(this.profile)) {
+            this.profile = newProfile;
+        }
     }
 }

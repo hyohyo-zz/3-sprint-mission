@@ -46,15 +46,23 @@ public class JCFUserService implements UserService {
         return data.remove(id) != null;
     }
 
+    //이름으로 유저검색
     public List<User> findByName(String name) {
         return data.values().stream()
                 .filter(user-> user.getName().contains(name))
                 .toList();
     }
 
+    //성별 그룹화
     public Map<String, List<User>> groupByGender() {
-        return data.values().stream()
+        Map<String, List<User>> result = data.values().stream()
                 .collect(Collectors.groupingBy(User::getGender));
-    }
 
+        result.forEach((gender, users) -> {
+            System.out.println(gender + ": ");
+            users.forEach(System.out::println);
+        });
+
+        return result;
+    }
 }

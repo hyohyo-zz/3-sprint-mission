@@ -1,71 +1,47 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-public class Channel {
-    private UUID id;
-    private String channelName;
-    private List<String> categories;
-    private Set<User> members;
-    private long createdAt;
-    private long updatedAt;
+@Entity
+@Table(name = "channels")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Channel extends BaseUpdatableEntity {
 
-    public Channel(String channelName, List<String> categories, Set<User> members) {
-        this.id = UUID.randomUUID();
-        this.channelName = channelName;
-        this.categories = categories;
-        this.members = members;
-        this.createdAt = System.currentTimeMillis();
-        this.updatedAt = this.createdAt;
-    }
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ChannelType type;
 
-    public UUID getChannelId() {
-        return id;
-    }
+    @Column(length = 100)
+    private String name;
 
-    public String getChannelName() {
-        return channelName;
-    }public List<String> getCategory() {
-        return categories;
-    }
-    public void setCategory(List<String> categories) {
-        this.categories = categories;
-    }
-    public void setChannelName(String channelName) {
-        this.channelName = channelName;
+    @Column(length = 500)
+    private String description;
+
+    public Channel(ChannelType type) {
+        this.type = type;
     }
 
-
-
-    public Set<User> getMembers() {
-        return members;
-    }
-    public void setMembers(Set<User> members) {
-        this.members = members;
+    public Channel(ChannelType type, String name, String description) {
+        this.type = type;
+        this.name = name;
+        this.description = description;
     }
 
-    public long getCreatedAt() {
-        return createdAt;
-    }
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public long getUpdatedAt() {
-        return updatedAt;
-    }
-    public void setUpdatedAt(long updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public String toString() {
-        return "Channel{" +
-                "Id='" + id + '\'' +
-                ", ChannelName='" + channelName + '\'' +
-                ", Category=" + categories + '\'' +
-                ", Members=" + members +
-                '}';
+    public void update(String newName, String newDescription) {
+        if (newName != null && !newName.equals(this.name)) {
+            this.name = newName;
+        }
+        if (newDescription != null && !newDescription.equals(this.description)) {
+            this.description = newDescription;
+        }
     }
 }
