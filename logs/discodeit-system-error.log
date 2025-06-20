@@ -1,4 +1,0 @@
-2025-06-21 00:29:22.671 [http-nio-8081-exec-6] ERROR c.s.m.discodeit.config.LoggingAspect - [Service] BasicAuthService#login 예외 발생 - 86ms - NoSuchElementException: 해당 user을(를) 찾을 수 없습니다!
-2025-06-21 00:29:22.676 [http-nio-8081-exec-6] ERROR c.s.m.discodeit.config.LoggingAspect - [Controller] AuthController#login 예외 발생 - 97ms - NoSuchElementException: 해당 user을(를) 찾을 수 없습니다!
-2025-06-21 01:20:47.549 [http-nio-80-exec-9] ERROR c.s.m.discodeit.config.LoggingAspect - [Service] BasicAuthService#login 예외 발생 - 72ms - NullPointerException: null
-2025-06-21 01:20:47.552 [http-nio-80-exec-9] ERROR c.s.m.discodeit.config.LoggingAspect - [Controller] AuthController#login 예외 발생 - 82ms - NullPointerException: null
