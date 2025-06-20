@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
+import com.sprint.mission.discodeit.exception.message.MessageEmptyException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -62,9 +62,7 @@ public class Message extends BaseUpdatableEntity {
         boolean hasNoAttachments = (attachments == null || attachments.isEmpty());
 
         if (isContentEmpty && hasNoAttachments) {
-            throw new IllegalArgumentException(
-                ErrorMessages.format("MessageContent", ErrorMessages.ERROR_EMPTY)
-            );
+            throw new MessageEmptyException();
         }
     }
 }

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,7 +45,7 @@ public class AuthController {
         )
     })
     public ResponseEntity<UserDto> login(
-        @Parameter(description = "로그인 정보") LoginRequest loginRequest) {
+        @Parameter(description = "로그인 정보") @RequestBody LoginRequest loginRequest) {
         UserDto user = authService.login(loginRequest);
 
         return ResponseEntity

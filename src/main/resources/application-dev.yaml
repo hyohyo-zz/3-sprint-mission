@@ -7,24 +7,26 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
-
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-        format_sql: true
-    open-in-view: false
-
   h2:
     console:
       enabled: true
-      path: /h2-console
+  jpa:
+    generate-ddl: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+        use_sql_comments: false
+    # OSIV 비활성화
+    open-in-view: false
 
 logging:
   level:
-    root: debug
-    com.sprint.mission.discodeit: debug
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
+    # 프로젝트 로그는 DEBUG 레벨
+    com.sprint.mission.discodeit: DEBUG
+    # SQL 로그를 위한 설정 (유지)
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
+    # Spring 웹 관련 로그
+    org.springframework.web: DEBUG

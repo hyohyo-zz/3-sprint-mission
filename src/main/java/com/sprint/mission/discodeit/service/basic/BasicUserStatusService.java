@@ -1,26 +1,24 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.data.UserStatusDto;
 import com.sprint.mission.discodeit.dto.request.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
+import com.sprint.mission.discodeit.exception.userstatus.DuplicateUserStatusException;
+import com.sprint.mission.discodeit.exception.userstatus.UserStatusNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
-import java.util.Optional;
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,14 +38,12 @@ public class BasicUserStatusService implements UserStatusService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> {
                 log.warn("[userStatus] 생성 실패 - 존재하지 않는 userId: userId={}", userId);
-                return new NoSuchElementException(
-                    ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND));
+                return new UserNotFoundException(userId);
             });
 
         if (user.getStatus() != null) {
             log.warn("[userStatus] 생성 실패 - userStatus 중복됨: userId={}", userId);
-            throw new IllegalArgumentException(
-                ErrorMessages.format("UserStatus", ErrorMessages.ERROR_EXISTS));
+            throw new DuplicateUserStatusException(userId);
         }
 
         Instant lastActiveAt = request.lastActiveAt();
@@ -63,8 +59,7 @@ public class BasicUserStatusService implements UserStatusService {
     public UserStatusDto find(UUID userStatusId) {
         return userStatusRepository.findById(userStatusId)
             .map(userStatusMapper::toDto)
-            .orElseThrow(() -> new NoSuchElementException(
-                ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND)));
+            .orElseThrow(() -> new UserStatusNotFoundException(userStatusId));
     }
 
     @Transactional(readOnly = true)
@@ -88,9 +83,10 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus userStatus = userStatusRepository.findById(userStatusId)
             .orElseThrow(() -> {
-                log.warn("[readStatus] 업데이트 실패 - 존재하지 않는 id: userStausId={}", userStatusId);
-                return new NoSuchElementException(
-                    ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
+                log.warn(
+                    "[readStatus] 업데이트 실패 - 존재하지 않는 id: userStausId={}",
+                    userStatusId);
+                return new UserStatusNotFoundException(userStatusId);
             });
 
         userStatus.update(newLastActiveAt);
@@ -108,9 +104,8 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
             .orElseThrow(() -> {
-                log.warn("[readStatus] 업데이트 실패 - 존재하지 않는 id: userId={}", userId);
-                return new NoSuchElementException(
-                    ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
+                log.warn("[readStatus] 업데이트 실패 - 존재하지 않는 userId: userId={}", userId);
+                return new UserNotFoundException(userId);
             });
         userStatus.update(newLastActiveAt);
         log.info("[readStatus] 업데이트 완료: userId={}, newLastActiveAt={}", userId, newLastActiveAt);
@@ -123,8 +118,7 @@ public class BasicUserStatusService implements UserStatusService {
     public void delete(UUID id) {
         if (!userStatusRepository.existsById(id)) {
             log.warn("[userStatus] 삭제 실패 - 존재하지 않는 id: id={}", id);
-            throw new NoSuchElementException(
-                ErrorMessages.format("UserStatus", ErrorMessages.ERROR_NOT_FOUND));
+            throw new UserStatusNotFoundException(id);
         }
         userStatusRepository.deleteById(id);
         log.info("[userStatus] 삭제 완료: id={}", id);

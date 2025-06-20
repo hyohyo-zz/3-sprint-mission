@@ -25,8 +25,7 @@ Public / Private 채널 생성, 메시지 전송, 사용자 상태 추적 등의
 ## 🧩 프로파일 기반 설정
 
 - `application-dev.yaml`: H2 DB, 서버 포트 8080
-- `application-prod.yaml`: PostgreSQL, 서버 포트 8081 (예시)
-- `application-test.yaml`: H2 인메모리 DB, 테스트 전용 설정 포함
+- `application-prod.yaml`: PostgreSQL, 서버 포트 8080
 
 모든 프로파일은 공통 설정을 `application.yaml`에서 상속합니다.
 

@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.data.MessageDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
@@ -10,6 +9,9 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -18,20 +20,16 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
-import java.util.Optional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -58,30 +56,17 @@ public class BasicMessageService implements MessageService {
         User author = userRepository.findById(authorId)
             .orElseThrow(() -> {
                 log.warn("[message] 생성 실패 - 존재하지 않는 userId: userId={}", authorId);
-                return new NoSuchElementException(
-                    ErrorMessages.format("User", ErrorMessages.ERROR_NOT_FOUND));
+                return new UserNotFoundException(authorId);
             });
 
         Channel channel = channelRepository.findById(channelId)
             .orElseThrow(() -> {
-                log.warn("[message] 생성 실패 - 존재하지 않는 channelId: channelId={}", channelId);
-                return new NoSuchElementException(
-                    ErrorMessages.format("Channel", ErrorMessages.ERROR_NOT_FOUND));
+                log.warn("[message] 생성 실패 - 존재하지 않는 channelId: channelId={}",
+                    channelId);
+                return new ChannelNotFoundException(channelId);
             });
 
-        List<BinaryContent> attachments = attachmentRequests == null ? List.of() :
-            attachmentRequests.stream()
-                .map(req -> {
-                    BinaryContent binaryContent = new BinaryContent(req.fileName(),
-                        (long) req.bytes().length,
-                        req.contentType());
-                    BinaryContent savedAttachment = binaryContentRepository.save(binaryContent);
-                    binaryContentStorage.put(savedAttachment.getId(), req.bytes());
-                    return savedAttachment;
-                })
-                .toList();
-        log.debug("[message] 첨부파일 요청 수: {}",
-            attachmentRequests != null ? attachmentRequests.size() : 0);
+        List<BinaryContent> attachments = createAttachment(attachmentRequests);
 
         Message message = new Message(
             request.content(),
@@ -107,8 +92,7 @@ public class BasicMessageService implements MessageService {
             .map(messageMapper::toDto)
             .orElseThrow(() -> {
                 log.warn("[message] 조회 실패 - 존재하지 않는 id: id={}", id);
-                return new NoSuchElementException(
-                    ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
+                return new MessageNotFoundException(id);
             });
     }
 
@@ -143,8 +127,7 @@ public class BasicMessageService implements MessageService {
         Message message = messageRepository.findById(messageId)
             .orElseThrow(() -> {
                 log.warn("[message] 수정 실패 - 존재하지 않는 id: id={}", messageId);
-                return new NoSuchElementException(
-                    ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
+                return new MessageNotFoundException(messageId);
             });
 
         message.update(newContent);
@@ -158,11 +141,34 @@ public class BasicMessageService implements MessageService {
     public void delete(UUID messageId) {
         if (!messageRepository.existsById(messageId)) {
             log.warn("[message] 삭제 실패 - 존재하지 않는 id: id={}", messageId);
-            throw new NoSuchElementException(
-                ErrorMessages.format("Message", ErrorMessages.ERROR_NOT_FOUND));
+            throw new MessageNotFoundException(messageId);
         }
 
         messageRepository.deleteById(messageId);
         log.info("[message] 삭제 완료: id={}", messageId);
+    }
+
+    /**
+     * 첨부파일 생성 메서드
+     */
+    private List<BinaryContent> createAttachment(
+        List<BinaryContentCreateRequest> attachmentRequests) {
+        List<BinaryContent> attachments = attachmentRequests == null ? List.of() :
+            attachmentRequests.stream()
+                .map(
+                    req -> {
+                        BinaryContent binaryContent = new BinaryContent(
+                            req.fileName(),
+                            (long) req.bytes().length,
+                            req.contentType());
+                        BinaryContent savedAttachment = binaryContentRepository.save(binaryContent);
+                        binaryContentStorage.put(savedAttachment.getId(), req.bytes());
+                        return savedAttachment;
+                    })
+                .toList();
+        log.debug("[message] 첨부파일 요청 수: {}",
+            attachmentRequests != null ? attachmentRequests.size() : 0);
+
+        return attachments;
     }
 }

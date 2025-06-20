@@ -39,3 +39,8 @@ out/
 /binary-contents/
 *.ser
 
+### logs ###
+.logs/
+logs/
+*.log
+

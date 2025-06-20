@@ -1,15 +1,20 @@
 package com.sprint.mission.discodeit.storage.local;
 
-import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
+import com.sprint.mission.discodeit.exception.binarycontent.DuplicateFileException;
+import com.sprint.mission.discodeit.exception.binarycontent.FileInitFailedException;
+import com.sprint.mission.discodeit.exception.binarycontent.FileNotFoundException;
+import com.sprint.mission.discodeit.exception.binarycontent.FileReadFailedException;
+import com.sprint.mission.discodeit.exception.binarycontent.FileSaveFailedException;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -37,8 +42,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
             try {
                 Files.createDirectories(root);
             } catch (IOException e) {
-                throw new RuntimeException(ErrorMessages.format(
-                    "LocalBinaryContentStorage", ErrorMessages.ERROR_FILE_INIT_FAILED), e);
+                throw new FileInitFailedException(root.toString(), e);
             }
         }
     }
@@ -47,14 +51,12 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     public UUID put(UUID binaryContentId, byte[] bytes) {
         Path filePath = resolvePath(binaryContentId);
         if (Files.exists(filePath)) {
-            throw new IllegalArgumentException(
-                ErrorMessages.format("binaryContent", ErrorMessages.ERROR_EXISTS));
+            throw new DuplicateFileException(binaryContentId, filePath.getFileName().toString());
         }
         try (OutputStream outputStream = Files.newOutputStream(filePath)) {
             outputStream.write(bytes);
         } catch (IOException e) {
-            throw new RuntimeException(ErrorMessages.format(
-                "BinaryContent", ErrorMessages.ERROR_FILE_SAVE_FAILED), e);
+            throw new FileSaveFailedException(filePath.toString(), e);
         }
         return binaryContentId;
     }
@@ -63,14 +65,12 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     public InputStream get(UUID binaryContentId) {
         Path filePath = resolvePath(binaryContentId);
         if (Files.notExists(filePath)) {
-            throw new NoSuchElementException(
-                ErrorMessages.format("binaryContent", ErrorMessages.ERROR_NOT_FOUND));
+            throw new FileNotFoundException(binaryContentId);
         }
         try {
             return Files.newInputStream(filePath);
         } catch (IOException e) {
-            throw new RuntimeException(ErrorMessages.format(
-                "BinaryContent", ErrorMessages.ERROR_FILE_READ_FAILED), e);
+            throw new FileReadFailedException(filePath.toString(), e);
         }
     }
 
@@ -79,10 +79,14 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
         InputStream inputStream = get(binaryContentDto.id());
         Resource resource = new InputStreamResource(inputStream);
 
+        // RFC 5987표준을 사용해 파일명 UTF-8로 인코딩
+        String encodedFilename = URLEncoder.encode(binaryContentDto.fileName(),
+            StandardCharsets.UTF_8);
+
         return ResponseEntity
             .ok()
             .header(HttpHeaders.CONTENT_DISPOSITION,
-                "attachment; filename=\"" + binaryContentDto.fileName() + "\"")
+                "attachment; filename*=UTF-8''" + encodedFilename)
             .contentType(MediaType.parseMediaType(binaryContentDto.contentType()))
             .contentLength(binaryContentDto.size())
             .body(resource);

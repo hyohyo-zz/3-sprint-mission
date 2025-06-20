@@ -1,22 +1,20 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.common.ErrorMessages;
 import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.exception.binarycontent.FileNotFoundException;
+import com.sprint.mission.discodeit.exception.binarycontent.FileUploadInvalidException;
 import com.sprint.mission.discodeit.mapper.BinaryContentMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
+import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,9 +37,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
         if (bytes == null || bytes.length == 0) {
             log.warn("[binaryContent] 업로드 실패 - 파일 없음 또는 0바이트: fileName={}", fileName);
-
-            throw new RuntimeException(
-                ErrorMessages.format("binaryContent", ErrorMessages.ERROR_FILE_UPLOAD_INVALID));
+            throw new FileUploadInvalidException(fileName);
         }
 
         //1. 메타데이터만 가진 BinaryContent 객체 생성
@@ -70,8 +66,7 @@ public class BasicBinaryContentService implements BinaryContentService {
             .map(binaryContentMapper::toDto)
             .orElseThrow(() -> {
                 log.warn("[binaryContent] 조회 실패 - 존재하지 않는 id: id={}", id);
-                return new NoSuchElementException(
-                    ErrorMessages.format("BinaryContent", ErrorMessages.ERROR_NOT_FOUND));
+                return new FileNotFoundException(id);
             });
     }
 
@@ -90,8 +85,7 @@ public class BasicBinaryContentService implements BinaryContentService {
     public void delete(UUID id) {
         if (!binaryContentRepository.existsById(id)) {
             log.warn("[binaryContent] 삭제 실패 - 존재하지 않는 id: id={}", id);
-            throw new IllegalArgumentException(
-                ErrorMessages.format("binaryContent", ErrorMessages.ERROR_NOT_FOUND));
+            throw new FileNotFoundException(id);
         }
         binaryContentRepository.deleteById(id);
         log.info("[binaryContent] 삭제 완료: id={}", id);
