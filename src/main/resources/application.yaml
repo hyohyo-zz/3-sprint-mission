@@ -9,6 +9,42 @@ spring:
       maxFileSize: 10MB # 파일 하나의 최대 크기
       maxRequestSize: 30MB  # 한 번에 최대 업로드 가능 용량
 
+info:
+  app:
+    name: Discodeit
+    version: 1.7.0
+    description: Discord-like messaging application
+  java:
+    version: 17
+  spring:
+    boot:
+      version: 3.4.0
+  datasource:
+    url: ${spring.datasource.url:jdbc:h2:mem:testdb}
+    driver-class-name: ${spring.datasource.driver-class-name:org.h2.Driver}
+  jpa:
+    ddl-auto: ${spring.jpa.hibernate.ddl-auto:create}
+  storage:
+    type: ${app.storage.type:local}
+    path: ${app.storage.local.path:binary-contents}
+  multipart:
+    max-file-size: ${spring.servlet.multipart.max-file-size:10MB}
+    max-request-size: ${spring.servlet.multipart.max-request-size:50MB}
+
+# Actuator 설정
+management:
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers
+
 # 기본 로깅 레벨 설정
 logging:
   level:
