@@ -56,13 +56,4 @@ public class Message extends BaseUpdatableEntity {
             this.content = newContent;
         }
     }
-
-    public void validateContent(List<BinaryContent> attachments) {
-        boolean isContentEmpty = (content == null || content.trim().isEmpty());
-        boolean hasNoAttachments = (attachments == null || attachments.isEmpty());
-
-        if (isContentEmpty && hasNoAttachments) {
-            throw new MessageEmptyException();
-        }
-    }
 }

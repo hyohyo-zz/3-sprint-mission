@@ -10,6 +10,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.message.MessageEmptyException;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
@@ -75,7 +76,7 @@ public class BasicMessageService implements MessageService {
             attachments
         );
 
-        message.validateContent(attachments);
+        validateContent(request.content(), attachments);
         messageRepository.save(message);
         log.info("[message] 생성 완료: messageId={}, authorId={}, channelId={}",
             message.getId(), authorId, channelId);
@@ -170,5 +171,19 @@ public class BasicMessageService implements MessageService {
             attachmentRequests != null ? attachmentRequests.size() : 0);
 
         return attachments;
+    }
+
+    /**
+     * 엔티티에 있던 검증 로직 서비스로 이동
+     * <p>
+     * 메시지의 내용과 첨부파일이 없으면 예외를 던짐
+     */
+    public void validateContent(String content, List<BinaryContent> attachments) {
+        boolean isContentEmpty = (content == null || content.trim().isEmpty());
+        boolean hasNoAttachments = (attachments == null || attachments.isEmpty());
+
+        if (isContentEmpty && hasNoAttachments) {
+            throw new MessageEmptyException();
+        }
     }
 }

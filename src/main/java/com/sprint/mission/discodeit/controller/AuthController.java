@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -45,7 +46,7 @@ public class AuthController {
         )
     })
     public ResponseEntity<UserDto> login(
-        @Parameter(description = "로그인 정보") @RequestBody LoginRequest loginRequest) {
+        @Parameter(description = "로그인 정보") @Valid @RequestBody LoginRequest loginRequest) {
         UserDto user = authService.login(loginRequest);
 
         return ResponseEntity
