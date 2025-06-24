@@ -178,7 +178,7 @@ public class BasicMessageService implements MessageService {
      * <p>
      * 메시지의 내용과 첨부파일이 없으면 예외를 던짐
      */
-    public void validateContent(String content, List<BinaryContent> attachments) {
+    private void validateContent(String content, List<BinaryContent> attachments) {
         boolean isContentEmpty = (content == null || content.trim().isEmpty());
         boolean hasNoAttachments = (attachments == null || attachments.isEmpty());
 

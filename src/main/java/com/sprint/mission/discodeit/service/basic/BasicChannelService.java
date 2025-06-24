@@ -17,6 +17,7 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,9 +43,8 @@ public class BasicChannelService implements ChannelService {
     @Transactional
     @Override
     public ChannelDto create(PrivateChannelCreateRequest request) {
-        Set<UUID> requestParticipantIds = new HashSet<>(request.participantIds());
-        log.info("[channel] 생성 요청: 참여자 수={}, 참여자 Id={}", requestParticipantIds.size(),
-            requestParticipantIds);
+        List<UUID> requestParticipantIds = new ArrayList<>(request.participantIds());
+        log.info("[channel] 생성 요청: 참여자 수={}", requestParticipantIds.size());
 
         Channel privateChannel = channelRepository.save(new Channel(ChannelType.PRIVATE));
         log.info("[channel] 생성 완료: id={}, type={}", privateChannel.getId(),
@@ -53,7 +53,7 @@ public class BasicChannelService implements ChannelService {
         List<User> users = userRepository.findAllById(requestParticipantIds);
 
         if (users.size() != requestParticipantIds.size()) {
-            Set<UUID> found = users.stream().map(User::getId).collect(Collectors.toSet());
+            List<UUID> found = users.stream().map(User::getId).toList();
             requestParticipantIds.removeAll(found);
 
             log.warn("[channel] 참여자 추출 오류 - 유효하지 않은 Id 포함: {}", requestParticipantIds);
@@ -103,11 +103,11 @@ public class BasicChannelService implements ChannelService {
     @Transactional(readOnly = true)
     @Override
     public List<ChannelDto> findAllByUserId(UUID userId) {
+        log.info("[channel] 전체 조회 요청: userId={}", userId);
         List<UUID> mySubscribedChannelIds = readStatusRepository.findAllByUserId(userId).stream()
             .map(ReadStatus::getChannel)
             .map(Channel::getId)
             .toList();
-        log.info("[channel] 전체 조회 요청: userId={}, size={}", userId, mySubscribedChannelIds.size());
 
         List<ChannelDto> channels = channelRepository.findAllByTypeOrIdIn(ChannelType.PUBLIC,
                 mySubscribedChannelIds)
