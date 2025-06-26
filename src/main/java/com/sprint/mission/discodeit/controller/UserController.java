@@ -9,12 +9,11 @@ import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -71,7 +70,7 @@ public class UserController implements UserApi {
     )
     public ResponseEntity<UserDto> update(
         @PathVariable("userId") UUID userId,
-        @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
+        @RequestPart("userUpdateRequest") @Valid UserUpdateRequest userUpdateRequest,
         @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
         Optional<BinaryContentCreateRequest> profileRequest =

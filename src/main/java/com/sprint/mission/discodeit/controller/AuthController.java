@@ -46,7 +46,7 @@ public class AuthController {
         )
     })
     public ResponseEntity<UserDto> login(
-        @Parameter(description = "로그인 정보") @Valid @RequestBody LoginRequest loginRequest) {
+        @Parameter(description = "로그인 정보") @RequestBody @Valid LoginRequest loginRequest) {
         UserDto user = authService.login(loginRequest);
 
         return ResponseEntity
