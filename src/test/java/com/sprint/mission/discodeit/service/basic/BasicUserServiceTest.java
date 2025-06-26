@@ -125,7 +125,7 @@ class BasicUserServiceTest {
         assertThatThrownBy(() -> userService.create(userCreateRequest, Optional.empty()))
             .isInstanceOf(DuplicateEmailException.class);
 
-        then(userRepository).should().existsByEmail(userCreateRequest.email());
+        then(userRepository).should().existsByEmail("zzo@email.com");
         then(userRepository).should(never()).save(any(User.class));
     }
 
@@ -141,7 +141,7 @@ class BasicUserServiceTest {
         assertThatThrownBy(() -> userService.create(userCreateRequest, Optional.empty()))
             .isInstanceOf(DuplicateUserException.class);
 
-        then(userRepository).should().existsByUsername(userCreateRequest.username());
+        then(userRepository).should().existsByUsername("조현아");
         then(userRepository).should(never()).save(any(User.class));
     }
 
@@ -237,8 +237,8 @@ class BasicUserServiceTest {
 
         // Then
         assertThat(result.id()).isEqualTo(userId);
-        assertThat(result.username()).isEqualTo(testUpdateRequest.newUsername());
-        assertThat(result.email()).isEqualTo(testUpdateRequest.newEmail());
+        assertThat(result.username()).isEqualTo("뉴현아");
+        assertThat(result.email()).isEqualTo("zzo@email.com");
 
         then(userRepository).should().findById(userId);
         then(userRepository).should().existsByEmail(testUpdateRequest.newEmail());
@@ -265,7 +265,7 @@ class BasicUserServiceTest {
             .isInstanceOf(DuplicateEmailException.class);
 
         then(userRepository).should().findById(userId);
-        then(userRepository).should().existsByEmail(testUpdateRequest.newEmail());
+        then(userRepository).should().existsByEmail("zzo@email.com");
     }
 
     @Test

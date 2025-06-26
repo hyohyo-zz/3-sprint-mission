@@ -47,8 +47,6 @@ public class MessageController implements MessageApi {
         @RequestPart("messageCreateRequest") @Valid MessageCreateRequest messageCreateRequest,
         @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
-        List<MultipartFile> multipartAttachments = attachments != null ? attachments : List.of();
-
         List<BinaryContentCreateRequest> attachmentRequests =
             Optional.ofNullable(attachments)
                 .orElse(List.of())

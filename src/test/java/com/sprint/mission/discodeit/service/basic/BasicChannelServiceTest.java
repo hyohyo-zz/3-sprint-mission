@@ -46,9 +46,6 @@ class BasicChannelServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private UserMapper userMapper;
-
-    @Mock
     private ChannelMapper channelMapper;
 
     @Mock
@@ -118,8 +115,8 @@ class BasicChannelServiceTest {
 
         // Then
         assertThat(result.type()).isEqualTo(ChannelType.PUBLIC);
-        assertThat(result.name()).isEqualTo(request.name());
-        assertThat(result.description()).isEqualTo(request.description());
+        assertThat(result.name()).isEqualTo("채널1");
+        assertThat(result.description()).isEqualTo("테스트 채널입니다.");
 
         then(channelRepository).should().save(any(Channel.class));
         then(channelMapper).should().toDto(any(Channel.class));

@@ -46,8 +46,7 @@ public class GlobalExceptionHandler {
 
 
     /**
-     * @Valid 유효성 검사 실패 시 발생하는 예외 처리
-     * (@RequestBody 사용 시)
+     * @Valid 유효성 검사 실패 시 발생하는 예외 처리 (@RequestBody 사용 시)
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(
