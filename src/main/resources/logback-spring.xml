@@ -4,8 +4,7 @@
   <!-- 변수 정의 -->
   <appender class="ch.qos.logback.core.ConsoleAppender" name="CONSOLE">
     <encoder>
-      <pattern>%d{yy-MM-dd HH:mm:ss.SSS} %cyan([%thread]) %highlight(%-5level) %yellow(%logger{36})
-        - %msg%n
+      <pattern>%d{yy-MM-dd HH:mm:ss.SSS} %cyan([%thread]) %highlight(%-5level) %yellow(%logger{36}) - %msg%n
       </pattern>
     </encoder>
   </appender>
