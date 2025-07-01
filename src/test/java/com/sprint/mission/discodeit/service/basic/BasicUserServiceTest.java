@@ -56,10 +56,6 @@ class BasicUserServiceTest {
     @InjectMocks
     private BasicUserService userService;
 
-    @BeforeEach
-    void setUp() {
-    }
-
     @Test
     @DisplayName("사용자 생성 - 성공(프로필 이미지 있음)")
     void create_Success() {
@@ -267,6 +263,48 @@ class BasicUserServiceTest {
         then(userRepository).should().findById(userId);
         then(userRepository).should().existsByEmail("zzo@email.com");
     }
+
+    @Test
+    @DisplayName("사용자 수정 - 실패(존재하지 않는 id)")
+    void update_Fail_UserNotFound() {
+        // Given
+        UUID userId = UUID.randomUUID();
+
+        UserUpdateRequest testUpdateRequest = new UserUpdateRequest("뉴현아", "zzo@email.com",
+            "newPassword123");
+        Optional<BinaryContentCreateRequest> emptyProfile = Optional.empty();
+
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> userService.update(userId, testUpdateRequest, emptyProfile))
+            .isInstanceOf(UserNotFoundException.class);
+
+        then(userRepository).should().findById(userId);
+    }
+
+    @Test
+    @DisplayName("사용자 수정 - 실패(이름 중복)")
+    void update_Fail_ExistsByUsername() {
+        // Given
+        UUID userId = UUID.randomUUID();
+        UserUpdateRequest testUpdateRequest = new UserUpdateRequest("중복현아", "zzo@email.com",
+            "newPassword123");
+        Optional<BinaryContentCreateRequest> emptyProfile = Optional.empty();
+        User user = new User("중복현아", "zzo@email.com", "newPassword123!", null);
+        ReflectionTestUtils.setField(user, "id", userId);
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(userRepository.existsByUsername(testUpdateRequest.newUsername())).willReturn(true);
+
+        // When & Then
+        assertThatThrownBy(() -> userService.update(userId, testUpdateRequest, emptyProfile))
+            .isInstanceOf(DuplicateUserException.class);
+
+        then(userRepository).should().findById(userId);
+        then(userRepository).should().existsByUsername("중복현아");
+    }
+
 
     @Test
     @DisplayName("사용자 삭제 - 성공")
