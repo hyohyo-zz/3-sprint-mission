@@ -1,29 +1,37 @@
-version: '3.8'
-
 services:
   app:
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
     build:
       context: .
       dockerfile: Dockerfile
+    image: discodeit-app:1.2-M8
     container_name: discodeit-app
     ports:
       - "8081:80"
+    env_file:
+      - .env
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
-      PROJECT_NAME: ${PROJECT_NAME}
-      PROJECT_VERSION: ${PROJECT_VERSION}
-      JVM_OPTS: ${JVM_OPTS}
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      STORAGE_TYPE: ${STORAGE_TYPE}
+      STORAGE_LOCAL_ROOT_PATH: ${STORAGE_LOCAL_ROOT_PATH:-/app/storage}
     volumes:
       - binary-content:/app/storage
     depends_on:
       - db
 
   db:
-    image: postgres:15
+    image: postgres:17.5
     container_name: discodeit-db
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

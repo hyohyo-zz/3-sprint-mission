@@ -43,12 +43,16 @@ class BasicUserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
     @Mock
     private UserStatusRepository userStatusRepository;
+
     @Mock
     private BinaryContentRepository binaryContentRepository;
+
     @Mock
     private UserMapper userMapper;
+
     @Mock
     private BinaryContentStorage binaryContentStorage;
 

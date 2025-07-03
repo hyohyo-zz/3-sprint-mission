@@ -18,5 +18,5 @@ ENV PROJECT_NAME=discodeit \
 # 80 포트 노출
 EXPOSE 80
 
-# 애플리케이션 실행 (환경변수를 활용해 JAR 이름 유추)
+# 애플리케이션 실행
 CMD ["sh", "-c", "java $JVM_OPTS -jar build/libs/$PROJECT_NAME-$PROJECT_VERSION.jar"]

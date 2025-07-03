@@ -18,6 +18,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ActiveProfiles("test")
 public class AWSS3Test {
 
     private final Logger log = LoggerFactory.getLogger(AWSS3Test.class);
@@ -41,7 +43,7 @@ public class AWSS3Test {
     private S3Client s3Client;
     private S3Presigner presigner;
 
-    String key = "test/test1.png";
+    private String key = "test/test1.png";
 
     @BeforeAll
     void loadProperties() throws IOException {
@@ -69,11 +71,11 @@ public class AWSS3Test {
     @Test
     @Order(1)
     void upload() throws IOException {
-        // given
+        // Given
         Path imagePath = Paths.get("src/test/resources/test1.png");
         byte[] imageBytes = Files.readAllBytes(imagePath);
 
-        // when
+        // When
         PutObjectRequest uploadRequest = PutObjectRequest.builder()
             .bucket(bucket)
             .key(key)
@@ -81,18 +83,18 @@ public class AWSS3Test {
             .build();
         s3Client.putObject(uploadRequest, RequestBody.fromBytes(imageBytes));
 
-        // then
+        // Then
         log.info("이미지 업로드 완료: {}", key);
     }
 
     @Test
     void download() throws IOException {
-        // given
+        // Given
         String fileName = "testImage";
         Path imagePath = Paths.get("src/test/resources/test1.png");
         byte[] originalBytes = Files.readAllBytes(imagePath);
 
-        // when
+        // When
         byte[] downloadedBytes;
         try (InputStream inputStream = s3Client.getObject(GetObjectRequest.builder()
             .bucket(bucket).key(key).build())) {
@@ -108,7 +110,7 @@ public class AWSS3Test {
             .signatureDuration(Duration.ofMinutes(10))
         ).url().toString();
 
-        // then
+        // Then
         assertEquals(originalBytes.length, downloadedBytes.length);
         log.info("자동 다운로드 링크: {}", url);
         log.info("다운로드된 이미지 크기: {}", downloadedBytes.length);
@@ -116,7 +118,7 @@ public class AWSS3Test {
 
     @Test
     void generatePresignedUrl() {
-        // when
+        // When
         String url = presigner.presignGetObject(p -> p
             .getObjectRequest(GetObjectRequest.builder()
                 .bucket(bucket)
@@ -125,7 +127,7 @@ public class AWSS3Test {
             .signatureDuration(Duration.ofMinutes(10))
         ).url().toString();
 
-        // then
+        // Then
         assertNotNull(url);
         log.info("생성된 Presigned URL:\n{}", url);
     }

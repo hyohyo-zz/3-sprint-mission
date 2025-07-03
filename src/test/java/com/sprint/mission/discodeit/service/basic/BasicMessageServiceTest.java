@@ -74,10 +74,6 @@ class BasicMessageServiceTest {
     @InjectMocks
     private BasicMessageService messageService;
 
-    @BeforeEach
-    void setUp() {
-    }
-
     @Test
     @DisplayName("메시지 생성 - 성공(첨부파일 없음)")
     void create_NoAttachments_Success() {
