@@ -28,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
@@ -84,16 +85,17 @@ public class UserIntegrationTest {
         UserCreateRequest request = new UserCreateRequest("생성유저", "create@email.com",
             "password123!");
         String json = objectMapper.writeValueAsString(request);
-
         MockMultipartFile userPart = new MockMultipartFile(
             "userCreateRequest", "", "application/json", json.getBytes()
         );
 
-        // When & Then
-        mockMvc.perform(multipart("/api/users")
-                .file(userPart)
-                .contentType(MediaType.MULTIPART_FORM_DATA))
-            .andExpect(status().isCreated())
+        // When
+        ResultActions result = mockMvc.perform(multipart("/api/users")
+            .file(userPart)
+            .contentType(MediaType.MULTIPART_FORM_DATA));
+
+        // Then
+        result.andExpect(status().isCreated())
             .andExpect(jsonPath("$.username").value("생성유저"))
             .andExpect(jsonPath("$.email").value("create@email.com"))
             .andDo(print());
@@ -102,10 +104,12 @@ public class UserIntegrationTest {
     @Test
     @DisplayName("유저 전체 조회 - 성공")
     void getUserAll_Success() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/users")
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
+        // When
+        ResultActions result = mockMvc.perform(get("/api/users")
+            .contentType(MediaType.APPLICATION_JSON));
+
+        // Then
+        result.andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(2))  // 조현아, 투현아 2명
             .andExpect(jsonPath("$[0].username").value("조현아"))
             .andExpect(jsonPath("$[0].email").value("zzo@email.com"))
@@ -122,16 +126,18 @@ public class UserIntegrationTest {
         UserUpdateRequest request = new UserUpdateRequest("뉴현아", "updated@email.com",
             "newPassword123!");
         String json = objectMapper.writeValueAsString(request);
-
         MockMultipartFile userPart = new MockMultipartFile(
             "userUpdateRequest", "", "application/json", json.getBytes()
         );
 
-        // When & Then
-        mockMvc.perform(multipart(HttpMethod.PATCH, "/api/users/{id}", userId)
+        // When
+        ResultActions result = mockMvc.perform(
+            multipart(HttpMethod.PATCH, "/api/users/{id}", userId)
                 .file(userPart)
-                .contentType(MediaType.MULTIPART_FORM_DATA))
-            .andExpect(status().isOk())
+                .contentType(MediaType.MULTIPART_FORM_DATA));
+
+        // Then
+        result.andExpect(status().isOk())
             .andExpect(jsonPath("$.username").value("뉴현아"))
             .andExpect(jsonPath("$.email").value("updated@email.com"))
             .andDo(print());
@@ -150,11 +156,14 @@ public class UserIntegrationTest {
             "userUpdateRequest", "", "application/json", json.getBytes()
         );
 
-        // When & Then
-        mockMvc.perform(multipart(HttpMethod.PATCH, "/api/users/{id}", nonExistentUserId)
+        // When
+        ResultActions result = mockMvc.perform(
+            multipart(HttpMethod.PATCH, "/api/users/{id}", nonExistentUserId)
                 .file(userPart)
-                .contentType(MediaType.MULTIPART_FORM_DATA))
-            .andExpect(status().isNotFound())
+                .contentType(MediaType.MULTIPART_FORM_DATA));
+
+        // Then
+        result.andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").exists())
             .andDo(print());
     }
@@ -165,10 +174,12 @@ public class UserIntegrationTest {
         // Given
         String userId = savedUser1.getId().toString();
 
-        // When & Then
-        mockMvc.perform(delete("/api/users/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNoContent())
+        // When
+        ResultActions result = mockMvc.perform(delete("/api/users/{id}", userId)
+            .contentType(MediaType.APPLICATION_JSON));
+
+        // Then
+        result.andExpect(status().isNoContent())
             .andDo(print());
     }
 
@@ -178,10 +189,12 @@ public class UserIntegrationTest {
         // Given
         String nonExistentUserId = "99999999-9999-9999-9999-999999999999";
 
-        // When & Then
-        mockMvc.perform(delete("/api/users/{id}", nonExistentUserId)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
+        // When
+        ResultActions result = mockMvc.perform(delete("/api/users/{id}", nonExistentUserId)
+            .contentType(MediaType.APPLICATION_JSON));
+
+        // Then
+        result.andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").exists())
             .andDo(print());
     }
