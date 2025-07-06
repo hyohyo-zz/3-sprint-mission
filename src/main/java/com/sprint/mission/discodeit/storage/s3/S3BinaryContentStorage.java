@@ -2,14 +2,8 @@ package com.sprint.mission.discodeit.storage.s3;
 
 import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +21,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
 @Component
 @RequiredArgsConstructor
@@ -43,7 +36,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
 
     @Override
     public UUID put(UUID binaryContentId, byte[] bytes) {
-        String key = binaryContentId.toString();
+        String key = "uploads/" + binaryContentId.toString();
         S3Client client = getS3Client();
         bucket = s3.getBucket();
         String contentType = detectContentType(bytes);
@@ -61,7 +54,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
 
     @Override
     public InputStream get(UUID binaryContentId) {
-        String key = binaryContentId.toString();
+        String key = "uploads/" + binaryContentId.toString();
         S3Client client = getS3Client();
         bucket = s3.getBucket();
 
@@ -73,7 +66,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
 
     @Override
     public ResponseEntity<Resource> download(BinaryContentDto binaryContentDto) {
-        String key = binaryContentDto.id().toString();
+        String key = "uploads/" + binaryContentDto.id().toString();
         String contentType = binaryContentDto.contentType();
 
         // Content-Disposition 헤더를 포함한 PresignedUrl 생성
@@ -125,28 +118,6 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
             return presigner.presignGetObject(presignRequest).url().toString();
         }
     }
-//
-//    public String generateViewUrl(String key) {
-//        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
-//
-//        try (S3Presigner presigner = S3Presigner.builder()
-//            .region(Region.of(region))
-//            .credentialsProvider(StaticCredentialsProvider.create(credentials))
-//            .build()) {
-//
-//            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-//                .bucket(bucket)
-//                .key(key)
-//                .build();
-//
-//            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-//                .signatureDuration(Duration.ofMinutes(10))
-//                .getObjectRequest(getObjectRequest)
-//                .build();
-//
-//            return presigner.presignGetObject(presignRequest).url().toString();
-//        }
-//    }
 
     /**
      * ContentType에서 확장자 매핑

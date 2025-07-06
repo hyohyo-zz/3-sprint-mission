@@ -1,19 +1,25 @@
 spring:
   application:
     name: discodeit
+
+  profiles:
+    active: prod
+
   servlet:
     multipart:
       maxFileSize: 10MB # 파일 하나의 최대 크기
       maxRequestSize: 30MB  # 한 번에 최대 업로드 가능 용량
+
   datasource:
     driver-class-name: org.postgresql.Driver
+
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
-  profiles:
-    active:
-      - dev
+    generate-ddl: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
   boot:
     admin:
       client:
@@ -25,13 +31,16 @@ management:
     web:
       exposure:
         include: health,info,metrics,loggers
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
-
+      show-components: always
 info:
   name: Discodeit
-  version: 1.2-M8
+  description: 실시간 커뮤니케이션 시스템
+  version: 1.7.0
+  encoding: UTF-8
   java:
     version: 17
   spring-boot:
@@ -59,8 +68,10 @@ discodeit:
       secret-key: ${AWS_S3_SECRET_KEY}
       region: ${AWS_S3_REGION}
       bucket: ${AWS_S3_BUCKET}
-      presigned-url-expiration: ${AWS_S3_PRESIGNED_URL_EXPIRATION:600} # (기본값: 10분)
 
 logging:
   level:
     root: info
+
+server:
+  port: 8080

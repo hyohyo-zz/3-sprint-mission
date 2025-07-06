@@ -49,3 +49,5 @@ logs/
 *.ser
 
 .env
+
+discodeit.env

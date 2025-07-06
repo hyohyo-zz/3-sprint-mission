@@ -1,5 +1,11 @@
-.git
+.gradle
 build
+out
 *.iml
+.idea
 *.log
-src/test
+*.env
+*.md
+Dockerfile
+docker-compose.yml
+discodeit.env
