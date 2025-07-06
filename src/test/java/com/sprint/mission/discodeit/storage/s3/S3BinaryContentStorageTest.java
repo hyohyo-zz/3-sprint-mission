@@ -64,7 +64,7 @@ public class S3BinaryContentStorageTest {
         storage = new S3BinaryContentStorage(s3Properties);
 
         // 테스트 데이터 준비
-        Path imagePath = Paths.get("src/test/resources/test1.png");
+        Path imagePath = Paths.get("src/test/resources/test2.png");
         bytes = Files.readAllBytes(imagePath);
 
         log.info("초기화 완료 - Access Key: {}, Region: {}, Bucket: {}",
@@ -128,23 +128,4 @@ public class S3BinaryContentStorageTest {
         log.info("리다이렉트 응답 생성 성공!");
         log.info("리다이렉트 URL: {}", redirectUrl);
     }
-//
-//    @Test
-//    void viewUrl() {
-//        // given
-//        String key = binaryContentId.toString();
-//
-//        // when
-//        String viewUrl = storage.generateViewUrl(key);
-//
-//        // then
-//        assertNotNull(viewUrl);
-//        assertTrue(viewUrl.contains("amazonaws.com"));
-//        assertFalse(
-//            viewUrl.contains("response-content-disposition"));
-//
-//        log.info("보기용 URL 생성 성공!");
-//        log.info("보기용 URL: {}", viewUrl);
-//
-//    }
 }
