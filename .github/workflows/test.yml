@@ -10,6 +10,7 @@ env:
   AWS_S3_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
   AWS_S3_REGION: ${{ vars.AWS_REGION }}
   AWS_S3_BUCKET: ${{ vars.AWS_BUCKET }}
+  AWS_S3_PRESIGNED_URL_EXPIRATION: ${{ vars.AWS_EXPIRATION }}
 
 jobs:
   build:
@@ -27,7 +28,7 @@ jobs:
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-        
+
       - name: Run tests and generate coverage
         run: ./gradlew test
         env:

@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.storage.s3;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Properties;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
@@ -45,14 +47,23 @@ public class AWSS3Test {
     private String key = "test/test1.png";
 
     @BeforeAll
-    void loadProperties() throws IOException {
-        Properties props = new Properties();
-        props.load(new FileInputStream(".env"));
+    void loadProperties() {
+        Dotenv dotenv = Dotenv.configure()
+            .ignoreIfMissing()
+            .load();
 
-        accessKey = props.getProperty("AWS_S3_ACCESS_KEY");
-        secretKey = props.getProperty("AWS_S3_SECRET_KEY");
-        region = props.getProperty("AWS_S3_REGION");
-        bucket = props.getProperty("AWS_S3_BUCKET");
+        accessKey = Optional.ofNullable(System.getenv("AWS_ACCESS_KEY"))
+            .orElse(dotenv.get("AWS_S3_ACCESS_KEY"));
+        secretKey = Optional.ofNullable(System.getenv("AWS_SECRET_KEY"))
+            .orElse(dotenv.get("AWS_S3_SECRET_KEY"));
+        region = Optional.ofNullable(System.getenv("AWS_REGION"))
+            .orElse(dotenv.get("AWS_S3_REGION"));
+        bucket = Optional.ofNullable(System.getenv("AWS_BUCKET"))
+            .orElse(dotenv.get("AWS_S3_BUCKET"));
+
+        if (accessKey == null || secretKey == null || region == null || bucket == null) {
+            throw new IllegalStateException("AWS 환경변수가 모두 설정되어야 합니다.");
+        }
 
         s3Client = S3Client.builder()
             .region(Region.of(region))

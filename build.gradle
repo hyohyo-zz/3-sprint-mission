@@ -43,7 +43,11 @@ dependencies {
 
     implementation 'software.amazon.awssdk:s3:2.31.7'
 
+    // MIME 타입 판별
     implementation 'org.apache.tika:tika-core:2.9.1'
+
+    // .env 사용 위해 dotenv 의존성 주입
+    testImplementation 'io.github.cdimascio:dotenv-java:2.3.0'
 }
 
 tasks.named('test') {
@@ -51,10 +55,6 @@ tasks.named('test') {
     finalizedBy jacocoTestReport
     jvmArgs += ["-Duser.timezone=UTC"]
 }
-
-//test {
-//
-//}
 
 jacocoTestReport {
     dependsOn test
