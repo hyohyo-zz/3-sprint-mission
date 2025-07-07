@@ -74,10 +74,9 @@ jobs:
 
       - name: Download current task definition
         run: |
-          echo "현재 태스크 정의 다운로드..."
           aws ecs describe-task-definition \
             --task-definition ${{ env.ECS_TASK_DEFINITION }} \
-            --query taskDefinition > task-definition.json
+            > task-definition.json
           
           echo "현재 태스크 정의 다운로드 완료"
 
@@ -88,10 +87,24 @@ jobs:
           # 새 이미지 URI로 태스크 정의 업데이트
           NEW_IMAGE_URI="${{ needs.build-and-push.outputs.image-uri }}"
           
-          # jq를 사용하여 이미지 URI 업데이트
-          jq --arg IMAGE_URI "$NEW_IMAGE_URI" \
-             '.containerDefinitions[0].image = $IMAGE_URI' \
-             task-definition.json > updated-task-definition.json
+          # 기존 태스크 정의를 가져오되, 꼭 필요한 필드만 추출
+          jq \
+            --arg IMAGE "$NEW_IMAGE_URI" \
+            '.taskDefinition
+            | {
+                family,
+                taskRoleArn,
+                executionRoleArn,
+                networkMode,
+                containerDefinitions,
+                volumes,
+                placementConstraints,
+                requiresCompatibilities,
+                cpu,
+                memory
+              }
+            | .containerDefinitions[0].image = $IMAGE' \
+            task-definition.json > updated-task-definition.json
           
           # 새 태스크 정의 등록
           NEW_TASK_DEF_ARN=$(aws ecs register-task-definition \

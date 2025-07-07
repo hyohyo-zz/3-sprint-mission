@@ -49,6 +49,9 @@ public class ChannelIntegrationTest {
     private ObjectMapper objectMapper;
 
     @Autowired
+    private ChannelService channelService;
+
+    @Autowired
     private ChannelRepository channelRepository;
 
     @Autowired
@@ -58,6 +61,7 @@ public class ChannelIntegrationTest {
     private UserStatusRepository userStatusRepository;
 
     private Channel savedPublicChannel;
+    private Channel savedPrivateChannel;
     private User savedUser;
 
     @BeforeEach
@@ -73,6 +77,12 @@ public class ChannelIntegrationTest {
         // UserStatus 생성 및 연결
         UserStatus userStatus = new UserStatus(savedUser, java.time.Instant.now());
         userStatusRepository.save(userStatus);
+
+        // 유저가 참여한 비공개 채널 생성
+        PrivateChannelCreateRequest createRequest = new PrivateChannelCreateRequest(
+            List.of(savedUser.getId()));
+        ChannelDto savedPrivateChannelDto = channelService.create(createRequest);
+        savedPrivateChannel = channelRepository.findById(savedPrivateChannelDto.id()).orElse(null);
     }
 
     @Test

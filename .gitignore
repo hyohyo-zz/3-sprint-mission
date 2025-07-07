@@ -42,8 +42,8 @@ out/
 
 # 로그 파일들
 logs/
-.logs/
 *.log
+*.log.*
 
 # 기타
 *.ser

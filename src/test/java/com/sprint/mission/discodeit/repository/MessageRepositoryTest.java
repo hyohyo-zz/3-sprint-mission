@@ -10,7 +10,9 @@ import com.sprint.mission.discodeit.entity.User;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +25,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -42,6 +45,11 @@ class MessageRepositoryTest {
     private Message testMessage2;
     private Message testMessage3;
 
+    @BeforeAll
+    static void setDefaultTimeZone() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+    }
+
     @BeforeEach
     void setUp() {
         // 테스트 데이터 생성
@@ -58,6 +66,8 @@ class MessageRepositoryTest {
         testMessage2 = entityManager.persistAndFlush(testMessage2);
 
         testMessage3 = new Message("세 번째 메시지", testChannel, testUser, null);
+        ReflectionTestUtils.setField(testMessage3, "createdAt",
+            Instant.parse("2025-07-07T10:00:00Z"));
         testMessage3 = entityManager.persistAndFlush(testMessage3);
 
         entityManager.clear();

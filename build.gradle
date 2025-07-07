@@ -48,11 +48,12 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-test {
     finalizedBy jacocoTestReport
 }
+
+//test {
+//
+//}
 
 jacocoTestReport {
     dependsOn test
@@ -65,7 +66,7 @@ jacocoTestReport {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
-                    "**/*Application*",
+                    "**/DiscodeitApplication.class",
                     "**/config/**",
                     "**/dto/**",
                     "**/entity/**"
