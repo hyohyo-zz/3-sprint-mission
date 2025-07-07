@@ -52,6 +52,8 @@ class MessageRepositoryTest {
 
     @BeforeEach
     void setUp() {
+        Instant baseTime = Instant.parse("2025-07-07T09:00:00Z");
+
         // 테스트 데이터 생성
         testUser = new User("테스트사용자", "test@email.com", "password123!", null);
         testUser = entityManager.persistAndFlush(testUser);
@@ -60,16 +62,18 @@ class MessageRepositoryTest {
         testChannel = entityManager.persistAndFlush(testChannel);
 
         testMessage1 = new Message("첫 번째 메시지", testChannel, testUser, null);
+        ReflectionTestUtils.setField(testMessage1, "createdAt", baseTime);
         testMessage1 = entityManager.persistAndFlush(testMessage1);
 
         testMessage2 = new Message("두 번째 메시지", testChannel, testUser, null);
+        ReflectionTestUtils.setField(testMessage2, "createdAt", baseTime.plusSeconds(60));
         testMessage2 = entityManager.persistAndFlush(testMessage2);
 
         testMessage3 = new Message("세 번째 메시지", testChannel, testUser, null);
-        ReflectionTestUtils.setField(testMessage3, "createdAt",
-            Instant.parse("2025-07-07T10:00:00Z"));
+        ReflectionTestUtils.setField(testMessage3, "createdAt", baseTime.plusSeconds(120));
         testMessage3 = entityManager.persistAndFlush(testMessage3);
 
+        entityManager.flush();
         entityManager.clear();
     }
 
@@ -137,9 +141,9 @@ class MessageRepositoryTest {
 
         // Then
         assertThat(lastMessage).isPresent();
-        // 밀리초까지만 비교
-        assertThat(lastMessage.get().getCreatedAt().truncatedTo(ChronoUnit.MILLIS))
-            .isEqualTo(testMessage3.getCreatedAt().truncatedTo(ChronoUnit.MILLIS));
+        Instant actual = lastMessage.get().getCreatedAt().truncatedTo(ChronoUnit.MILLIS);
+        Instant expected = testMessage3.getCreatedAt().truncatedTo(ChronoUnit.MILLIS);
+        assertThat(actual).isEqualTo(expected);
     }
 
     @Test
@@ -171,7 +175,6 @@ class MessageRepositoryTest {
             Instant.now(),
             PageRequest.of(0, 10)
         );
-
         assertThat(result.getContent()).isEmpty();
     }
 }

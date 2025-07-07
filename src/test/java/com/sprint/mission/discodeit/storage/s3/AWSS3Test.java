@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.storage.s3;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Properties;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
@@ -17,9 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -29,16 +31,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
-@SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("test")
-@TestPropertySource(properties = {
-    "discodeit.storage.type=s3",
-    "discodeit.storage.s3.access-key=dummy",
-    "discodeit.storage.s3.secret-key=dummy",
-    "discodeit.storage.s3.region=dummy-region",
-    "discodeit.storage.s3.bucket=dummy-bucket"
-})
 public class AWSS3Test {
 
     private final Logger log = LoggerFactory.getLogger(AWSS3Test.class);
@@ -54,14 +47,23 @@ public class AWSS3Test {
     private String key = "test/test1.png";
 
     @BeforeAll
-    void loadProperties() throws IOException {
-        Properties props = new Properties();
-        props.load(new FileInputStream(".env"));
+    void loadProperties() {
+        Dotenv dotenv = Dotenv.configure()
+            .ignoreIfMissing()
+            .load();
 
-        accessKey = props.getProperty("AWS_S3_ACCESS_KEY");
-        secretKey = props.getProperty("AWS_S3_SECRET_KEY");
-        region = props.getProperty("AWS_S3_REGION");
-        bucket = props.getProperty("AWS_S3_BUCKET");
+        accessKey = Optional.ofNullable(System.getenv("AWS_ACCESS_KEY"))
+            .orElse(dotenv.get("AWS_S3_ACCESS_KEY"));
+        secretKey = Optional.ofNullable(System.getenv("AWS_SECRET_KEY"))
+            .orElse(dotenv.get("AWS_S3_SECRET_KEY"));
+        region = Optional.ofNullable(System.getenv("AWS_REGION"))
+            .orElse(dotenv.get("AWS_S3_REGION"));
+        bucket = Optional.ofNullable(System.getenv("AWS_BUCKET"))
+            .orElse(dotenv.get("AWS_S3_BUCKET"));
+
+        if (accessKey == null || secretKey == null || region == null || bucket == null) {
+            throw new IllegalStateException("AWS 환경변수가 모두 설정되어야 합니다.");
+        }
 
         s3Client = S3Client.builder()
             .region(Region.of(region))
@@ -80,8 +82,8 @@ public class AWSS3Test {
     @Order(1)
     void upload() throws IOException {
         // Given
-        Path imagePath = Paths.get("src/test/resources/test1.png");
-        byte[] imageBytes = Files.readAllBytes(imagePath);
+        Resource resource = new ClassPathResource("test1.png");
+        byte[] imageBytes = StreamUtils.copyToByteArray(resource.getInputStream());
 
         // When
         PutObjectRequest uploadRequest = PutObjectRequest.builder()
@@ -99,8 +101,8 @@ public class AWSS3Test {
     void download() throws IOException {
         // Given
         String fileName = "testImage";
-        Path imagePath = Paths.get("src/test/resources/test1.png");
-        byte[] originalBytes = Files.readAllBytes(imagePath);
+        Resource resource = new ClassPathResource("test1.png");
+        byte[] originalBytes = StreamUtils.copyToByteArray(resource.getInputStream());
 
         // When
         byte[] downloadedBytes;

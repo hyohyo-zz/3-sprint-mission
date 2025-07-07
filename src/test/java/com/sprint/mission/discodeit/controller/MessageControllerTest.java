@@ -22,6 +22,7 @@ import com.sprint.mission.discodeit.exception.message.MessageEmptyException;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -69,7 +70,7 @@ class MessageControllerTest {
             "messageCreateRequest",
             "",
             MediaType.APPLICATION_JSON_VALUE,
-            requestJson.getBytes()
+            requestJson.getBytes(StandardCharsets.UTF_8)
         );
         given(messageService.create(request, List.of())).willReturn(messageDto);
 

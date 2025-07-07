@@ -16,6 +16,7 @@ import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -86,7 +87,7 @@ public class UserIntegrationTest {
             "password123!");
         String json = objectMapper.writeValueAsString(request);
         MockMultipartFile userPart = new MockMultipartFile(
-            "userCreateRequest", "", "application/json", json.getBytes()
+            "userCreateRequest", "", "application/json", json.getBytes(StandardCharsets.UTF_8)
         );
 
         // When
@@ -127,7 +128,7 @@ public class UserIntegrationTest {
             "newPassword123!");
         String json = objectMapper.writeValueAsString(request);
         MockMultipartFile userPart = new MockMultipartFile(
-            "userUpdateRequest", "", "application/json", json.getBytes()
+            "userUpdateRequest", "", "application/json", json.getBytes(StandardCharsets.UTF_8)
         );
 
         // When
@@ -153,7 +154,7 @@ public class UserIntegrationTest {
         String json = objectMapper.writeValueAsString(request);
 
         MockMultipartFile userPart = new MockMultipartFile(
-            "userUpdateRequest", "", "application/json", json.getBytes()
+            "userUpdateRequest", "", "application/json", json.getBytes(StandardCharsets.UTF_8)
         );
 
         // When
