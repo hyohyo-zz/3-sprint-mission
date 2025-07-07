@@ -27,10 +27,18 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestPropertySource(properties = {
+    "discodeit.storage.type=s3",
+    "discodeit.storage.s3.access-key=dummy",
+    "discodeit.storage.s3.secret-key=dummy",
+    "discodeit.storage.s3.region=dummy-region",
+    "discodeit.storage.s3.bucket=dummy-bucket"
+})
 @ActiveProfiles("test")
 public class S3BinaryContentStorageTest {
 

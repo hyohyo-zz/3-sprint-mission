@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -31,6 +32,13 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
+@TestPropertySource(properties = {
+    "discodeit.storage.type=s3",
+    "discodeit.storage.s3.access-key=dummy",
+    "discodeit.storage.s3.secret-key=dummy",
+    "discodeit.storage.s3.region=dummy-region",
+    "discodeit.storage.s3.bucket=dummy-bucket"
+})
 public class AWSS3Test {
 
     private final Logger log = LoggerFactory.getLogger(AWSS3Test.class);
