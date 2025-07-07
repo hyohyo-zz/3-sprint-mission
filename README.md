@@ -3,7 +3,7 @@
 ---
 Spring Boot 기반의 메시징 시스템 프로젝트
 
-[![codecov](https://codecov.io/github/hyohyo-zz/3-sprint-mission/graph/badge.svg?token=OU6EN7ZCG3)](https://codecov.io/github/hyohyo-zz/3-sprint-mission)
+[![codecov](https://codecov.io/gh/hyohyo-zz/3-sprint-mission/branch/main/graph/badge.svg?token=OU6EN7ZCG3)](https://codecov.io/gh/hyohyo-zz/3-sprint-mission)
 
 ## 📌 프로젝트 개요
 
