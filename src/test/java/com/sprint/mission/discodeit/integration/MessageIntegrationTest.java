@@ -24,6 +24,7 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -130,7 +131,7 @@ public class MessageIntegrationTest {
         MessageCreateRequest request = new MessageCreateRequest("통합 테스트 내용", channelId, authorId);
         String json = objectMapper.writeValueAsString(request);
         MockMultipartFile messagePart = new MockMultipartFile(
-            "messageCreateRequest", "", "application/json", json.getBytes()
+            "messageCreateRequest", "", "application/json", json.getBytes(StandardCharsets.UTF_8)
         );
 
         // When

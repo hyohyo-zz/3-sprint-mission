@@ -6,6 +6,8 @@ target/
 *.jar
 *.war
 
+.gradle/
+
 # IDE files
 .idea/
 *.iml
@@ -32,8 +34,8 @@ README.md
 docs/
 
 # Logs
-logs/
-*.log
+*.logs
+*.logs.*
 
 # Temporary files
 tmp/
@@ -50,3 +52,6 @@ src/test/
 
 # Gradle wrapper jar는 포함 (빌드에 필요)
 !gradle/wrapper/gradle-wrapper.jar
+
+.discodeit/storage/
+/binary-contents/

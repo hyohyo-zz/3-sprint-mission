@@ -17,6 +17,7 @@ import com.sprint.mission.discodeit.exception.GlobalExceptionHandler;
 import com.sprint.mission.discodeit.exception.user.DuplicateUserException;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,7 +65,7 @@ class UserControllerTest {
             "userCreateRequest",
             "",
             MediaType.APPLICATION_JSON_VALUE,
-            requestJson.getBytes()
+            requestJson.getBytes(StandardCharsets.UTF_8)
         );
         MockMultipartFile profile = new MockMultipartFile(
             "profile",
@@ -99,7 +100,7 @@ class UserControllerTest {
             "userCreateRequest",
             "",
             MediaType.APPLICATION_JSON_VALUE,
-            requestJson.getBytes()
+            requestJson.getBytes(StandardCharsets.UTF_8)
         );
 
         // When
@@ -138,7 +139,7 @@ class UserControllerTest {
             "userUpdateRequest",
             "",
             MediaType.APPLICATION_JSON_VALUE,
-            requestJson.getBytes()
+            requestJson.getBytes(StandardCharsets.UTF_8)
         );
         given(userService.update(any(), any(), any())).willReturn(userDto);
 
@@ -166,7 +167,7 @@ class UserControllerTest {
             "userUpdateRequest",
             "",
             MediaType.APPLICATION_JSON_VALUE,
-            requestJson.getBytes()
+            requestJson.getBytes(StandardCharsets.UTF_8)
         );
         given(userService.update(any(), any(), any())).willThrow(new DuplicateUserException("조현아"));
 

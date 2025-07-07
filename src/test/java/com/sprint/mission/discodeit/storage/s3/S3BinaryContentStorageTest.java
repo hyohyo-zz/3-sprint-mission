@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.storage.s3;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -15,29 +14,25 @@ import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.util.StreamUtils;
 
-@SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-@ActiveProfiles("test")
 public class S3BinaryContentStorageTest {
 
     private final Logger log = LoggerFactory.getLogger(S3BinaryContentStorageTest.class);
 
     private S3BinaryContentStorage storage;
-    private UUID binaryContentId = UUID.randomUUID();
+    // 테스트 key값 고정
+    private UUID binaryContentId = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private byte[] bytes;
 
     @BeforeAll
@@ -64,8 +59,8 @@ public class S3BinaryContentStorageTest {
         storage = new S3BinaryContentStorage(s3Properties);
 
         // 테스트 데이터 준비
-        Path imagePath = Paths.get("src/test/resources/test2.png");
-        bytes = Files.readAllBytes(imagePath);
+        Resource resource = new ClassPathResource("test2.png");
+        bytes = StreamUtils.copyToByteArray(resource.getInputStream());
 
         log.info("초기화 완료 - Access Key: {}, Region: {}, Bucket: {}",
             s3Properties.getAccessKey().substring(0, 4) + "***",

@@ -17,8 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.util.StreamUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -28,9 +29,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
-@SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@ActiveProfiles("test")
 public class AWSS3Test {
 
     private final Logger log = LoggerFactory.getLogger(AWSS3Test.class);
@@ -72,8 +71,8 @@ public class AWSS3Test {
     @Order(1)
     void upload() throws IOException {
         // Given
-        Path imagePath = Paths.get("src/test/resources/test1.png");
-        byte[] imageBytes = Files.readAllBytes(imagePath);
+        Resource resource = new ClassPathResource("test1.png");
+        byte[] imageBytes = StreamUtils.copyToByteArray(resource.getInputStream());
 
         // When
         PutObjectRequest uploadRequest = PutObjectRequest.builder()
@@ -91,8 +90,8 @@ public class AWSS3Test {
     void download() throws IOException {
         // Given
         String fileName = "testImage";
-        Path imagePath = Paths.get("src/test/resources/test1.png");
-        byte[] originalBytes = Files.readAllBytes(imagePath);
+        Resource resource = new ClassPathResource("test1.png");
+        byte[] originalBytes = StreamUtils.copyToByteArray(resource.getInputStream());
 
         // When
         byte[] downloadedBytes;

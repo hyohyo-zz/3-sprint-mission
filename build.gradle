@@ -48,10 +48,8 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-}
-
-test {
     finalizedBy jacocoTestReport
+    jvmArgs += ["-Duser.timezone=UTC"]
 }
 
 jacocoTestReport {
@@ -65,7 +63,7 @@ jacocoTestReport {
     afterEvaluate {
         classDirectories.setFrom(files(classDirectories.files.collect {
             fileTree(dir: it, exclude: [
-                    "**/*Application*",
+                    "**/DiscodeitApplication.class",
                     "**/config/**",
                     "**/dto/**",
                     "**/entity/**"

@@ -26,7 +26,7 @@
   <conversionRule conversionWord="clr"
     converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
   <property name="LOG_FILE_NAME" value="application"/>
-  
+
   <!-- 콘솔 출력 설정 -->
   <property name="LOG_PATTERN"
     value="%d{yy-MM-dd HH:mm:ss.SSS} [%thread] %clr(%-5level) %-36logger{36} [%X{requestId} | %X{requestMethod} | %X{requestUri}] - %msg%n"/>
