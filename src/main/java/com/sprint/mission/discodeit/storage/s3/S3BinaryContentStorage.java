@@ -21,10 +21,12 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
 @ConditionalOnProperty(name = "discodeit.storage.type", havingValue = "s3")
+@Slf4j
 public class S3BinaryContentStorage implements BinaryContentStorage {
 
     private final S3Properties s3;
@@ -40,6 +42,8 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         S3Client client = getS3Client();
         bucket = s3.getBucket();
         String contentType = detectContentType(bytes);
+
+        log.info("[S3] put 요청: key={}, contentType={}, size={}", key, contentType, bytes.length);
 
         client.putObject(builder -> builder
                 .bucket(bucket)
@@ -58,6 +62,8 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         S3Client client = getS3Client();
         bucket = s3.getBucket();
 
+        log.info("[S3] get 요청 : key={}", key);
+
         return client.getObject(builder -> builder
             .bucket(bucket)
             .key(key)
@@ -69,18 +75,27 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         String key = "uploads/" + binaryContentDto.id().toString();
         String contentType = binaryContentDto.contentType();
 
+        log.info("[S3] Presigned URL 생성 요청: key={}, contentType={}", key, contentType);
         // Content-Disposition 헤더를 포함한 PresignedUrl 생성
-        String presignedUrl = generatePresignedUrl(key, contentType);
 
-        return ResponseEntity.status(HttpStatus.FOUND)
-            .location(URI.create(presignedUrl))
-            .build();
+        try {
+            String presignedUrl = generatePresignedUrl(key, contentType);
+            log.info("Presigned URL 생성 성공: {}", presignedUrl);
+            return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(presignedUrl))
+                .build();
+        } catch (Exception e) {
+            log.error("Presigned URL 생성 실패: key={}", key, e);
+            throw e;
+        }
     }
 
     private S3Client getS3Client() {
         region = s3.getRegion();
         accessKey = s3.getAccessKey();
         secretKey = s3.getSecretKey();
+
+        log.debug("[S3] S3Client 생성: region={}, accessKey=****", region);
 
         return S3Client.builder()
             .region(Region.of(region))
@@ -94,6 +109,8 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         int expiration = s3.getExpiration();
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
 
+        log.debug("[S3] Presigner 생성: expiration={}s, region={}", expiration, region);
+
         try (S3Presigner presigner = S3Presigner.builder()
             .region(Region.of(region))
             .credentialsProvider(StaticCredentialsProvider.create(credentials))
@@ -102,6 +119,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
             // 확장자 추가
             String extension = getExtensionFromContentType(contentType);
             String fileName = key.substring(key.lastIndexOf('/') + 1) + extension;
+            log.debug("Presign 대상 파일: fileName={}, extension={}", fileName, extension);
 
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                 .bucket(bucket)
