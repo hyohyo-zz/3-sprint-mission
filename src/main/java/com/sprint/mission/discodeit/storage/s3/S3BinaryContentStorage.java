@@ -7,6 +7,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
@@ -21,7 +22,6 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
-import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
@@ -76,8 +76,8 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         String contentType = binaryContentDto.contentType();
 
         log.info("[S3] Presigned URL 생성 요청: key={}, contentType={}", key, contentType);
-        // Content-Disposition 헤더를 포함한 PresignedUrl 생성
 
+        // Content-Disposition 헤더를 포함한 PresignedUrl 생성
         try {
             String presignedUrl = generatePresignedUrl(key, contentType);
             log.info("Presigned URL 생성 성공: {}", presignedUrl);
