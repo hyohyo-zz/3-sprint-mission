@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.storage.s3;
 
 import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
+import jakarta.annotation.PostConstruct;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
@@ -31,16 +32,23 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
 
     private final S3Properties s3;
 
-    String accessKey;
-    String secretKey;
-    String region;
-    String bucket;
+    private String accessKey;
+    private String secretKey;
+    private String region;
+    private String bucket;
+
+    @PostConstruct
+    public void init() {
+        this.region = s3.getRegion();
+        this.accessKey = s3.getAccessKey();
+        this.secretKey = s3.getSecretKey();
+        this.bucket = s3.getBucket();
+    }
 
     @Override
     public UUID put(UUID binaryContentId, byte[] bytes) {
         String key = "uploads/" + binaryContentId.toString();
         S3Client client = getS3Client();
-        bucket = s3.getBucket();
         String contentType = detectContentType(bytes);
 
         log.info("[S3] put 요청: key={}, contentType={}, size={}", key, contentType, bytes.length);
@@ -60,7 +68,6 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
     public InputStream get(UUID binaryContentId) {
         String key = "uploads/" + binaryContentId.toString();
         S3Client client = getS3Client();
-        bucket = s3.getBucket();
 
         log.info("[S3] get 요청 : key={}", key);
 
@@ -91,10 +98,6 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
     }
 
     private S3Client getS3Client() {
-        region = s3.getRegion();
-        accessKey = s3.getAccessKey();
-        secretKey = s3.getSecretKey();
-
         log.debug("[S3] S3Client 생성: region={}, accessKey=****", region);
 
         return S3Client.builder()
