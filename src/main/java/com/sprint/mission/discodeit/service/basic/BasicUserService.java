@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,12 +38,14 @@ public class BasicUserService implements UserService {
     private final UserMapper userMapper;
     private final BinaryContentStorage binaryContentStorage;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Transactional
     public UserDto create(UserCreateRequest request,
         Optional<BinaryContentCreateRequest> profileRequest) {
         String email = request.email();
         String username = request.username();
-        String password = request.password();
+        String encodedPassword = passwordEncoder.encode(request.password());
         log.info("[user] 생성 요청: email={}, username={}", email, username);
 
         // email/username 중복 체크
@@ -58,7 +61,7 @@ public class BasicUserService implements UserService {
         // 프로필 이미지 생성
         BinaryContent nullableProfile = createProfile(profileRequest);
 
-        User user = new User(username, email, password, nullableProfile);
+        User user = new User(username, email, encodedPassword, nullableProfile);
         User savedUser = userRepository.save(user);
 
         Instant now = Instant.now();
