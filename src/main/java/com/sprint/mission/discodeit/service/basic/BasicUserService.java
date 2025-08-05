@@ -2,9 +2,11 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.RoleUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.user.DuplicateEmailException;
@@ -22,6 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,7 +109,7 @@ public class BasicUserService implements UserService {
         Optional<BinaryContentCreateRequest> profileRequest) {
         String newUsername = userUpdateRequest.newUsername();
         String newEmail = userUpdateRequest.newEmail();
-        String newPassword = userUpdateRequest.newPassword();
+        String encodedPassword = passwordEncoder.encode(userUpdateRequest.newPassword());
 
         // update시 요청된 값만 로그 출력
         String logMessage = makeUpdateLog(userId, userUpdateRequest, profileRequest);
@@ -134,7 +137,7 @@ public class BasicUserService implements UserService {
         }
         BinaryContent newNullableProfile = createProfile(profileRequest);
 
-        user.update(newUsername, newEmail, newPassword, newNullableProfile);
+        user.update(newUsername, newEmail, encodedPassword, newNullableProfile);
         log.info("[user] 수정 완료: {}", logMessage);
 
         return userMapper.toDto(user);
@@ -153,6 +156,27 @@ public class BasicUserService implements UserService {
 
         userRepository.deleteById(userId);
         log.info("[user] 삭제 완료: id={}", userId);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Override
+    public UserDto updateUserRole(RoleUpdateRequest request) {
+        UUID userId = request.userId();
+        Role newRole = request.newRole();
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new UserNotFoundException(userId));
+
+        String username = user.getUsername();
+        Role oldRole = user.getRole();
+
+        log.info("[user] 사용자 권한 변경 요청: username={}, oldRole={}, newRole={}", username, oldRole, newRole);
+
+        user.updateRole(newRole);
+        User updatedUser = userRepository.save(user);
+
+        log.info("[user] 사용자 권한 변경 완료 및 세션 무효화 처리됨");
+
+        return userMapper.toDto(updatedUser);
     }
 
     /**
@@ -180,7 +204,7 @@ public class BasicUserService implements UserService {
             logMessage.append(", newEmail=").append(newEmail);
         }
         if (newPassword != null) {
-            logMessage.append(", newPassword=******");
+            logMessage.append(", newPassword=").append(newPassword);
         }
         if (newProfile.isPresent()) {
             logMessage.append(", newProfileImage=true");

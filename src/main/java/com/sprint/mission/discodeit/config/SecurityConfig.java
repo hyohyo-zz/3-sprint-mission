@@ -2,8 +2,10 @@ package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.handler.LoginSuccessHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -43,12 +45,6 @@ public class SecurityConfig {
                 .permitAll()
             )
 
-            // 요청 권한 설정
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/me").authenticated()
-                .anyRequest().permitAll()
-            )
-
             // 로그아웃 설정
             .logout(logout -> logout
                 // 로그아웃 처리 URL
@@ -57,6 +53,26 @@ public class SecurityConfig {
                 .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
                 // 로그아웃 페이지는 인증없이 접근 가능
                 .permitAll()
+            )
+
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) ->
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                .accessDeniedHandler((request, response, accessDeniedException) ->
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN))
+            )
+
+            // 요청 권한 설정
+            .authorizeHttpRequests(auth -> auth
+                // 인증 없이 접근 가능 API
+                .requestMatchers("/api/auth/csrf-token").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+                .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/logout").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
+
+                // 나머지 API는 인증 필요
+                .anyRequest().permitAll()
             );
 
         return http.build();

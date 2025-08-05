@@ -20,7 +20,8 @@ public class UserMapper {
             user.getUsername(),
             user.getEmail(),
             binaryContentMapper.toDto(user.getProfile()),
-            user.getStatus().isOnline()
+            user.getStatus().isOnline(),
+            user.getRole()
         );
     }
 }

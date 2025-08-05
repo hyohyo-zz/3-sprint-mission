@@ -2,13 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sprint.mission.discodeit.entity.base.BaseUpdatableEntity;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,11 +32,16 @@ public class User extends BaseUpdatableEntity {
     @Setter(AccessLevel.PROTECTED)
     private UserStatus status;
 
+    @Column(length = 20, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Role role = Role.USER;
+
     public User(String username, String email, String password, BinaryContent profile) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.profile = profile;
+        this.role = Role.USER;
     }
 
     public void update(String newUsername, String newEmail, String newPassword,
@@ -59,5 +58,9 @@ public class User extends BaseUpdatableEntity {
         if (newProfile != null && !newProfile.equals(this.profile)) {
             this.profile = newProfile;
         }
+    }
+
+    public void updateRole(Role newRole) {
+        this.role = newRole;
     }
 }
