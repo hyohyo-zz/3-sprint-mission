@@ -38,7 +38,6 @@ public class BasicChannelService implements ChannelService {
     private final ChannelMapper channelMapper;
 
     //private 채널생성
-    @PreAuthorize("hasRole('CHANNEL_MANAGER')")
     @Transactional
     @Override
     public ChannelDto create(PrivateChannelCreateRequest request) {
