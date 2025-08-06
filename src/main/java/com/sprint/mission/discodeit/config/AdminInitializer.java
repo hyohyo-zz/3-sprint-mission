@@ -22,7 +22,7 @@ public class AdminInitializer implements CommandLineRunner {
             User admin = new User(
                 "admin",
                 "admin@discodeit.com",
-                passwordEncoder.encode("admin1234"),
+                passwordEncoder.encode("admin1234!"),
                 null
             );
             admin.updateRole(Role.ADMIN);
