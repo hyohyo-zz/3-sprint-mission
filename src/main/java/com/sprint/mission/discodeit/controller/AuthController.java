@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.RoleUpdateRequest;
-import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.DiscodeitUserDetails;
 import com.sprint.mission.discodeit.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,9 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.csrf.CsrfToken;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,6 +43,16 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UserDto> getCurrentUser(
         @AuthenticationPrincipal DiscodeitUserDetails userDetails) {
+        log.debug("[AuthController] /me 요청 시작");
+        log.debug("[AuthController] userDetails = {}", userDetails);
+        log.debug("[AuthController] dto = {}", userDetails != null ? userDetails.getUserDto() : "null");
+        
+        if (userDetails == null) {
+            log.warn("[AuthController] /me 요청 실패 - 인증 정보 null");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+        
+        log.debug("[AuthController] /me 요청 성공 - 인증된 사용자 username: {}", userDetails.getUsername());
 
         return ResponseEntity.ok(userDetails.getUserDto());
     }
