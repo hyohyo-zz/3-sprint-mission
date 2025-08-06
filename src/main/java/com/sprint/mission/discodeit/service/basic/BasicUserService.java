@@ -25,6 +25,9 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,11 +40,10 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
-
     private final UserMapper userMapper;
     private final BinaryContentStorage binaryContentStorage;
-
     private final PasswordEncoder passwordEncoder;
+    private final SessionRegistry sessionRegistry;
 
     @Transactional
     public UserDto create(UserCreateRequest request,
@@ -174,6 +176,9 @@ public class BasicUserService implements UserService {
         user.updateRole(newRole);
         User updatedUser = userRepository.save(user);
 
+        // 권한이 변경된 사용자의 모든 활성 세션을 무효화
+        invalidateUserSessions(username);
+
         log.info("[user] 사용자 권한 변경 완료 및 세션 무효화 처리됨");
 
         return userMapper.toDto(updatedUser);
@@ -232,5 +237,54 @@ public class BasicUserService implements UserService {
                 return binaryContent;
             })
             .orElse(null);
+    }
+
+    /**
+     * 특정 사용자의 모든 활성 세션을 무효화
+     * <p>
+     * 권한 변경, 비밀번호 변경 등 보안상 중요한 변경 시 호출
+     *
+     * @param username 세션을 무효화할 사용자명
+     */
+    private void invalidateUserSessions(String username) {
+        try {
+            log.info("[UserService] 세션 무효화 시작 - 대상 사용자: {}", username);
+
+            // SessionRegistry에서 모든 주체(Principal) 조회
+            List<Object> allPrincipals = sessionRegistry.getAllPrincipals();
+            log.debug("[UserService] 전체 로그인된 사용자 수: {}", allPrincipals.size());
+
+            // 해당 사용자의 모든 세션 정보 찾기
+            for (Object principal : allPrincipals) {
+                if (!(principal instanceof UserDetails userDetails)) {
+                    log.warn("[UserService] 예상치 못한 Principal 타입: {}", principal.getClass().getName());
+                    continue;
+                }
+
+                String principalName = userDetails.getUsername();
+                log.debug("[UserService] 확인 중인 Principal - username: {}", principalName);
+
+                if (username.equals(principalName)) {
+                    List<SessionInformation> sessions = sessionRegistry.getAllSessions(principal, false);
+                    log.info("[UserService] 대상 사용자 발견! 활성 세션 수: {}", sessions.size());
+
+                    // 모든 세션 무효화
+                    for (SessionInformation session : sessions) {
+                        log.info("[UserService] 세션 무효화 중 - 세션ID: {}", session.getSessionId());
+                        session.expireNow();
+                        log.info("[UserService] 세션 무효화 완료 - 만료됨: {}", session.isExpired());
+                    }
+
+                    log.info("[UserService] 사용자 '{}'의 모든 세션({}개)이 무효화되었습니다.", username, sessions.size());
+                    break;
+                }
+            }
+
+            log.info("[UserService] 세션 무효화 작업 완료 - username: {}", username);
+
+        } catch (Exception e) {
+            log.error("[UserService] 세션 무효화 중 오류 발생 - username: {}, message: {}", username, e.getMessage(), e);
+            // 세션 무효화 실패는 권한 변경(DB 반영)을 막지 않음
+        }
     }
 }
