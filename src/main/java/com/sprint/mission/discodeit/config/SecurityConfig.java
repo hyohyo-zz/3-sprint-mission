@@ -6,7 +6,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -14,6 +17,8 @@ import org.springframework.security.web.authentication.logout.HttpStatusReturnin
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
+@EnableWebSecurity
+@EnableMethodSecurity
 @Configuration
 public class SecurityConfig {
 
@@ -55,6 +60,10 @@ public class SecurityConfig {
                 .permitAll()
             )
 
+            /**
+            * - 인증되지 않은 사용자가 요청 시: 401 Unauthorized 응답
+            * - 권한이 없는 사용자가 요청 시: 403 Forbidden 응답
+            */
             .exceptionHandling(ex -> ex
                 .authenticationEntryPoint((request, response, authException) ->
                     response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
@@ -64,18 +73,33 @@ public class SecurityConfig {
 
             // 요청 권한 설정
             .authorizeHttpRequests(auth -> auth
-                // 인증 없이 접근 가능 API
+                // 메인 페이지 및 개발 도구는 인증 불필요
+                .requestMatchers("/").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
+
+                // 인증 없이 접근 가능한 API
                 .requestMatchers("/api/auth/csrf-token").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/logout").permitAll()
-                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
+                .requestMatchers("/login").permitAll()  // 커스텀 로그인 페이지 경로
 
                 // 나머지 API는 인증 필요
+                .requestMatchers("/api/**").authenticated()
+
+                // 그 외 모든 요청은 허용
                 .anyRequest().permitAll()
             );
 
         return http.build();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+            // 브라우저 기본 요청 및 에러 페이지
+            .requestMatchers("/favicon.ico", "/error")
+            .requestMatchers("/static/**", "/css/**", "/js/**");
     }
 
     @Bean
