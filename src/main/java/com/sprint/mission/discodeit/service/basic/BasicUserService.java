@@ -8,17 +8,14 @@ import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.user.DuplicateEmailException;
 import com.sprint.mission.discodeit.exception.user.DuplicateUserException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class BasicUserService implements UserService {
 
     private final UserRepository userRepository;
-    private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserMapper userMapper;
     private final BinaryContentStorage binaryContentStorage;
@@ -69,9 +65,6 @@ public class BasicUserService implements UserService {
         User user = new User(username, email, encodedPassword, nullableProfile);
         User savedUser = userRepository.save(user);
 
-        Instant now = Instant.now();
-        UserStatus userStatus = new UserStatus(user, now);
-        userStatusRepository.save(userStatus);
         log.info("[user] 생성 완료: userId={}, name={}, email={}, isProfile={}",
             user.getId(), username, email, nullableProfile != null);
 
@@ -154,7 +147,6 @@ public class BasicUserService implements UserService {
             }
         );
         Optional.ofNullable(user.getProfile()).ifPresent(binaryContentRepository::delete);
-        userStatusRepository.deleteByUserId(userId);
 
         userRepository.deleteById(userId);
         log.info("[user] 삭제 완료: id={}", userId);
