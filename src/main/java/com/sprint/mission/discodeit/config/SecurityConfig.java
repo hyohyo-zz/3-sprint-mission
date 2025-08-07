@@ -5,25 +5,25 @@ import com.sprint.mission.discodeit.handler.CustomSessionExpiredStrategy;
 import com.sprint.mission.discodeit.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.handler.LoginSuccessHandler;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
-import org.springframework.security.core.session.AbstractSessionEvent;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
+import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
@@ -35,14 +35,16 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 @Configuration
 public class SecurityConfig {
 
+    private static final int REMEMBER_ME_VALIDITY_SECONDS = 60 * 60 * 24 * 7;
+
     @Bean
     public SecurityFilterChain filterChain(
         HttpSecurity http,
         LoginSuccessHandler loginSuccessHandler,
         LoginFailureHandler loginFailureHandler,
         SessionRegistry sessionRegistry,
-        CustomAccessDeniedHandler customAccessDeniedHandler
-    ) throws Exception {
+        CustomAccessDeniedHandler customAccessDeniedHandler,
+        UserDetailsService userDetailsService) throws Exception {
         http
             // CSRF 설정 - 쿠키 기반 CSRF 토큰 사용
             .csrf(csrf -> csrf
@@ -100,13 +102,20 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/logout").permitAll()
-                .requestMatchers("/login").permitAll()  // 커스텀 로그인 페이지 경로
 
                 // 나머지 API는 인증 필요
                 .requestMatchers("/api/**").authenticated()
 
                 // 그 외 모든 요청은 허용
                 .anyRequest().permitAll()
+            )
+
+            .rememberMe(rememberMe -> rememberMe
+                .rememberMeServices(rememberMeServices(userDetailsService))
+                .key("a-very-security-key")
+                .rememberMeParameter("remember-me")
+                .userDetailsService(userDetailsService)
+                .tokenValiditySeconds(REMEMBER_ME_VALIDITY_SECONDS)
             );
 
         return http.build();
@@ -156,6 +165,16 @@ public class SecurityConfig {
     @Bean
     public HttpSessionEventPublisher httpSessionEventPublisher() {
         return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    public RememberMeServices rememberMeServices(UserDetailsService userDetailsService) {
+        PersistentTokenBasedRememberMeServices services =
+            new PersistentTokenBasedRememberMeServices(
+                "a-very-security-key", userDetailsService, new InMemoryTokenRepositoryImpl()
+            );
+        services.setAlwaysRemember(false); // remember-me=true일 때만 작동
+        return services;
     }
 
 }

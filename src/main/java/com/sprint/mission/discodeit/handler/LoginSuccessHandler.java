@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final ObjectMapper objectMapper;
+    private final RememberMeServices rememberMeServices;
 
     @Override
     @Transactional
@@ -29,6 +31,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         Authentication authentication) throws IOException, ServletException {
 
         log.debug("[LoginSuccessHandler] 로그인 성공 처리 시작");
+
+        rememberMeServices.loginSuccess(request, response, authentication);
 
         if (authentication.getPrincipal() instanceof DiscodeitUserDetails userDetails) {
             // 로그인 성공 시 사용자 정보 응답
