@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.handler.CustomSessionExpiredStrategy;
 import com.sprint.mission.discodeit.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.handler.LoginSuccessHandler;
 import jakarta.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,9 +21,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.authentication.rememberme.InMemoryTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -44,7 +44,9 @@ public class SecurityConfig {
         LoginFailureHandler loginFailureHandler,
         SessionRegistry sessionRegistry,
         CustomAccessDeniedHandler customAccessDeniedHandler,
-        UserDetailsService userDetailsService) throws Exception {
+        UserDetailsService userDetailsService,
+        JdbcTokenRepositoryImpl jdbcTokenRepository
+    ) throws Exception {
         http
             // CSRF 설정 - 쿠키 기반 CSRF 토큰 사용
             .csrf(csrf -> csrf
@@ -111,7 +113,7 @@ public class SecurityConfig {
             )
 
             .rememberMe(rememberMe -> rememberMe
-                .rememberMeServices(rememberMeServices(userDetailsService))
+                .rememberMeServices(rememberMeServices(userDetailsService, jdbcTokenRepository))
                 .key("a-very-security-key")
                 .rememberMeParameter("remember-me")
                 .userDetailsService(userDetailsService)
@@ -167,14 +169,29 @@ public class SecurityConfig {
         return new HttpSessionEventPublisher();
     }
 
+    // ---------------- db기반 자동로그인 --------------------
+    // token 저장소
     @Bean
-    public RememberMeServices rememberMeServices(UserDetailsService userDetailsService) {
-        PersistentTokenBasedRememberMeServices services =
-            new PersistentTokenBasedRememberMeServices(
-                "a-very-security-key", userDetailsService, new InMemoryTokenRepositoryImpl()
-            );
-        services.setAlwaysRemember(false); // remember-me=true일 때만 작동
-        return services;
+    public JdbcTokenRepositoryImpl jdbcTokenRepository(DataSource dataSource) {
+        JdbcTokenRepositoryImpl tokenRepository = new JdbcTokenRepositoryImpl();
+        tokenRepository.setDataSource(dataSource);
+        return tokenRepository;
     }
 
+    // db 기반 rememberMeService
+    @Bean
+    public PersistentTokenBasedRememberMeServices rememberMeServices(
+        UserDetailsService userDetailsService,
+        JdbcTokenRepositoryImpl jdbcTokenRepository
+    ) {
+        PersistentTokenBasedRememberMeServices services =
+            new PersistentTokenBasedRememberMeServices(
+                "a-very-security-key", userDetailsService, jdbcTokenRepository);
+
+        services.setTokenValiditySeconds(REMEMBER_ME_VALIDITY_SECONDS); // 7일 유지
+        services.setCookieName("remember-me");
+        services.setParameter("remember-me");
+
+        return services;
+    }
 }
