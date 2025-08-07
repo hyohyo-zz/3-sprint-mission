@@ -21,10 +21,15 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,6 +45,8 @@ public class BasicUserService implements UserService {
     private final BinaryContentStorage binaryContentStorage;
     private final PasswordEncoder passwordEncoder;
     private final SessionRegistry sessionRegistry;
+    private final JdbcTemplate jdbcTemplate;
+    private final UserDetailsService userDetailsService;
 
     @Transactional
     public UserDto create(UserCreateRequest request,
@@ -98,13 +105,14 @@ public class BasicUserService implements UserService {
         return userDtos;
     }
 
+    @PreAuthorize("@userPermissionEvaluator.isSelf(#userId, authentication.principal.userDto.id)")
     @Transactional
     @Override
     public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest,
         Optional<BinaryContentCreateRequest> profileRequest) {
         String newUsername = userUpdateRequest.newUsername();
         String newEmail = userUpdateRequest.newEmail();
-        String encodedPassword = passwordEncoder.encode(userUpdateRequest.newPassword());
+        String newPassword = userUpdateRequest.newPassword();
 
         // update시 요청된 값만 로그 출력
         String logMessage = makeUpdateLog(userId, userUpdateRequest, profileRequest);
@@ -132,12 +140,32 @@ public class BasicUserService implements UserService {
         }
         BinaryContent newNullableProfile = createProfile(profileRequest);
 
-        user.update(newUsername, newEmail, encodedPassword, newNullableProfile);
+        // 4. 변경 감지
+        if (newUsername != null) {
+            user.updateUsername(newUsername);
+        }
+        if (newEmail != null) {
+            user.updateEmail(newEmail);
+        }
+        if (newPassword != null) {
+            String encodedPassword = passwordEncoder.encode(newPassword);
+            user.updatePassword(encodedPassword);
+        }
+        user.updateProfile(newNullableProfile);
         log.info("[user] 수정 완료: {}", logMessage);
+
+        UserDetails updatedUserDetails = userDetailsService.loadUserByUsername(newUsername);
+        Authentication newAuth = new UsernamePasswordAuthenticationToken(
+            updatedUserDetails,
+            updatedUserDetails.getPassword(),
+            updatedUserDetails.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(newAuth);
 
         return userMapper.toDto(user);
     }
 
+    @PreAuthorize("@userPermissionEvaluator.isSelf(#userId, authentication.principal.userDto.id)")
     @Transactional
     @Override
     public void delete(UUID userId) {
@@ -147,7 +175,7 @@ public class BasicUserService implements UserService {
             }
         );
         Optional.ofNullable(user.getProfile()).ifPresent(binaryContentRepository::delete);
-
+        jdbcTemplate.update("DELETE FROM persistent_logins WHERE username = ?", user.getUsername());
         userRepository.deleteById(userId);
         log.info("[user] 삭제 완료: id={}", userId);
     }

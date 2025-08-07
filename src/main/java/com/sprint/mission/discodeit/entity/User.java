@@ -45,20 +45,20 @@ public class User extends BaseUpdatableEntity {
         this.role = Role.USER;
     }
 
-    public void update(String newUsername, String newEmail, String newPassword,
-        BinaryContent newProfile) {
-        if (newUsername != null && !newUsername.equals(this.username)) {
-            this.username = newUsername;
-        }
-        if (newEmail != null && !newEmail.equals(this.email)) {
-            this.email = newEmail;
-        }
-        if (newPassword != null && !newPassword.equals(this.password)) {
-            this.password = newPassword;
-        }
-        if (newProfile != null && !newProfile.equals(this.profile)) {
-            this.profile = newProfile;
-        }
+    public void updateUsername(String username) {
+        this.username = username;
+    }
+
+    public void updateEmail(String email) {
+        this.email = email;
+    }
+
+    public void updatePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+    public void updateProfile(BinaryContent newProfile) {
+        this.profile = newProfile;
     }
 
     public void updateRole(Role newRole) {

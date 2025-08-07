@@ -8,6 +8,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -21,5 +23,8 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
     @EntityGraph(attributePaths = {"author", "author.profile", "channel"})
     Optional<Message> findFirstByChannelIdOrderByCreatedAtDesc(UUID channelId);
+
+    @Query("SELECT m.author.username FROM Message m WHERE m.id = :messageId")
+    Optional<String> findAuthorUsernameById(@Param("messageId") UUID messageId);
 }
 
