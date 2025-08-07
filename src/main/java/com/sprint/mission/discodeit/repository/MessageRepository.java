@@ -10,10 +10,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
-@Repository
-public interface MessageRepository extends JpaRepository<Message, UUID> {
+public interface MessageRepository extends JpaRepository<Message, UUID>, MessageCustomRepository {
 
     void deleteAllByChannelId(UUID channelId);
 
@@ -26,5 +24,7 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
 
     @Query("SELECT m.author.username FROM Message m WHERE m.id = :messageId")
     Optional<String> findAuthorUsernameById(@Param("messageId") UUID messageId);
+
+    long countByChannelId(UUID channelId);
 }
 
