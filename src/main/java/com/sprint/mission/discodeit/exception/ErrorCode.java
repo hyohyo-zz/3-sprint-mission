@@ -30,11 +30,7 @@ public enum ErrorCode {
 
     // readStatus
     READSTATUS_NOT_FOUND("ReadStatus를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    READSTATUS_ALREADY_EXISTS("ReadStatus가 이미 존재합니다.", HttpStatus.CONFLICT),
-
-    // userStatus
-    USERSTATUS_NOT_FOUND("UserStatus를 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
-
+    READSTATUS_ALREADY_EXISTS("ReadStatus가 이미 존재합니다.", HttpStatus.CONFLICT);
     private final String message;
     private final int status;
 
