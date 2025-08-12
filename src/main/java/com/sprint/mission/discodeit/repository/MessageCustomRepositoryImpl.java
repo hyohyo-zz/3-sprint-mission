@@ -37,15 +37,15 @@ public class MessageCustomRepositoryImpl implements MessageCustomRepository {
             }
         }
 
-        OrderSpecifier<?> order = direction == Sort.Direction.DESC
-            ? message.createdAt.desc()
-            : message.createdAt.asc();
+        OrderSpecifier<?>[] orders = direction == Sort.Direction.DESC
+            ? new OrderSpecifier[]{message.createdAt.desc(), message.id.desc()}
+            : new OrderSpecifier[]{message.createdAt.asc(), message.id.asc()};
 
         return queryFactory
             .selectFrom(message)
             .leftJoin(message.author).fetchJoin()
             .where(where)
-            .orderBy(order)
+            .orderBy(orders)
             .limit(limit)
             .fetch();
     }

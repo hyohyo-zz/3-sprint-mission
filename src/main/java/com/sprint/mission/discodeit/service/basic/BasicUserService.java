@@ -135,16 +135,20 @@ public class BasicUserService implements UserService {
         }
 
         // 3. 프로필이미지 있으면 지우고, 생성
-        if (user.getProfile() != null) {
-            binaryContentRepository.delete(user.getProfile());
+        BinaryContent newNullableProfile = null;
+        if (profileRequest.isPresent()) {
+            if (user.getProfile() != null) {
+                binaryContentRepository.delete(user.getProfile());
+            }
+            newNullableProfile = createProfile(profileRequest);
+            user.updateProfile(newNullableProfile);
         }
-        BinaryContent newNullableProfile = createProfile(profileRequest);
 
         // 4. 변경 감지
-        if (newUsername != null) {
+        if (newUsername != null && !newUsername.equals(user.getUsername())) {
             user.updateUsername(newUsername);
         }
-        if (newEmail != null) {
+        if (newEmail != null && !newEmail.equals(user.getEmail())) {
             user.updateEmail(newEmail);
         }
         if (newPassword != null) {
@@ -154,7 +158,8 @@ public class BasicUserService implements UserService {
         user.updateProfile(newNullableProfile);
         log.info("[user] 수정 완료: {}", logMessage);
 
-        UserDetails updatedUserDetails = userDetailsService.loadUserByUsername(newUsername);
+        String finalUsername = (newUsername != null) ? newUsername : user.getUsername();
+        UserDetails updatedUserDetails = userDetailsService.loadUserByUsername(finalUsername);
         Authentication newAuth = new UsernamePasswordAuthenticationToken(
             updatedUserDetails,
             updatedUserDetails.getPassword(),
@@ -204,23 +209,14 @@ public class BasicUserService implements UserService {
         return userMapper.toDto(updatedUser);
     }
 
-    /**
-     * 변경 요청에 포함된 필드만 추출하여 로그 메시지 생성
-     * <p>
-     * 비밀번호는 실제 값 대신 마스킹, 프로필 이미지 변경 여부는 boolean 형태
-     *
-     * @param userId     업데이트 대상 사용자의 식별자
-     * @param request    사용자 정보 수정 요청 객체
-     * @param newProfile 새로운 프로필 이미지 요청 (Optional)
-     * @return 변경된 필드 포함한 로그 메시지 문자열
-     */
+    // 변경 요청에 포함된 필드만 추출하여 로그 메시지 생성
     private String makeUpdateLog(UUID userId, UserUpdateRequest request,
         Optional<BinaryContentCreateRequest> newProfile) {
         StringBuilder logMessage = new StringBuilder("userId=" + userId);
 
         String newUsername = request.newUsername();
         String newEmail = request.newEmail();
-        String newPassword = request.newPassword();
+        String newPassword = passwordEncoder.encode(request.newPassword());
 
         if (newUsername != null) {
             logMessage.append(", newUsername=").append(newUsername);
