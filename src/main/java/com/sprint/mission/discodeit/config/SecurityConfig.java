@@ -5,10 +5,14 @@ import com.sprint.mission.discodeit.security.handler.CustomSessionExpiredStrateg
 import com.sprint.mission.discodeit.security.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.security.handler.LoginSuccessHandler;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
+import java.util.stream.IntStream;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,6 +40,22 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 public class SecurityConfig {
 
     private static final int REMEMBER_ME_VALIDITY_SECONDS = 60 * 60 * 24 * 7;
+
+    @Profile("dev")
+    @Bean
+    public CommandLineRunner logFilterChains(List<SecurityFilterChain> chains) {
+        return args -> {
+            int chainIdx = 1;
+            for (SecurityFilterChain chain : chains) {
+                var filters = chain.getFilters();
+                log.info("=== SecurityFilterChain #{} ({} filters) ===", chainIdx++, filters.size());
+                for (int i = 0; i < filters.size(); i++) {
+                    String name = filters.get(i).getClass().getSimpleName();
+                    log.info("  [{} / {}] {}", i + 1, filters.size(), name);
+                }
+            }
+        };
+    }
 
     @Bean
     public SecurityFilterChain filterChain(
