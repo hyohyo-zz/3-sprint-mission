@@ -64,12 +64,15 @@ CREATE TABLE read_statuses
     UNIQUE (user_id, channel_id)
 );
 
-CREATE TABLE persistent_logins
+CREATE TABLE IF NOT EXISTS jwt_token
 (
-    username  VARCHAR(64) UNIQUE NOT NULL,
-    series    VARCHAR(64) PRIMARY KEY,
-    token     VARCHAR(64)        NOT NULL,
-    last_used TIMESTAMP          NOT NULL
+    jti         uuid PRIMARY KEY,
+    username    VARCHAR(255) NOT NULL,
+    token_type  VARCHAR(16)  NOT NULL CHECK (token_type IN ('access', 'refresh')),
+    issued_at   TIMESTAMPTZ  NOT NULL,
+    expires_at  TIMESTAMPTZ  NOT NULL,
+    revoked     BOOLEAN      NOT NULL DEFAULT FALSE,
+    replaced_by VARCHAR(64)
 );
 
 -- 제약 조건
@@ -115,4 +118,15 @@ ALTER TABLE read_statuses
             REFERENCES channels (id)
             ON DELETE CASCADE;
 
-DROP TABLE IF EXISTS persistent_logins;
+-- 테이블 컬럼 코멘트 추가
+COMMENT ON COLUMN users.id IS '사용자 고유 ID';
+COMMENT ON COLUMN users.username IS '사용자명 (로그인 ID)';
+COMMENT ON COLUMN users.email IS '이메일 주소';
+COMMENT ON COLUMN users.password IS 'BCrypt 암호화된 비밀번호';
+COMMENT ON COLUMN users.role IS '사용자 권한 (ADMIN, USER)';
+
+-- JWT 토큰 테이블 인덱스 생성
+-- username 인덱스: 특정 사용자의 토큰을 조회할 때 성능 향상을 위해 생성
+CREATE INDEX IF NOT EXISTS idx_tbl_jwt_token_username ON jwt_token(username);
+-- expires_at 인덱스: 만료된 토큰을 정리하거나 유효한 토큰을 조회할 때 성능 향상을 위해 생성
+CREATE INDEX IF NOT EXISTS idx_tbl_jwt_token_expires  ON jwt_token(expires_at);
