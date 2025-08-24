@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sprint.mission.discodeit.service.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +42,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.getWriter().write("{\"error\": \"인증 정보를 처리할 수 없습니다.\"}");
 
-            log.debug("[LoginSuccessHandler] 예상치 못한 Principal 타입: " + authentication.getPrincipal().getClass());
+            log.debug("[LoginSuccessHandler] 예상치 못한 Principal 타입: " + authentication.getPrincipal()
+                .getClass());
         }
     }
 }

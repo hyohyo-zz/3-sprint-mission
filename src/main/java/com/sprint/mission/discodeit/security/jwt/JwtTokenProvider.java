@@ -9,13 +9,10 @@ import com.nimbusds.jose.crypto.MACSigner;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import com.sprint.mission.discodeit.security.jwt.store.JwtTokenEntity;
-import com.sprint.mission.discodeit.service.DiscodeitUserDetails;
+import com.sprint.mission.discodeit.security.DiscodeitUserDetails;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -72,36 +69,37 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 액세스 토큰 생성
-     * 로그인 성공 또는 리프레시 토큰을 통한 재발급 시 호출
-     * 단기 인증에 사용되는 짧은 수명의 토큰 발급
+     * 액세스 토큰 생성 로그인 성공 또는 리프레시 토큰을 통한 재발급 시 호출 단기 인증에 사용되는 짧은 수명의 토큰 발급
      */
     public String generateAccessToken(DiscodeitUserDetails userDetails) throws JOSEException {
-        log.info("[TokenProvider] generateAccessToken 호출됨: {}의 액세스 토큰 생성", userDetails.getUsername());
+        log.info("[TokenProvider] generateAccessToken 호출됨: {}의 액세스 토큰 생성",
+            userDetails.getUsername());
         return generateToken(userDetails, accessTokenExpirationMs, accessTokenSigner, "access");
     }
 
     /**
-     * 리프레시 토큰 생성
-     * 로그인 성공 또는 리프레시 시 토큰 회전 정책에 따라 새 RT를 발급할 때 호출
-     * 쿠키에 저장되어 액세스 토큰 재발급 시도에 사용
+     * 리프레시 토큰 생성 로그인 성공 또는 리프레시 시 토큰 회전 정책에 따라 새 RT를 발급할 때 호출 쿠키에 저장되어 액세스 토큰 재발급 시도에 사용
      */
     public String generateRefreshToken(DiscodeitUserDetails userDetails) throws JOSEException {
-        log.info("[TokenProvider] generateRefreshToken 호출됨: {}의 리프레시 토큰 생성", userDetails.getUsername());
+        log.info("[TokenProvider] generateRefreshToken 호출됨: {}의 리프레시 토큰 생성",
+            userDetails.getUsername());
         return generateToken(userDetails, refreshTokenExpirationMs, refreshTokenSigner, "refresh");
     }
 
     /**
      * 토큰 생성
-     * @param userDetails 사용자 정보
+     *
+     * @param userDetails  사용자 정보
      * @param expirationMs 토큰 만료 시간
-     * @param signer 토큰 서명자
-     * @param tokenType 토큰 타입("access" 또는 "refresh")
+     * @param signer       토큰 서명자
+     * @param tokenType    토큰 타입("access" 또는 "refresh")
      * @return 생성된 토큰
      * @throws JOSEException 토큰 생성 중 발생할 수 있는 예외
      */
-    private String generateToken(DiscodeitUserDetails userDetails, int expirationMs, JWSSigner signer, String tokenType) throws JOSEException {
-        log.info("[TokenProvider] generateToken: {}의 {} 토큰 생성 시작", userDetails.getUsername(), tokenType);
+    private String generateToken(DiscodeitUserDetails userDetails, int expirationMs,
+        JWSSigner signer, String tokenType) throws JOSEException {
+        log.info("[TokenProvider] generateToken: {}의 {} 토큰 생성 시작", userDetails.getUsername(),
+            tokenType);
 
         String tokenId = UUID.randomUUID().toString();
 
@@ -129,14 +127,14 @@ public class JwtTokenProvider {
 
         // 토큰 직렬화: 실질적으로 JWT 토큰을 생성한 후 URL 안전한 문자열(Base64 인코딩)로 직렬화
         String completedJWT = signedJWT.serialize();
-        log.info("[TokenProvider] generateToken: {}의 {} 토큰 생성 완료", userDetails.getUsername(), tokenType);
+        log.info("[TokenProvider] generateToken: {}의 {} 토큰 생성 완료", userDetails.getUsername(),
+            tokenType);
 
         return completedJWT;
     }
 
     /**
-     * 리프레시 토큰을 HttpOnly 쿠키로 생성
-     * 로그인 성공 또는 리프레시 성공 시 브라우저로 내려보낼 때 사용
+     * 리프레시 토큰을 HttpOnly 쿠키로 생성 로그인 성공 또는 리프레시 성공 시 브라우저로 내려보낼 때 사용
      *
      * @param refreshToken 직렬화된 JWT 문자열
      * @return HttpOnly 설정이 적용된 쿠키 인스턴스
@@ -147,22 +145,24 @@ public class JwtTokenProvider {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
 
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);	// 개발 환경: HTTP도 동작하도록 Secure=false (운영 환경은 true를 사용해 HTTPS 통신을 이용할 수 있도록 권장)
+        cookie.setSecure(
+            false);    // 개발 환경: HTTP도 동작하도록 Secure=false (운영 환경은 true를 사용해 HTTPS 통신을 이용할 수 있도록 권장)
         cookie.setPath("/");
         cookie.setMaxAge(refreshTokenExpirationMs / 1000);
 
-        log.info("[TokenProvider] generateRefreshTokenCookie 완료: Max-Age={}", (refreshTokenExpirationMs / 1000));
+        log.info("[TokenProvider] generateRefreshTokenCookie 완료: Max-Age={}",
+            (refreshTokenExpirationMs / 1000));
         return cookie;
     }
 
     /**
-     * 리프레시 토큰 쿠키를 즉시 만료시키는 쿠키를 생성한다.
-     * 로그아웃이나 보안 이벤트 발생 시 클라이언트 보유 RT를 제거하기 위해 사용한다.
+     * 리프레시 토큰 쿠키를 즉시 만료시키는 쿠키를 생성한다. 로그아웃이나 보안 이벤트 발생 시 클라이언트 보유 RT를 제거하기 위해 사용한다.
      *
      * @return Max-Age=0으로 설정된 만료 쿠키
      */
     public Cookie generateRefreshTokenExpirationCookie() {
-        log.info("[TokenProvider] generateRefreshTokenExpirationCookie 호출됨: Refresh Token 만료 쿠키 생성");
+        log.info(
+            "[TokenProvider] generateRefreshTokenExpirationCookie 호출됨: Refresh Token 만료 쿠키 생성");
 
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, "");
 
@@ -186,8 +186,7 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 만료(삭제)용 리프레시 쿠키를 응답에 추가
-     * 재사용 차단이나 강제 로그아웃 시 사용
+     * 만료(삭제)용 리프레시 쿠키를 응답에 추가 재사용 차단이나 강제 로그아웃 시 사용
      */
     public void expireRefreshCookie(HttpServletResponse response) {
         log.info("[TokenProvider] expireRefreshCookie 호출됨: 만료 쿠키 응답에 추가");
@@ -197,9 +196,7 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 액세스 토큰을 검증
-     * 보호된 API에 대한 요청 처리 직전에 호출
-     * 서명 무결성, 토큰 타입, 만료 여부를 순차적으로 검사
+     * 액세스 토큰을 검증 보호된 API에 대한 요청 처리 직전에 호출 서명 무결성, 토큰 타입, 만료 여부를 순차적으로 검사
      *
      * @param token 검사 대상 JWT 문자열
      * @return 유효하면 true, 그렇지 않으면 false
@@ -214,9 +211,8 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 리프레시 토큰 검증
-     * 'api/auth/refresh' 호풀 시 쿠키에서 읽어온 토큰을 대상으로 사용
-     * 서묭 무결성, 토큰 타입, 만료 여부를 확인하여 재발급 가능 여부 결정
+     * 리프레시 토큰 검증 'api/auth/refresh' 호풀 시 쿠키에서 읽어온 토큰을 대상으로 사용 서묭 무결성, 토큰 타입, 만료 여부를 확인하여 재발급 가능 여부
+     * 결정
      *
      * @param token 검사 대상 JWT 문자열(쿠키에서 추출됨)
      * @return 유효하면 true, 그렇지 않으면 false
@@ -238,14 +234,14 @@ public class JwtTokenProvider {
 
             log.info("[TokenProvider] verifyToken: 서명 무결성 검증 시작");
             if (!signedJWT.verify(verifier)) {
-                log.info("[TokenProvider] verifyToken: 서명 검증 실패");
+                log.warn("[TokenProvider] verifyToken: 서명 검증 실패");
                 return false;
             }
 
             log.info("[TokenProvider] verifyToken: 토큰 타입 검증 시작");
             String tokenType = (String) signedJWT.getJWTClaimsSet().getClaim("type");
             if (!expectedType.equals(tokenType)) {
-                log.info("[TokenProvider] verifyToken: 타입 불일치 - expected={}, actual={}",
+                log.warn("[TokenProvider] verifyToken: 타입 불일치 - expected={}, actual={}",
                     expectedType, tokenType);
                 return false;
             }
@@ -256,18 +252,21 @@ public class JwtTokenProvider {
             // 만료 시간이 null이 아니고, 현재 시간보다 이후인 경우 유효(true)
             boolean valid = exp != null && exp.after(new Date());
 
-            log.info("[TokenProvider] verifyToken: 만료 검사 결과={}", valid);
+            if (!valid) {
+                log.warn("[TokenProvider] verifyToken: 토큰 만료됨 - exp={}, now={}", exp, new Date());
+            } else {
+                log.info("[TokenProvider] verifyToken: 토큰 유효함 - exp={}, now={}", exp, new Date());
+            }
 
             return valid;
         } catch (Exception e) {
-            log.info("[TokenProvider] verifyToken: 예외 발생 - {}", e.getMessage());
+            log.warn("[TokenProvider] verifyToken: 예외 발생 - {}", e.getMessage(), e);
             return false;
         }
     }
 
     /**
-     * 토큰에서 주체(subject)로 저장된 사용자명을 추출
-     * 인증 필터가 사용자 정보를 로드하기 위해 호출
+     * 토큰에서 주체(subject)로 저장된 사용자명을 추출 인증 필터가 사용자 정보를 로드하기 위해 호출
      */
     public String getUsernameFromToken(String token) {
         try {
@@ -285,8 +284,7 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 토큰에서 JWT ID(jti)를 추출
-     * 토큰 상태 저장소(JwtSessionRegistry)에서 폐기 여부를 판단할 때 사용
+     * 토큰에서 JWT ID(jti)를 추출 토큰 상태 저장소(JwtSessionRegistry)에서 폐기 여부를 판단할 때 사용
      */
     public String getTokenId(String token) {
         try {
@@ -304,8 +302,7 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 토큰에서 발급 시간(iat)를 추출
-     * 디버깅이나 감사 로그에서 토큰 생성 시점을 확인할 때 유용
+     * 토큰에서 발급 시간(iat)를 추출 디버깅이나 감사 로그에서 토큰 생성 시점을 확인할 때 유용
      */
     public Date getIssuedAt(String token) {
         try {
@@ -317,14 +314,13 @@ public class JwtTokenProvider {
             log.info("[TokenProvider] getIssuedAt 호출됨: iat={}", iat);
 
             return iat;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new IllegalArgumentException("Invalid JWT token", e);
         }
     }
 
     /**
-     * 토큰에서 만료 시간(exp)를 추출
-     * 남은 유효 시간을 계산하거나 만료 임박 알림을 구현할 때 사용
+     * 토큰에서 만료 시간(exp)를 추출 남은 유효 시간을 계산하거나 만료 임박 알림을 구현할 때 사용
      */
     public Date getExpiration(String token) {
         try {
@@ -336,39 +332,8 @@ public class JwtTokenProvider {
             log.info("[TokenProvider] getExpiration 호출됨: exp={}", exp);
 
             return exp;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new IllegalArgumentException("Invalid JWT token", e);
         }
     }
-
-    /**
-     * 직렬화된 JWT 문자열을 파싱하여 'JwtTokenEntity'로 변환
-     * 컨트롤러나 핸들러 쪽에서 토큰의 메타데이터를 DB에 저장할 때 사용되는 유틸 메서드
-     *
-     * @param token 직렬화된 JWT 문자열(Access 또는 Refresh)
-     * @return 발급 만료 시각과 타입이 채워진 'JwtTokenEntity'
-     */
-    public JwtTokenEntity toEntity(String token) {
-        try {
-            log.info("[TokenProvider] toEntity 호출됨: 토큰 메타데이터 변환 시작");
-
-            SignedJWT signedJWT = SignedJWT.parse(token);
-
-            UUID jti = UUID.fromString(signedJWT.getJWTClaimsSet().getJWTID());
-            String username = signedJWT.getJWTClaimsSet().getSubject();
-            String tokenType = (String) signedJWT.getJWTClaimsSet().getClaim("type");
-            OffsetDateTime issuedAt = OffsetDateTime.ofInstant(signedJWT.getJWTClaimsSet().getIssueTime().toInstant(),ZoneOffset.UTC);
-            OffsetDateTime expiresAt = OffsetDateTime.ofInstant(signedJWT.getJWTClaimsSet().getExpirationTime().toInstant(),ZoneOffset.UTC);
-
-            JwtTokenEntity entity = new JwtTokenEntity(jti, username, tokenType, issuedAt, expiresAt);
-
-            log.info("[TokenProvider] toEntity 호출됨: jti={}, username={}, type={}", jti, username, tokenType);
-
-            return entity;
-        } catch(Exception e) {
-            throw new IllegalArgumentException("Invalid JWT token", e);
-        }
-    }
-
-
 }
