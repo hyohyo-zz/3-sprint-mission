@@ -115,12 +115,12 @@ public class AuthController {
         @RequestBody RoleUpdateRequest roleUpdateRequest) {
 
         log.info("[AuthController] 사용자 권한 변경 요청");
-        log.info("[AuthController] 요청 데이터: userId={}, newRole={}", 
+        log.info("[AuthController] 요청 데이터: userId={}, newRole={}",
             roleUpdateRequest.userId(), roleUpdateRequest.newRole());
 
         // 권한 변경 실행
         UserDto updatedUser = userService.updateUserRole(roleUpdateRequest);
-        
+
         // 권한이 변경된 사용자의 모든 JWT 토큰 무효화 (강제 로그아웃)
         log.info("[AuthController] 권한 변경된 사용자({})의 모든 토큰 무효화 시작", updatedUser.id());
         jwtRegistry.invalidateJwtInformationByUserId(updatedUser.id());

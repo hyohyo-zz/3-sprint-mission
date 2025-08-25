@@ -26,7 +26,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
     @Override
     public void registerJwtInformation(JwtInformation jwtInformation) {
         UUID userId = jwtInformation.getUserDto().id();
-        log.info("[JwtRegistry] registerJwtInformation 호출: userId={}, username={}", 
+        log.info("[JwtRegistry] registerJwtInformation 호출: userId={}, username={}",
             userId, jwtInformation.getUserDto().username());
 
         origin.compute(userId, (k, dq) -> {
@@ -39,7 +39,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
             dq.addLast(jwtInformation);
             return dq;
         });
-        
+
         log.info("[JwtRegistry] registerJwtInformation 완료: 현재 활성 사용자 수={}", origin.size());
     }
 
@@ -63,26 +63,26 @@ public class InMemoryJwtRegistry implements JwtRegistry {
 
     @Override
     public boolean hasActiveJwtInformationByAccessToken(String accessToken) {
-        log.info("[JwtRegistry] hasActiveJwtInformationByAccessToken 호출: 활성 토큰 수={}", 
+        log.info("[JwtRegistry] hasActiveJwtInformationByAccessToken 호출: 활성 토큰 수={}",
             origin.values().stream().mapToInt(Collection::size).sum());
-            
+
         boolean result = origin.values().stream()
             .flatMap(Collection::stream)
             .anyMatch(info -> info.getAccessToken().equals(accessToken));
-            
+
         log.info("[JwtRegistry] hasActiveJwtInformationByAccessToken 결과: {}", result);
         return result;
     }
 
     @Override
     public boolean hasActiveJwtInformationByRefreshToken(String refreshToken) {
-        log.info("[JwtRegistry] hasActiveJwtInformationByRefreshToken 호출: 활성 토큰 수={}", 
+        log.info("[JwtRegistry] hasActiveJwtInformationByRefreshToken 호출: 활성 토큰 수={}",
             origin.values().stream().mapToInt(Collection::size).sum());
-        
+
         boolean result = origin.values().stream()
             .flatMap(Collection::stream)
             .anyMatch(info -> info.getRefreshToken().equals(refreshToken));
-            
+
         log.info("[JwtRegistry] hasActiveJwtInformationByRefreshToken 결과: {}", result);
         return result;
     }

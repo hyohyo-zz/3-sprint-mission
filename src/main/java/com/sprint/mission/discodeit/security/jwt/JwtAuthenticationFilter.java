@@ -54,7 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     sendUnauthorized(response, "Token has been invalidated - please log in again");
                     return;
                 }
-                
+
                 log.info("[JwtAuthenticationFilter] JwtRegistry에서 토큰 활성 상태 확인됨");
 
                 // 사용자 단위 활성 여부
@@ -118,14 +118,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             || uri.startsWith("/.well-known/") || uri.equals("/favicon.ico")) {
             return true;
         }
-        
+
         // 공개 인증 엔드포인트만 제외 (role은 인증이 필요하므로 포함하지 않음)
-        if (uri.equals("/api/auth/login") || uri.equals("/api/auth/refresh") 
+        if (uri.equals("/api/auth/login") || uri.equals("/api/auth/refresh")
             || uri.equals("/api/auth/logout") || uri.equals("/api/auth/csrf-token")
             || (uri.equals("/api/users") && "POST".equals(request.getMethod()))) {
             return true;
         }
-        
+
         return !uri.startsWith("/api/");
     }
 }
