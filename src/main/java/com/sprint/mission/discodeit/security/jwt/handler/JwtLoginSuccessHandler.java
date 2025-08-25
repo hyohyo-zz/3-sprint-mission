@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.security.jwt.JwtInformation;
 import com.sprint.mission.discodeit.security.jwt.JwtTokenProvider;
 import com.sprint.mission.discodeit.security.jwt.store.JwtRegistry;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -62,11 +63,13 @@ public class JwtLoginSuccessHandler implements AuthenticationSuccessHandler {
 
                 // 4. 리프레시 쿠키 설정
                 log.info("[JwtLoginSuccessHandler] 리프레시 쿠키 설정 시작");
-                tokenProvider.addRefreshCookie(response, refreshToken);
+                Cookie refreshCookie = tokenProvider.generateRefreshTokenCookie(refreshToken);
+                response.addCookie(refreshCookie);
 
-                // 5. JwtDto 바디 전송
-                response.sendRedirect("/");
-
+                // 5. 성공 응답
+                JwtDto jwtDto = new JwtDto(userDto, accessToken);
+                response.setStatus(HttpServletResponse.SC_OK);
+                response.getWriter().write(objectMapper.writeValueAsString(jwtDto));
                 log.info("[JwtLoginSuccessHandler] onAuthenticationSuccess 완료: 응답 전송됨");
             } catch (Exception e) {
                 // 예외 발생 시 처리(500)

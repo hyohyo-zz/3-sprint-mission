@@ -5,8 +5,10 @@ import com.sprint.mission.discodeit.security.handler.LoginFailureHandler;
 import com.sprint.mission.discodeit.security.jwt.JwtAuthenticationFilter;
 import com.sprint.mission.discodeit.security.jwt.handler.JwtLoginSuccessHandler;
 import com.sprint.mission.discodeit.security.jwt.handler.JwtLogoutHandler;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -18,13 +20,19 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Slf4j
 @EnableWebSecurity
@@ -67,8 +75,14 @@ public class SecurityConfig {
             // CSRF 설정 - 인증 관련 엔드포인트는 제외
             .csrf(csrf -> csrf
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-                .ignoringRequestMatchers("/api/auth/login", "/api/auth/logout", "/api/auth/refresh")
+                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler() {
+                    @Override
+                    public void handle(HttpServletRequest request, HttpServletResponse response,
+                        Supplier<CsrfToken> csrfToken) {
+                        super.handle(request, response, csrfToken);
+                        csrfToken.get();
+                    }
+                })
             )
 
             // 로그인 설정
@@ -87,24 +101,8 @@ public class SecurityConfig {
                 .permitAll()
             )
 
-            // JWT 인증 필터 추가
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-
-            // 예외 처리
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint((request, response, authException) ->
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED))
-                .accessDeniedHandler(customAccessDeniedHandler)
-            )
-
-            // JWT 기반 STATELESS 세션 관리
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-
             // 요청 권한 설정
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
                 .requestMatchers("/api/auth/csrf-token").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
@@ -113,7 +111,21 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/refresh").permitAll()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
-            );
+            )
+
+            // 예외 처리
+            .exceptionHandling(ex -> ex
+                .accessDeniedHandler(customAccessDeniedHandler)
+                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+            )
+
+            // JWT 기반 STATELESS 세션 관리
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+
+            // JWT 인증 필터 추가
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -123,5 +135,15 @@ public class SecurityConfig {
         return (web) -> web.ignoring()
             .requestMatchers("/favicon.ico", "/error")
             .requestMatchers("/static/**", "/css/**", "/js/**");
+    }
+
+    @Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher() {
+        return new HttpSessionEventPublisher();
+    }
+
+    @Bean
+    public SessionRegistry sessionRegistry() {
+        return new SessionRegistryImpl();
     }
 }

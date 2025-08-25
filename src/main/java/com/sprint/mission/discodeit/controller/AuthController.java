@@ -95,7 +95,7 @@ public class AuthController {
             jwtRegistry.rotateJwtInformation(refreshToken, newJwtInformation);
 
             // 새 리프레시 토큰 쿠키 설정
-            jwtTokenProvider.addRefreshCookie(response, newRefreshToken);
+            response.addCookie(jwtTokenProvider.generateRefreshTokenCookie(newRefreshToken));
 
             JwtDto body = new JwtDto(userDto, newAccessToken);
 

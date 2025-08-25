@@ -145,9 +145,8 @@ public class JwtTokenProvider {
         Cookie cookie = new Cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
 
         cookie.setHttpOnly(true);
-        cookie.setSecure(
-            false);    // 개발 환경: HTTP도 동작하도록 Secure=false (운영 환경은 true를 사용해 HTTPS 통신을 이용할 수 있도록 권장)
-        cookie.setPath("/");
+        cookie.setSecure(false);
+        cookie.setPath("/api/auth");
         cookie.setMaxAge(refreshTokenExpirationMs / 1000);
 
         log.info("[TokenProvider] generateRefreshTokenCookie 완료: Max-Age={}",
@@ -168,7 +167,7 @@ public class JwtTokenProvider {
 
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
-        cookie.setPath("/");
+        cookie.setPath("/api/auth");
         cookie.setMaxAge(0);    // 쿠키 만료 시간을 0으로 설정하여 즉시 만료시킨다
         log.info("[TokenProvider] generateRefreshTokenExpirationCookie 완료");
 

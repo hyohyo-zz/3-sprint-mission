@@ -14,7 +14,6 @@ import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.security.jwt.event.UserAuthoritiesUpdatedEvent;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.util.List;
@@ -22,8 +21,6 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -44,9 +41,7 @@ public class BasicUserService implements UserService {
     private final UserMapper userMapper;
     private final BinaryContentStorage binaryContentStorage;
     private final PasswordEncoder passwordEncoder;
-    private final JdbcTemplate jdbcTemplate;
     private final UserDetailsService userDetailsService;
-    private final ApplicationEventPublisher publisher;
 
     @Transactional
     public UserDto create(UserCreateRequest request,
@@ -203,8 +198,7 @@ public class BasicUserService implements UserService {
         if (user.getRole() != newRole) {
             user.updateRole(newRole);
             updatedUser = userRepository.save(user);
-            publisher.publishEvent(new UserAuthoritiesUpdatedEvent(userId));
-            log.info("[user] 사용자 권한 변경 완료 및 토큰 무효화 이벤트 발행됨: username={}", username);
+            log.info("[user] 사용자 권한 변경 완료: username={}", username);
         } else {
             log.info("[user] 권한 변경 없음 - 기존과 동일한 권한: username={}, role={}", username, oldRole);
         }
