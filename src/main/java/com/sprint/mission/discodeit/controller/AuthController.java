@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -109,14 +110,22 @@ public class AuthController {
     }
 
     @PutMapping("/role")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDto> updateRole(
         @RequestBody RoleUpdateRequest roleUpdateRequest) {
 
-        log.debug("[AuthController] 사용자 권한 변경 요청");
-        log.debug("[AuthController] 요청 데이터: " + roleUpdateRequest);
+        log.info("[AuthController] 사용자 권한 변경 요청");
+        log.info("[AuthController] 요청 데이터: userId={}, newRole={}", 
+            roleUpdateRequest.userId(), roleUpdateRequest.newRole());
 
+        // 권한 변경 실행
         UserDto updatedUser = userService.updateUserRole(roleUpdateRequest);
-        return ResponseEntity.ok(updatedUser);
+        
+        // 권한이 변경된 사용자의 모든 JWT 토큰 무효화 (강제 로그아웃)
+        log.info("[AuthController] 권한 변경된 사용자({})의 모든 토큰 무효화 시작", updatedUser.id());
+        jwtRegistry.invalidateJwtInformationByUserId(updatedUser.id());
+        log.info("[AuthController] 권한 변경된 사용자의 모든 토큰 무효화 완료");
 
+        return ResponseEntity.ok(updatedUser);
     }
 }

@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,6 +27,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -83,6 +85,11 @@ public class SecurityConfig {
                         csrfToken.get();
                     }
                 })
+                .ignoringRequestMatchers(
+                    "/api/auth/login",
+                    "/api/auth/logout",
+                    "/api/auth/refresh"
+                )
             )
 
             // 로그인 설정
@@ -109,6 +116,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/logout").permitAll()
                 .requestMatchers("/api/auth/refresh").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/auth/role").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
             )
@@ -116,7 +124,7 @@ public class SecurityConfig {
             // 예외 처리
             .exceptionHandling(ex -> ex
                 .accessDeniedHandler(customAccessDeniedHandler)
-                .authenticationEntryPoint(new Http403ForbiddenEntryPoint())
+                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
             )
 
             // JWT 기반 STATELESS 세션 관리

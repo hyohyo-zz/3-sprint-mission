@@ -50,8 +50,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 if (!jwtRegistry.hasActiveJwtInformationByAccessToken(token)) {
-                    log.warn("[JwtAuthenticationFilter] 토큰이 JwtRegistry에서 비활성 상태");
-                    sendUnauthorized(response, "Token inactive");
+                    log.warn("[JwtAuthenticationFilter] 토큰이 JwtRegistry에서 비활성 상태 - 강제 로그아웃 처리");
+                    sendUnauthorized(response, "Token has been invalidated - please log in again");
                     return;
                 }
                 
@@ -112,13 +112,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        // 정적 파일 & SPA & 인증 엔드포인트는 JWT 필터 스킵
+        // 정적 파일 & SPA & 공개 인증 엔드포인트는 JWT 필터 스킵
         if (uri.startsWith("/assets/") || uri.startsWith("/css/") || uri.startsWith("/js/")
             || uri.startsWith("/static/") || uri.equals("/") || uri.equals("/index.html")
-            || uri.startsWith("/.well-known/") || uri.equals("/favicon.ico")
-            || uri.startsWith("/api/auth/")) {
+            || uri.startsWith("/.well-known/") || uri.equals("/favicon.ico")) {
             return true;
         }
+        
+        // 공개 인증 엔드포인트만 제외 (role은 인증이 필요하므로 포함하지 않음)
+        if (uri.equals("/api/auth/login") || uri.equals("/api/auth/refresh") 
+            || uri.equals("/api/auth/logout") || uri.equals("/api/auth/csrf-token")
+            || (uri.equals("/api/users") && "POST".equals(request.getMethod()))) {
+            return true;
+        }
+        
         return !uri.startsWith("/api/");
     }
 }
