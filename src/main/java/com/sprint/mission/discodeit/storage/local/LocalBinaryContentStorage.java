@@ -62,6 +62,20 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     }
 
     @Override
+    public void put(String objectKey, InputStream in, long contentLength, String contentType)
+        throws Exception {
+        Path filePath = resolvePath(objectKey);
+        try {
+            Files.createDirectories(filePath.getParent());
+            try (OutputStream outputStream = Files.newOutputStream(filePath)) {
+                in.transferTo(outputStream);
+            }
+        } catch(Exception e) {
+            throw new FileSaveFailedException(filePath.toString(), e);
+        }
+    }
+
+    @Override
     public InputStream get(UUID binaryContentId) {
         Path filePath = resolvePath(binaryContentId);
         if (Files.notExists(filePath)) {
@@ -94,5 +108,9 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
 
     private Path resolvePath(UUID id) {
         return root.resolve(id.toString());
+    }
+
+    private Path resolvePath(String objectKey) {
+        return root.resolve(objectKey);
     }
 }

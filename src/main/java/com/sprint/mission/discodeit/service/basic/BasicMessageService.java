@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.data.MessageDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
@@ -9,6 +10,7 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.message.MessageEmptyException;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
@@ -22,10 +24,12 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -40,10 +44,8 @@ public class BasicMessageService implements MessageService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final BinaryContentRepository binaryContentRepository;
-
-    private final BinaryContentStorage binaryContentStorage;
     private final MessageMapper messageMapper;
-    private final PageResponseMapper pageResponseMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -66,16 +68,19 @@ public class BasicMessageService implements MessageService {
                 return new ChannelNotFoundException(channelId);
             });
 
+        // 메타 저장 전 유효성 검사
+        validateContent(request.content(), attachmentRequests);
+
+        // 첨부 메타 저장 + 이벤트 발행
         List<BinaryContent> attachments = createAttachment(attachmentRequests);
 
+        // 메시지 저장
         Message message = new Message(
             request.content(),
             channel,
             author,
             attachments
         );
-
-        validateContent(request.content(), attachments);
         Message savedMessage = messageRepository.save(message);
         log.info("[message] 생성 완료: messageId={}, authorId={}, channelId={}",
             message.getId(), authorId, channelId);
@@ -173,22 +178,37 @@ public class BasicMessageService implements MessageService {
      */
     private List<BinaryContent> createAttachment(
         List<BinaryContentCreateRequest> attachmentRequests) {
-        List<BinaryContent> attachments = attachmentRequests == null ? List.of() :
-            attachmentRequests.stream()
-                .map(
-                    req -> {
-                        BinaryContent binaryContent = new BinaryContent(
-                            req.fileName(),
-                            (long) req.bytes().length,
-                            req.contentType());
-                        BinaryContent savedAttachment = binaryContentRepository.save(binaryContent);
-                        binaryContentStorage.put(savedAttachment.getId(), req.bytes());
-                        return savedAttachment;
-                    })
-                .toList();
-        log.debug("[message] 첨부파일 요청 수: {}",
-            attachmentRequests != null ? attachmentRequests.size() : 0);
+        if (attachmentRequests == null || attachmentRequests.isEmpty()) {
+            log.debug("[message] 첨부파일 요청 수: 0");
+            return List.of();
+        }
 
+        List<BinaryContent> attachments = attachmentRequests.stream()
+            .map(req -> {
+                BinaryContent binaryContent = new BinaryContent(
+                    req.fileName(),
+                    (long) req.bytes().length,
+                    req.contentType()
+                );
+                BinaryContent saved = binaryContentRepository.save(binaryContent);
+
+                BinaryContentDto dto = new BinaryContentDto(
+                    saved.getId(),
+                    saved.getFileName(),
+                    saved.getSize(),
+                    saved.getContentType(),
+                    saved.getStatus()
+                );
+                String objectKey = saved.getId().toString();
+                eventPublisher.publishEvent(new BinaryContentCreatedEvent(
+                    dto,
+                    objectKey,
+                    req.toInputStreamSupplier()
+                ));
+                return saved;
+            }).toList();
+
+        log.debug("[message] 첨부파일 요청 수: {}", attachments.size());
         return attachments;
     }
 
@@ -197,7 +217,7 @@ public class BasicMessageService implements MessageService {
      * <p>
      * 메시지의 내용과 첨부파일이 없으면 예외를 던짐
      */
-    private void validateContent(String content, List<BinaryContent> attachments) {
+    private void validateContent(String content, List<BinaryContentCreateRequest> attachments) {
         boolean isContentEmpty = (content == null || content.trim().isEmpty());
         boolean hasNoAttachments = (attachments == null || attachments.isEmpty());
 

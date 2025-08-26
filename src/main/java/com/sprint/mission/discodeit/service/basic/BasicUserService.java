@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.RoleUpdateRequest;
@@ -8,6 +9,7 @@ import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
 import com.sprint.mission.discodeit.exception.user.DuplicateEmailException;
 import com.sprint.mission.discodeit.exception.user.DuplicateUserException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
@@ -21,6 +23,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -42,6 +45,7 @@ public class BasicUserService implements UserService {
     private final BinaryContentStorage binaryContentStorage;
     private final PasswordEncoder passwordEncoder;
     private final UserDetailsService userDetailsService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public UserDto create(UserCreateRequest request,
@@ -237,20 +241,26 @@ public class BasicUserService implements UserService {
      * 프로필이미지 생성 메서드
      */
     private BinaryContent createProfile(Optional<BinaryContentCreateRequest> profileRequest) {
-        return profileRequest.map(profileCreateRequest -> {
-                byte[] bytes = profileCreateRequest.bytes();
+        return profileRequest.map(req -> {
+            BinaryContent meta = new BinaryContent(
+                req.fileName(),
+                req.size(),
+                req.contentType()
+            );
+            BinaryContent saved = binaryContentRepository.save(meta);
 
-                BinaryContent binaryContent = new BinaryContent(
-                    profileCreateRequest.fileName(),
-                    (long) profileCreateRequest.bytes().length,
-                    profileCreateRequest.contentType()
-                );
+            // Dto 변환 후 이벤트 발행
+            BinaryContentDto dto = new BinaryContentDto(
+                saved.getId(), saved.getFileName(), saved.getSize(), saved.getContentType(), saved.getStatus()
+            );
+            String objectKey = saved.getId().toString();
+            eventPublisher.publishEvent(new BinaryContentCreatedEvent(
+                dto,
+                objectKey,
+                req.toInputStreamSupplier()
+            ));
 
-                binaryContentRepository.save(binaryContent);
-                // Storage에 bytes 저장
-                binaryContentStorage.put(binaryContent.getId(), bytes);
-                return binaryContent;
-            })
-            .orElse(null);
+            return saved;
+        }).orElse(null);
     }
 }
