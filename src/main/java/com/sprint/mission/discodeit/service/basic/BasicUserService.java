@@ -253,7 +253,8 @@ public class BasicUserService implements UserService {
 
             // Dto 변환 후 이벤트 발행
             BinaryContentDto dto = new BinaryContentDto(
-                saved.getId(), saved.getFileName(), saved.getSize(), saved.getContentType(), saved.getStatus()
+                saved.getId(), saved.getFileName(), saved.getSize(), saved.getContentType(),
+                saved.getStatus()
             );
             String objectKey = saved.getId().toString();
             eventPublisher.publishEvent(new BinaryContentCreatedEvent(

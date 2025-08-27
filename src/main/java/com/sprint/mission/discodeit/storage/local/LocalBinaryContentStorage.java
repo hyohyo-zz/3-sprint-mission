@@ -70,7 +70,7 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
             try (OutputStream outputStream = Files.newOutputStream(filePath)) {
                 in.transferTo(outputStream);
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new FileSaveFailedException(filePath.toString(), e);
         }
     }

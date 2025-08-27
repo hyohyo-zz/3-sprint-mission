@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class NotificationMapper {
+
     public NotificationDto toDto(Notification notification) {
         if (notification == null) {
             return null;

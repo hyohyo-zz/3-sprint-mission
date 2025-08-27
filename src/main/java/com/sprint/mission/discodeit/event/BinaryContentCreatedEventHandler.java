@@ -33,9 +33,10 @@ public class BinaryContentCreatedEventHandler {
         UUID id = meta.id();
         String key = event.objectKey();
 
-        log.info("[BinaryEvent] 업로드 시작 - id={}, key={}, size={}, type={}", id, key, meta.size(), meta.contentType());
+        log.info("[BinaryEvent] 업로드 시작 - id={}, key={}, size={}, type={}", id, key, meta.size(),
+            meta.contentType());
 
-        try(InputStream in = event.inputStreamSupplier().get()) {
+        try (InputStream in = event.inputStreamSupplier().get()) {
             storage.put(key, in, meta.size(), meta.contentType());
 
             BinaryContent binaryContent = binaryContentRepository.findById(meta.id())
@@ -43,12 +44,15 @@ public class BinaryContentCreatedEventHandler {
             binaryContent.updateStatus(BinaryContentStatus.SUCCESS);
 
             log.info("[BinaryContent] 업로드 성공 - id={}, key={}", id, key);
-        } catch(Exception e) {
+        } catch (Exception e) {
             BinaryContent binaryContent = binaryContentRepository.findById(meta.id())
                 .orElse(null);
-            if (binaryContent != null) binaryContent.updateStatus(BinaryContentStatus.FAIL);
+            if (binaryContent != null) {
+                binaryContent.updateStatus(BinaryContentStatus.FAIL);
+            }
 
-            log.error("[BinaryContent] 업로드 실패 - id={}, key={}, ex={}", meta.id(), key, e.toString());
+            log.error("[BinaryContent] 업로드 실패 - id={}, key={}, ex={}", meta.id(), key,
+                e.toString());
         }
     }
 

@@ -56,10 +56,12 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         String key = binaryContentId.toString();
         String contentType = detectContentType(bytes);
 
-        log.info("[S3] put(bytes) 요청: key={}, contentType={}, size={}", key, contentType, bytes.length);
+        log.info("[S3] put(bytes) 요청: key={}, contentType={}, size={}", key, contentType,
+            bytes.length);
 
         s3Client.putObject(
-            b -> b.bucket(bucket).key(key).contentType(contentType).contentLength((long) bytes.length),
+            b -> b.bucket(bucket).key(key).contentType(contentType)
+                .contentLength((long) bytes.length),
             RequestBody.fromBytes(bytes)
         );
         return binaryContentId;
@@ -131,7 +133,9 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
 
             String fileName = key;
             String ext = getExtensionFromContentType(contentType);
-            if (!ext.isEmpty()) fileName += ext;
+            if (!ext.isEmpty()) {
+                fileName += ext;
+            }
 
             var getReq = GetObjectRequest.builder()
                 .bucket(bucket)
@@ -169,8 +173,11 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
 
 
     private String detectContentType(byte[] bytes) {
-        try { return new Tika().detect(bytes); }
-        catch (Exception e) { return "application/octet-stream"; }
+        try {
+            return new Tika().detect(bytes);
+        } catch (Exception e) {
+            return "application/octet-stream";
+        }
     }
 
 }

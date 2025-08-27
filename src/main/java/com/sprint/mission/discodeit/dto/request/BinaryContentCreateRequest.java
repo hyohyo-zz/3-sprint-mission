@@ -16,6 +16,7 @@ public record BinaryContentCreateRequest(
     @NotBlank
     byte[] bytes
 ) {
+
     public long size() {
         return bytes.length;
     }

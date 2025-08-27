@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.event;
 import com.sprint.mission.discodeit.entity.Notification;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.mapper.NotificationMapper;
 import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -27,7 +26,9 @@ public class NotificationRequiredEventListener {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
 
-    /** 메시지 생성 알림: 채널 구독자(알림 활성)에게, 작성자 본인은 제외 */
+    /**
+     * 메시지 생성 알림: 채널 구독자(알림 활성)에게, 작성자 본인은 제외
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -45,19 +46,24 @@ public class NotificationRequiredEventListener {
             ))
             .collect(Collectors.toList());
 
-        if(!notifications.isEmpty()) {
+        if (!notifications.isEmpty()) {
             notificationRepository.saveAll(notifications);
-            log.info("[NotificationsEvent] 메시지 알림 생성: channel={}, targets={}", event.channelName(), notifications.size());
+            log.info("[NotificationsEvent] 메시지 알림 생성: channel={}, targets={}", event.channelName(),
+                notifications.size());
         }
     }
 
-    /** 권한 변경 알림: 당사자에게 */
+    /**
+     * 권한 변경 알림: 당사자에게
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(RoleUpdatedEvent event) {
         User target = userRepository.findById(event.userId()).orElse(null);
-        if (target == null) return;
+        if (target == null) {
+            return;
+        }
 
         Notification n = new Notification(
             target,
@@ -77,7 +83,9 @@ public class NotificationRequiredEventListener {
     }
 
     private String buildMessageContent(String content) {
-        if (content == null) return "";
+        if (content == null) {
+            return "";
+        }
         String oneLine = content.replaceAll("\\s+", " ").trim();
         return oneLine.length() > 80 ? oneLine.substring(0, 80) + "…" : oneLine;
     }
