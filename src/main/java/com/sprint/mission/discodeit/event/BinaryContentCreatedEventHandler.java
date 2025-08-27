@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.BinaryContentStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
+import jakarta.annotation.PostConstruct;
 import java.io.InputStream;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +20,18 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor(onConstructor_ = {@Lazy})
+@RequiredArgsConstructor
 public class BinaryContentCreatedEventHandler {
 
-    private final BinaryContentStorage storage;
+    private final @Lazy BinaryContentStorage storage;
     private final BinaryContentRepository binaryContentRepository;
 
-    @Async
+    @PostConstruct
+    void init() {
+        log.info("[BinaryEvent] listener initialized");
+    }
+
+    @Async("taskExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void on(BinaryContentCreatedEvent event) {
