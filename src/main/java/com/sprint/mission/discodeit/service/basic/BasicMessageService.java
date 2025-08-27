@@ -11,20 +11,18 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.event.BinaryContentCreatedEvent;
+import com.sprint.mission.discodeit.event.MessageCreatedEvent;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.message.MessageEmptyException;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
-import com.sprint.mission.discodeit.mapper.PageResponseMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -84,6 +82,9 @@ public class BasicMessageService implements MessageService {
         Message savedMessage = messageRepository.save(message);
         log.info("[message] 생성 완료: messageId={}, authorId={}, channelId={}",
             message.getId(), authorId, channelId);
+
+        // 메시지 등록 이벤트 발행
+        publishMessageCreatedEvent(savedMessage);
 
         return messageMapper.toDto(savedMessage);
     }
@@ -224,5 +225,20 @@ public class BasicMessageService implements MessageService {
         if (isContentEmpty && hasNoAttachments) {
             throw new MessageEmptyException();
         }
+    }
+
+    // 메시지 등록 알림 이벤트 발행
+    private MessageCreatedEvent publishMessageCreatedEvent(Message savedMessage) {
+        MessageCreatedEvent event = new MessageCreatedEvent(
+            savedMessage.getId(),
+            savedMessage.getChannel().getId(),
+            savedMessage.getChannel().getName(),
+            savedMessage.getAuthor().getId(),
+            savedMessage.getAuthor().getUsername(),
+            savedMessage.getContent(),
+            savedMessage.getCreatedAt()
+        );
+        eventPublisher.publishEvent(event);
+        return event;
     }
 }
