@@ -26,6 +26,8 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,6 +51,7 @@ public class BasicUserService implements UserService {
     private final UserDetailsService userDetailsService;
     private final ApplicationEventPublisher eventPublisher;
 
+    @CacheEvict(value = "users", allEntries = true)
     @Transactional
     public UserDto create(UserCreateRequest request,
         Optional<BinaryContentCreateRequest> profileRequest) {
@@ -92,20 +95,22 @@ public class BasicUserService implements UserService {
             });
     }
 
+    @Cacheable(value = "users")
     @Transactional(readOnly = true)
     @Override
     public List<UserDto> findAll() {
-        log.info("[user] 전체 조회 요청");
+        log.info("[user] 전체 조회 요청 (cacheable) - 캐시 miss 시 DB 접근");
 
         List<UserDto> userDtos = userRepository.findAll()
             .stream()
             .map(userMapper::toDto)
             .toList();
 
-        log.info("[user] 전체 조회 응답: size={}", userDtos.size());
+        log.info("[user] 전체 조회 응답(DB 쿼리 실행됨): size={}", userDtos.size());
         return userDtos;
     }
 
+    @CacheEvict(value = "users", allEntries = true)
     @PreAuthorize("@userPermissionEvaluator.isSelf(#userId, authentication.principal.userDto.id)")
     @Transactional
     @Override
@@ -168,6 +173,7 @@ public class BasicUserService implements UserService {
         return userMapper.toDto(user);
     }
 
+    @CacheEvict(value = "users", allEntries = true)
     @PreAuthorize("@userPermissionEvaluator.isSelf(#userId, authentication.principal.userDto.id)")
     @Transactional
     @Override

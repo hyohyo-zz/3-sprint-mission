@@ -47,7 +47,7 @@ public class MessageController implements MessageApi {
         @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
         long startTime = System.currentTimeMillis();
-        
+
         List<BinaryContentCreateRequest> attachmentRequests =
             Optional.ofNullable(attachments)
                 .orElse(List.of())
@@ -57,12 +57,12 @@ public class MessageController implements MessageApi {
                 .collect(Collectors.toList());
 
         MessageDto createdMessage = messageService.create(messageCreateRequest, attachmentRequests);
-        
+
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
-        
+
         log.info("[PERFORMANCE] Message create took: {}ms (async={})",
-            duration, 
+            duration,
             attachmentRequests.isEmpty() ? "N/A" : (duration < 1000 ? "YES" : "NO"));
 
         return ResponseEntity

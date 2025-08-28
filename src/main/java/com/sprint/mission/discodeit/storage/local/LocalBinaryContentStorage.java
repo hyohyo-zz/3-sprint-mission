@@ -60,7 +60,8 @@ public class LocalBinaryContentStorage implements BinaryContentStorage {
     }
 
     @Override
-    @Timed(value = "storage.put.local", description = "로컬 저장소 파일 저장", histogram = true, percentiles = {0.5, 0.95, 0.99})
+    @Timed(value = "storage.put.local", description = "로컬 저장소 파일 저장", histogram = true, percentiles = {
+        0.5, 0.95, 0.99})
     public UUID put(UUID binaryContentId, byte[] bytes) {
         log.info("[LocalStorage] put(byte[]) start key={}, size={}, thread={}",
             binaryContentId, bytes.length, Thread.currentThread().getName());

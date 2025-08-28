@@ -21,8 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class AsyncConfig {
 
     /**
-     * 비동기 처리용 TaskExecutor
-     * app.async.enabled=true 일 때 사용
+     * 비동기 처리용 TaskExecutor app.async.enabled=true 일 때 사용
      */
     @Bean("taskExecutor")
     @ConditionalOnProperty(name = "app.async.enabled", havingValue = "true", matchIfMissing = true)
@@ -38,8 +37,7 @@ public class AsyncConfig {
     }
 
     /**
-     * 동기 처리용 TaskExecutor
-     * app.async.enabled=false 일 때 사용 (현재 스레드에서 바로 실행)
+     * 동기 처리용 TaskExecutor app.async.enabled=false 일 때 사용 (현재 스레드에서 바로 실행)
      */
     @Bean("taskExecutor")
     @ConditionalOnProperty(name = "app.async.enabled", havingValue = "false")

@@ -29,11 +29,17 @@ spring:
   aop:
     proxy-target-class: true
 
+  cache:
+    type: caffeine
+    cache-names: users, channelsByUser, notificationsByUser
+    caffeine:
+      spec: maximumSize=100, expireAfterAccess=600s, recordStats
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,loggers, prometheus
+        include: health, info, metrics, loggers, prometheus, caches
       base-path: /actuator
   endpoint:
     health:

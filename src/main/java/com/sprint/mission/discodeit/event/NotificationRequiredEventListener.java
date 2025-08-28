@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -29,6 +30,7 @@ public class NotificationRequiredEventListener {
     /**
      * 메시지 생성 알림: 채널 구독자(알림 활성)에게, 작성자 본인은 제외
      */
+    @CacheEvict(value = "notificationsByUser", key = "#notification.receiver.id")
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)

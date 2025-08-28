@@ -57,7 +57,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
     }
 
     @Retryable(
-        value = { S3Exception.class, IOException.class },
+        value = {S3Exception.class, IOException.class},
         maxAttempts = 3,               // 최대 3번 시도
         backoff = @Backoff(delay = 2000, multiplier = 2) // 2초 대기, 점진적으로 증가
     )
@@ -76,7 +76,7 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
                 RequestBody.fromBytes(bytes)
             );
             return binaryContentId;
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.error("[S3Storage] put 실패 id={}, ex={}", binaryContentId, e.toString());
             throw e;
         }
