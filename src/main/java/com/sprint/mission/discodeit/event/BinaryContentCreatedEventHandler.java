@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ public class BinaryContentCreatedEventHandler {
 
     private final @Lazy BinaryContentStorage storage;
     private final BinaryContentRepository binaryContentRepository;
+    private final ApplicationEventPublisher failurePublisher;
 
     @PostConstruct
     void init() {
@@ -59,6 +61,7 @@ public class BinaryContentCreatedEventHandler {
 
             log.error("[BinaryContent] 업로드 실패 - id={}, key={}, ex={}", meta.id(), key,
                 e.toString());
+            failurePublisher.publishEvent(new BinaryContentUploadFailedEvent(event.meta(), e));
         }
     }
 

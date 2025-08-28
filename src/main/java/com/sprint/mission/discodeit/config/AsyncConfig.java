@@ -1,7 +1,9 @@
 package com.sprint.mission.discodeit.config;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -15,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 @Configuration
 @EnableAsync
+@Slf4j
 public class AsyncConfig {
 
     /**
@@ -47,7 +50,8 @@ public class AsyncConfig {
     @Bean
     public AsyncUncaughtExceptionHandler asyncUncaughtExceptionHandler() {
         return (ex, method, params) -> {
-            System.err.printf("[@Async-ERROR] method=%s, ex=%s%n", method, ex.toString());
+            log.error("[@Async ERROR] 비동기 실행 실패 - method={}, params={}, ex={}",
+                method.getName(), Arrays.toString(params), ex.toString(), ex);
         };
     }
 

@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.data.BinaryContentDto;
 import com.sprint.mission.discodeit.exception.binarycontent.FileSaveFailedException;
 import com.sprint.mission.discodeit.storage.BinaryContentStorage;
 import jakarta.annotation.PostConstruct;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
@@ -11,10 +12,14 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -51,20 +56,30 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         this.bucket = props.getBucket();
     }
 
+    @Retryable(
+        value = { S3Exception.class, IOException.class },
+        maxAttempts = 3,               // 최대 3번 시도
+        backoff = @Backoff(delay = 2000, multiplier = 2) // 2초 대기, 점진적으로 증가
+    )
     @Override
     public UUID put(UUID binaryContentId, byte[] bytes) {
-        String key = binaryContentId.toString();
-        String contentType = detectContentType(bytes);
+        try {
+            String key = binaryContentId.toString();
+            String contentType = detectContentType(bytes);
 
-        log.info("[S3] put(bytes) 요청: key={}, contentType={}, size={}", key, contentType,
-            bytes.length);
+            log.info("[S3] put(bytes) 요청: key={}, contentType={}, size={}", key, contentType,
+                bytes.length);
 
-        s3Client.putObject(
-            b -> b.bucket(bucket).key(key).contentType(contentType)
-                .contentLength((long) bytes.length),
-            RequestBody.fromBytes(bytes)
-        );
-        return binaryContentId;
+            s3Client.putObject(
+                b -> b.bucket(bucket).key(key).contentType(contentType)
+                    .contentLength((long) bytes.length),
+                RequestBody.fromBytes(bytes)
+            );
+            return binaryContentId;
+        } catch(Exception e) {
+            log.error("[S3Storage] put 실패 id={}, ex={}", binaryContentId, e.toString());
+            throw e;
+        }
     }
 
     @Override
@@ -180,4 +195,27 @@ public class S3BinaryContentStorage implements BinaryContentStorage {
         }
     }
 
+    @Recover
+    public UUID recover(Exception e, UUID binaryContentId, byte[] bytes) {
+        // 모든 재시도가 실패했을 때 호출됨
+        String requestId = MDC.get("requestId");
+        log.error("[S3Storage] put 실패 - id={}, requestId={}, cause={}",
+            binaryContentId, requestId, e.toString(), e);
+
+        // 관리자에게 알림 발생
+        notifyAdmin(requestId, binaryContentId, e);
+
+        throw new RuntimeException("S3 업로드 실패 -id=" + binaryContentId, e);
+    }
+
+    private void notifyAdmin(String requestId, UUID binaryContentId, Exception e) {
+        String message = """
+            S3 파일 업로드 실패
+            RequestId: %s
+            BinaryContentId: %s
+            Error: %s
+            """.formatted(requestId, binaryContentId, e.getMessage());
+
+        log.warn("[ALERT] 관리자 알림 전송: {}", message);
+    }
 }
