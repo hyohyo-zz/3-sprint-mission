@@ -119,11 +119,11 @@ server:
 # JWT 설정
 jwt:
   access-token:
-    secret: change-me-access-secret-for-dev-only
-    exp: 900000        # 15분(ms)
+    secret: ${JWT_ACCESS_SECRET:change-me-access-secret-for-dev-only}
+    expiration-ms: 900000          # 15분
   refresh-token:
-    secret: change-me-refresh-secret-for-dev-only
-    exp: 3600000       # 1시간(ms)
+    secret: ${JWT_REFRESH_SECRET:change-me-refresh-secret-for-dev-only}
+    expiration-ms: 1209600000      # 14일
 
 # true=비동기, false=동기
 app:
