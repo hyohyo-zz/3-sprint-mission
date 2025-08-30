@@ -8,7 +8,9 @@ public record S3UploadFailedEvent(
     String requestId,
     String errorMessage
 ) {
-    public static S3UploadFailedEvent from(BinaryContentDto meta, Throwable cause, String requestId) {
+
+    public static S3UploadFailedEvent from(BinaryContentDto meta, Throwable cause,
+        String requestId) {
         return new S3UploadFailedEvent(
             meta.id(),
             requestId,

@@ -35,7 +35,7 @@ public class KafkaProduceRequiredEventListener {
         try {
             String payload = objectMapper.writeValueAsString(event);
             kafkaTemplate.send("discodeit.RoleUpdatedEvent", payload);
-        } catch(Exception e) {
+        } catch (Exception e) {
             log.error("[Kafka] RoleUpdateEvent 직렬화 실패", e);
         }
     }
