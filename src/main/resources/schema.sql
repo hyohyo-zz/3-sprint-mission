@@ -1,5 +1,13 @@
 -- 테이블
 -- User
+drop table read_statuses;
+drop table notifications;
+drop table message_attachments;
+drop table messages;
+drop table channels;
+drop table users;
+drop table binary_contents;
+
 CREATE TABLE users
 (
     id         uuid PRIMARY KEY,

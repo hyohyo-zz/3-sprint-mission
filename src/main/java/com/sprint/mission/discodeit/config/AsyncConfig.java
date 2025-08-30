@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskDecorator;
+import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.context.SecurityContext;
@@ -18,7 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Configuration
 @EnableAsync
 @Slf4j
-public class AsyncConfig {
+public class AsyncConfig implements AsyncConfigurer {
 
     /**
      * 비동기 처리용 TaskExecutor app.async.enabled=true 일 때 사용
@@ -42,7 +43,12 @@ public class AsyncConfig {
     @Bean("taskExecutor")
     @ConditionalOnProperty(name = "app.async.enabled", havingValue = "false")
     public Executor syncExecutor() {
-        return Runnable::run; // 동기 실행
+        return Runnable::run;
+    }
+
+    @Override
+    public Executor getAsyncExecutor() {
+        return asyncExecutor();
     }
 
     @Bean

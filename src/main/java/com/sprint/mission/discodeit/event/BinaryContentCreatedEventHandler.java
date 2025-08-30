@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
@@ -61,7 +62,10 @@ public class BinaryContentCreatedEventHandler {
 
             log.error("[BinaryContent] 업로드 실패 - id={}, key={}, ex={}", meta.id(), key,
                 e.toString());
-            failurePublisher.publishEvent(new BinaryContentUploadFailedEvent(event.meta(), e));
+            String requestId = MDC.get("requestId");
+            failurePublisher.publishEvent(
+                S3UploadFailedEvent.from(event.meta(), e, requestId)
+            );
         }
     }
 
