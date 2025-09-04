@@ -86,7 +86,9 @@ public class SecurityConfig {
                 .ignoringRequestMatchers(
                     "/api/auth/login",
                     "/api/auth/logout",
-                    "/api/auth/refresh"
+                    "/api/auth/refresh",
+                    "/ws/**",
+                    "/api/sse"
                 )
             )
 
@@ -114,6 +116,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/login").permitAll()
                 .requestMatchers("/api/auth/logout").permitAll()
                 .requestMatchers("/api/auth/refresh").permitAll()
+                .requestMatchers("/ws/**").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/auth/role").hasRole("ADMIN")
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()
