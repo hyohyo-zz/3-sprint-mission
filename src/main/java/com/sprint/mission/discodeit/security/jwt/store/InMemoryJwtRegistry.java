@@ -1,8 +1,10 @@
 package com.sprint.mission.discodeit.security.jwt.store;
 
+import com.sprint.mission.discodeit.event.UserLogInOutEvent;
 import com.sprint.mission.discodeit.security.jwt.JwtInformation;
 import com.sprint.mission.discodeit.security.jwt.JwtTokenProvider;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Map;
@@ -11,6 +13,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,13 +22,14 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class InMemoryJwtRegistry implements JwtRegistry {
 
+    private final int maxActiveJwtCount = 1;
+
+    private final JwtTokenProvider jwtTokenProvider;
+    private final ApplicationEventPublisher eventPublisher;
+
     private final Map<UUID, Deque<JwtInformation>> origin = new ConcurrentHashMap<>();
     private final Set<String> accessTokenIndexes = ConcurrentHashMap.newKeySet();
     private final Set<String> refreshTokenIndexes = ConcurrentHashMap.newKeySet();
-    private final Set<String> usernameIndexes = ConcurrentHashMap.newKeySet();
-
-    private final int maxActiveJwtCount = 1;
-    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public void registerJwtInformation(JwtInformation jwtInformation) {
@@ -46,10 +50,6 @@ public class InMemoryJwtRegistry implements JwtRegistry {
                 if (removed != null) {
                     accessTokenIndexes.remove(removed.getAccessToken());
                     refreshTokenIndexes.remove(removed.getRefreshToken());
-
-                    if (dq.isEmpty()) {
-                        usernameIndexes.remove(removed.getUserDto().username());
-                    }
                 }
             }
             dq.addLast(jwtInformation);
@@ -58,13 +58,16 @@ public class InMemoryJwtRegistry implements JwtRegistry {
 
         accessTokenIndexes.add(jwtInformation.getAccessToken());
         refreshTokenIndexes.add(jwtInformation.getRefreshToken());
-        usernameIndexes.add(username);
+        eventPublisher.publishEvent(new UserLogInOutEvent(jwtInformation.getUserDto().id(), true));
+        log.info("[JwtRegistry] UserLogInOutEvent 발행됨: {}", userId);
 
         log.info("[JwtRegistry] registerJwtInformation 완료: 현재 활성 사용자 수={}", origin.size());
     }
 
     @Override
     public void invalidateJwtInformationByUserId(UUID userId) {
+        log.warn("[JwtRegistry] invalidate 호출됨! userId={}, caller={}",
+            userId, Arrays.toString(Thread.currentThread().getStackTrace()));
         Deque<JwtInformation> infos = origin.remove(userId);
         if (infos != null) {
             infos.forEach(info -> {
@@ -72,6 +75,8 @@ public class InMemoryJwtRegistry implements JwtRegistry {
                 refreshTokenIndexes.remove(info.getRefreshToken());
             });
         }
+        eventPublisher.publishEvent(new UserLogInOutEvent(userId, false));
+        log.info("[JwtRegistry] UserLogInOutEvent 발행됨: {}", userId);
     }
 
     @Override
@@ -85,14 +90,23 @@ public class InMemoryJwtRegistry implements JwtRegistry {
     }
 
     @Override
-    public boolean hasActiveJwtInformationByUsername(String username) {
-        return usernameIndexes.contains(username);
-    }
-
-    @Override
     public boolean hasActiveJwtInformationByUserId(UUID userId) {
         Deque<JwtInformation> infos = origin.get(userId);
-        return infos != null && !infos.isEmpty();
+        if (infos == null || infos.isEmpty()) {
+            return false;
+        }
+
+        Date now = new Date();
+        return infos.stream().anyMatch(info -> {
+            try {
+                Date accessExpiry = jwtTokenProvider.getExpiration(info.getAccessToken());
+                Date refreshExpiry = jwtTokenProvider.getExpiration(info.getRefreshToken());
+                return (accessExpiry == null || accessExpiry.after(now))
+                    && (refreshExpiry == null || refreshExpiry.after(now));
+            } catch (Exception e) {
+                return false;
+            }
+        });
     }
 
     @Override
@@ -110,7 +124,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
                     // 인덱스에 새 토큰 등록
                     accessTokenIndexes.add(info.getAccessToken());
                     refreshTokenIndexes.add(info.getRefreshToken());
-                    usernameIndexes.add(info.getUserDto().username());
+                    return;
                 }
             }
         });
@@ -138,17 +152,14 @@ public class InMemoryJwtRegistry implements JwtRegistry {
                     if (isExpired) {
                         accessTokenIndexes.remove(jwtInfo.getAccessToken());
                         refreshTokenIndexes.remove(jwtInfo.getRefreshToken());
-                        if (queue.size() == 1) {
-                            usernameIndexes.remove(jwtInfo.getUserDto().username());
-                        }
                         log.debug("[JwtRegistry] 만료 토큰 제거: userId={}", userId);
+                        eventPublisher.publishEvent(new UserLogInOutEvent(userId, false));
                         return true;
                     }
                     return false;
                 } catch (Exception e) {
                     accessTokenIndexes.remove(jwtInfo.getAccessToken());
                     refreshTokenIndexes.remove(jwtInfo.getRefreshToken());
-                    usernameIndexes.remove(jwtInfo.getUserDto().username());
                     log.warn("[JwtRegistry] 파싱 오류로 제거: userId={}, error={}", userId,
                         e.getMessage());
                     return true;

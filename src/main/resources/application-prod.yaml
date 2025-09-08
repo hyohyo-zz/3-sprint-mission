@@ -22,11 +22,10 @@ logging:
     org.hibernate.SQL: off
     org.hibernate.orm.jdbc.bind: off
 
-discodeit:
-  jwt:
-    access-token:
-      secret: ${JWT_ACCESS_SECRET}
-      expiration-ms: 900000
-    refresh-token:
-      secret: ${JWT_REFRESH_SECRET}
-      expiration-ms: 1209600000
+jwt:
+  access-token:
+    secret: ${JWT_ACCESS_SECRET}
+    expiration-ms: 900000
+  refresh-token:
+    secret: ${JWT_REFRESH_SECRET}
+    expiration-ms: 1209600000

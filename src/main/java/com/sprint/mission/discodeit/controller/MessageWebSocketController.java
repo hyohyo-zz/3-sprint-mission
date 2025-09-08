@@ -14,8 +14,7 @@ public class MessageWebSocketController {
     private final MessageService messageService;
 
     /**
-     *  단순 텍스트 메시지 전송(STOMP)
-     *  클라이언트 -> /pub/messages 로 발행
+     * 단순 텍스트 메시지 전송(STOMP) 클라이언트 -> /pub/messages 로 발행
      */
     @MessageMapping("messages")
     public void sendMessage(MessageCreateRequest request) {

@@ -19,7 +19,10 @@ public class NotificationRequiredTopicListener {
     private final ObjectMapper objectMapper;
     private final NotificationService notificationService;
 
-    @KafkaListener(topics = "discodeit.MessageCreatedEvent")
+    @KafkaListener(
+        topics = "discodeit.MessageCreatedEvent",
+        groupId = "notification-service"
+    )
     public void onMessageCreateEvent(String kafkaEvent) {
         try {
             MessageCreatedEvent event = objectMapper.readValue(kafkaEvent,
@@ -31,22 +34,30 @@ public class NotificationRequiredTopicListener {
         }
     }
 
-    @KafkaListener(topics = "discodeit.RoleUpdatedEvent")
+    @KafkaListener(
+        topics = "discodeit.RoleUpdatedEvent",
+        groupId = "notification-service"
+    )
     public void onRoleUpdatedEvent(String kafkaEvent) {
         try {
             RoleUpdatedEvent event = objectMapper.readValue(kafkaEvent, RoleUpdatedEvent.class);
             notificationService.createFromRoleUpdate(event);
+            log.info("[Kafka] RoleUpdatedEvent 처리 완료: {}", event);
         } catch (JsonProcessingException e) {
             log.error("[Kafka] RoleUpdatedEvent 역직렬화 실패", e);
         }
     }
 
-    @KafkaListener(topics = "discodeit.S3UploadFailedEvent")
+    @KafkaListener(
+        topics = "discodeit.S3UploadFailedEvent",
+        groupId = "notification-service"
+    )
     public void onS3UploadFailedEvent(String kafkaEvent) {
         try {
             S3UploadFailedEvent event = objectMapper.readValue(kafkaEvent,
                 S3UploadFailedEvent.class);
             notificationService.notifyAdmin(event);
+            log.info("[Kafka] S3UploadFailedEvent 처리 완료: {}", event);
         } catch (JsonProcessingException e) {
             log.error("[Kafka] S3UploadFailedEvent 역직렬화 실패", e);
         }

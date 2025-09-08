@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.event.handler;
+package com.sprint.mission.discodeit.event.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sprint.mission.discodeit.event.MessageCreatedEvent;

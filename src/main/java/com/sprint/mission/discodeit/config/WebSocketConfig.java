@@ -11,9 +11,8 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     /**
-     * 메시지 브로커 설정
-     * - SimpleBroker: /sub (구독 prefix)
-     * - Application Destination Prefix: /pub (발행 prefix)
+     * 메시지 브로커 설정 - SimpleBroker: /sub (구독 prefix) - Application Destination Prefix: /pub (발행
+     * prefix)
      */
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {

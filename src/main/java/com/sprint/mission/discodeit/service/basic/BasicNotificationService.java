@@ -14,6 +14,7 @@ import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.NotificationService;
+import com.sprint.mission.discodeit.service.SseService;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,10 +30,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class BasicNotificationService implements NotificationService {
 
+    private final String eventName = "notifications.created";
+
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
     private final ReadStatusRepository readStatusRepository;
     private final UserRepository userRepository;
+    private final SseService sseService;
 
     @Cacheable(value = "notificationsByUser", key = "#receiverId")
     @Transactional(readOnly = true)
@@ -50,7 +54,7 @@ public class BasicNotificationService implements NotificationService {
         return result;
     }
 
-    @CacheEvict(value = "notificationsByUser", key = "#notificationId")
+    @CacheEvict(value = "notificationsByUser", key = "#receiverId")
     @Override
     public void deleteMyNotification(UUID receiverId, UUID notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
@@ -72,10 +76,11 @@ public class BasicNotificationService implements NotificationService {
 
         // 2. 본인(authorId)은 알림 제외
         List<Notification> notifications = targets.stream()
-            .map(ReadStatus::getUser)
-            .filter(user -> !user.getId().equals(event.authorId()))
-            .map(user -> new Notification(
-                user,
+            .filter(rs -> !rs.getUser().getId().equals(event.authorId()))
+            .filter(
+                rs -> rs.getLastReadAt() == null || rs.getLastReadAt().isBefore(event.createdAt()))
+            .map(rs -> new Notification(
+                rs.getUser(),
                 buildMessageTitle(event.authorName(), event.channelName()),
                 buildMessageContent(event.content())
             ))
@@ -86,6 +91,14 @@ public class BasicNotificationService implements NotificationService {
             notificationRepository.saveAll(notifications);
             log.info("[notification] MessageCreatedEvent 알림 생성: channel={}, targets={}",
                 event.channelName(), notifications.size());
+
+            notifications.forEach(n ->
+                sseService.send(
+                    List.of(n.getReceiver().getId()),
+                    eventName,
+                    notificationMapper.toDto(n)
+                )
+            );
         }
     }
 
@@ -104,6 +117,12 @@ public class BasicNotificationService implements NotificationService {
         notificationRepository.save(notification);
         log.info("[notification] RoleUpdatedEvent 알림 생성 - user={}, {} -> {}",
             user.getUsername(), event.oldRole(), event.newRole());
+
+        sseService.send(
+            List.of(user.getId()),
+            eventName,
+            notificationMapper.toDto(notification)
+        );
     }
 
     @Override
@@ -126,15 +145,30 @@ public class BasicNotificationService implements NotificationService {
             notificationRepository.saveAll(notifications);
             log.error("[notification] S3UploadFailedEvent 관리자 알림 생성: admins={}, error={}",
                 admins.size(), event.errorMessage());
+
+            notifications.forEach(n ->
+                sseService.send(
+                    List.of(n.getReceiver().getId()),
+                    eventName,
+                    notificationMapper.toDto(n)
+                )
+            );
         }
     }
 
     private String buildMessageTitle(String authorName, String channelName) {
-        return authorName + " (#" + (channelName != null ? channelName : "개인 메시지") + ")";
+        String label = (channelName == null || channelName.isBlank())
+            ? "개인 메시지"
+            : "#" + channelName;
+        return authorName + " (" + label + ")";
     }
 
     private String buildMessageContent(String content) {
-        return content.length() > 50 ? content.substring(0, 50) + "..." : content;
+        if (content == null) {
+            return "";
+        }
+        String oneLine = content.replaceAll("\\s+", " ").trim();
+        return oneLine.length() > 80 ? oneLine.substring(0, 80) + "…" : oneLine;
     }
 }
 
