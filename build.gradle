@@ -67,6 +67,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.security:spring-security-messaging'
 }
 
 // querydsl Q클래스 생성 경로설정
