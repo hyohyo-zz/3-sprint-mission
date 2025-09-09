@@ -83,13 +83,8 @@ public class SecurityConfig {
                         csrfToken.get();
                     }
                 })
-                .ignoringRequestMatchers(
-                    "/api/auth/login",
-                    "/api/auth/logout",
-                    "/api/auth/refresh",
-                    "/ws/**",
-                    "/api/sse"
-                )
+                .ignoringRequestMatchers("/api/sse")
+                .ignoringRequestMatchers("/api/binaryContents/*/download")
             )
 
             // 로그인 설정
@@ -113,8 +108,6 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/actuator/**").permitAll()
                 .requestMatchers("/api/auth/csrf-token").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                .requestMatchers("/api/auth/login").permitAll()
-                .requestMatchers("/api/auth/logout").permitAll()
                 .requestMatchers("/api/auth/refresh").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/api/binaryContents/*/download").permitAll()

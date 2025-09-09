@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.security;
 
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import java.util.UUID;
@@ -25,7 +26,7 @@ public class DiscodeitUserDetailsService implements UserDetailsService {
         return toUserDetails(user);
     }
 
-    public UserDetails loadUserById(UUID userId) throws UsernameNotFoundException {
+    public UserDetails loadUserById(UUID userId) throws UserNotFoundException {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UsernameNotFoundException(userId.toString()));
         return toUserDetails(user);

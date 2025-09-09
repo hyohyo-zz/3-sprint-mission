@@ -13,7 +13,7 @@ COPY settings.gradle .
 # 의존성 다운로드 (별도 레이어로 캐시 최적화)
 # Gradle 실행 권한 부여
 RUN chmod +x ./gradlew
-RUN ./gradlew dependencies --no-daemon
+RUN ./gradlew dependencies --no-daemon || return 0
 
 # 파일 복사
 COPY . .
