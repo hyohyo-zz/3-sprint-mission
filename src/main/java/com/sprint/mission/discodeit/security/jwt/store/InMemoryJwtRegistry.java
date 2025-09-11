@@ -13,16 +13,21 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+@ConditionalOnProperty(name = "app.jwt.registry.type", havingValue = "inmemory")
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class InMemoryJwtRegistry implements JwtRegistry {
 
-    private final int maxActiveJwtCount = 1;
+    @Value("${jwt.max-active-count:1}")
+    private int maxActiveJwtCount;
 
     private final JwtTokenProvider jwtTokenProvider;
     private final ApplicationEventPublisher eventPublisher;
@@ -31,10 +36,10 @@ public class InMemoryJwtRegistry implements JwtRegistry {
     private final Set<String> accessTokenIndexes = ConcurrentHashMap.newKeySet();
     private final Set<String> refreshTokenIndexes = ConcurrentHashMap.newKeySet();
 
+    @CacheEvict(value = "users", key = "'all'")
     @Override
     public void registerJwtInformation(JwtInformation jwtInformation) {
         UUID userId = jwtInformation.getUserDto().id();
-        String username = jwtInformation.getUserDto().username();
 
         log.info("[JwtRegistry] registerJwtInformation 호출: userId={}, username={}",
             userId, jwtInformation.getUserDto().username());
@@ -64,6 +69,7 @@ public class InMemoryJwtRegistry implements JwtRegistry {
         log.info("[JwtRegistry] registerJwtInformation 완료: 현재 활성 사용자 수={}", origin.size());
     }
 
+    @CacheEvict(value = "users", key = "'all'")
     @Override
     public void invalidateJwtInformationByUserId(UUID userId) {
         log.warn("[JwtRegistry] invalidate 호출됨! userId={}, caller={}",

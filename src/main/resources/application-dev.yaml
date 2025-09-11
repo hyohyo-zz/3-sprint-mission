@@ -1,3 +1,5 @@
+# application-dev.yaml
+
 server:
   port: 8080
 
@@ -35,3 +37,12 @@ jwt:
   refresh-token:
     secret: change-me-refresh-secret-for-dev-only
     expiration-ms: 1209600000
+
+app:
+  jwt:
+    registry:
+      type: inmemory
+    max-active-count: 1
+  cache: caffeine
+  sse:
+    type: inmemory

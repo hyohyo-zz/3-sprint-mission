@@ -1,3 +1,5 @@
+# application.yaml
+
 spring:
   application:
     name: discodeit
@@ -32,11 +34,6 @@ spring:
   cache:
     type: redis
     cache-names: users, channelsByUser, notificationsByUser
-    caffeine:
-      spec: >
-        maximumSize=100,
-        expireAfterAccess=600s,
-        recordStats
     redis:
       enable-statistics: true
   data:
@@ -46,7 +43,7 @@ spring:
 
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -134,4 +131,12 @@ jwt:
 app:
   async:
     enabled: true
+  jwt:
+    registry:
+      type: inmemory
+    max-active-count: 3
   cache: redis
+  sse:
+    type: inmemory
+  messaging:
+    type: local

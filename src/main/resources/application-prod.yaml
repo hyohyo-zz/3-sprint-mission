@@ -1,3 +1,5 @@
+# application-prod.yaml
+
 server:
   port: 80
 
@@ -30,3 +32,13 @@ jwt:
   refresh-token:
     secret: ${JWT_REFRESH_SECRET}
     expiration-ms: 1209600000
+
+app:
+  jwt:
+    registry:
+      type: redis
+    max-active-count: 3
+  messaging:
+    type: kafka
+  sse:
+    type: redis
