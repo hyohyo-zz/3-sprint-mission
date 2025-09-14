@@ -1,5 +1,3 @@
-version: "3.8"
-
 x-backend-env: &default-backend-env
   SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
   SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
@@ -13,6 +11,7 @@ x-backend-env: &default-backend-env
   DISCODEIT_ADMIN_EMAIL: ${DISCODEIT_ADMIN_EMAIL}
   REDIS_HOST: ${REDIS_HOST}
   REDIS_PORT: ${REDIS_PORT}
+  STORAGE_LOCAL_ROOT_PATH: ${STORAGE_LOCAL_ROOT_PATH}
 
 services:
   reverse-proxy:
@@ -47,6 +46,8 @@ services:
         condition: service_started
     networks:
       - backend-net
+    volumes:
+      - binary-data:/app/data
 
   backend-2:
     image: my-backend:latest
@@ -57,6 +58,8 @@ services:
       - backend-1
     networks:
       - backend-net
+    volumes:
+      - binary-data:/app/data
 
   backend-3:
     image: my-backend:latest
@@ -67,6 +70,8 @@ services:
       - backend-1
     networks:
       - backend-net
+    volumes:
+      - binary-data:/app/data
 
   db:
     image: postgres:15-alpine
@@ -120,6 +125,7 @@ services:
 volumes:
   db-data:
   redis-data:
+  binary-data:
 
 networks:
   backend-net:

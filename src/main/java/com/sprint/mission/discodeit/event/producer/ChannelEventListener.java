@@ -1,13 +1,15 @@
-package com.sprint.mission.discodeit.event.listener;
+package com.sprint.mission.discodeit.event.producer;
 
 import com.sprint.mission.discodeit.event.ChannelEvent;
 import com.sprint.mission.discodeit.event.EventType;
+import com.sprint.mission.discodeit.event.publisher.KafkaEventPublisher;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
-import com.sprint.mission.discodeit.service.SseService;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
@@ -15,10 +17,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class ChannelEventListener {
 
-    private final SseService sseService;
+    private final KafkaEventPublisher kafkaEventPublisher;
     private final ChannelMapper channelMapper;
 
-    @TransactionalEventListener
+    @Async("taskExecutor")
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void on(ChannelEvent event) {
         String eventName = switch (event.getType()) {
             case CREATED -> "channels.created";
@@ -33,8 +36,8 @@ public class ChannelEventListener {
             payload = channelMapper.toDto(event.getEntity());
         }
 
-        sseService.broadcast(eventName, payload);
-        log.info("[SSE] {} 이벤트 발행: payload={}", eventName, payload);
+        kafkaEventPublisher.publish(eventName, payload);
+        log.info("[Kafka] {} 이벤트 발행: payload={}", eventName, payload);
     }
 
 }

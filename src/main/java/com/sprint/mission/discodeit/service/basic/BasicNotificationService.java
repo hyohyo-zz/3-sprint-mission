@@ -1,27 +1,36 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.data.NotificationDto;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.Notification;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.event.MessageCreatedEvent;
+import com.sprint.mission.discodeit.event.NotificationsCreatedEvent;
 import com.sprint.mission.discodeit.event.RoleUpdatedEvent;
 import com.sprint.mission.discodeit.event.S3UploadFailedEvent;
+import com.sprint.mission.discodeit.event.publisher.KafkaEventPublisher;
+import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
 import com.sprint.mission.discodeit.exception.notification.NotificationNotFoundException;
 import com.sprint.mission.discodeit.mapper.NotificationMapper;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.NotificationRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.NotificationService;
 import com.sprint.mission.discodeit.service.SseService;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,8 +44,11 @@ public class BasicNotificationService implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
     private final ReadStatusRepository readStatusRepository;
+    private final ChannelRepository channelRepository;
+    private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final SseService sseService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Cacheable(value = "notificationsByUser", key = "#receiverId")
     @Transactional(readOnly = true)
@@ -69,37 +81,36 @@ public class BasicNotificationService implements NotificationService {
 
     @Override
     @Transactional
-    public void createFromMessage(MessageCreatedEvent event) {
-        // 1. 채널 알림이 활성화된 사용자 조회
-        List<ReadStatus> targets = readStatusRepository
-            .findByChannel_IdAndNotificationEnabledTrue(event.channelId());
+    public List<NotificationDto> createFromMessage(UUID channelId, UUID messageId) {
+        Channel channel = channelRepository.findById(channelId)
+            .orElseThrow(() -> new ChannelNotFoundException(channelId));
 
-        // 2. 본인(authorId)은 알림 제외
+        Message message = messageRepository.findById(messageId)
+            .orElseThrow(() -> new MessageNotFoundException(messageId));
+
+        User author = message.getAuthor();
+
+        List<ReadStatus> targets =
+            readStatusRepository.findByChannel_IdAndNotificationEnabledTrue(channelId);
+
         List<Notification> notifications = targets.stream()
-            .filter(rs -> !rs.getUser().getId().equals(event.authorId()))
-            .filter(
-                rs -> rs.getLastReadAt() == null || rs.getLastReadAt().isBefore(event.createdAt()))
+            .filter(rs -> !rs.getUser().getId().equals(author.getId()))
+            .filter(rs -> rs.getLastReadAt() == null || rs.getLastReadAt()
+                .isBefore(message.getCreatedAt()))
             .map(rs -> new Notification(
                 rs.getUser(),
-                buildMessageTitle(event.authorName(), event.channelName()),
-                buildMessageContent(event.content())
+                buildMessageTitle(author.getUsername(), channel.getName()),
+                buildMessageContent(message.getContent())
             ))
             .toList();
 
-        // 3. 저장
-        if (!notifications.isEmpty()) {
-            notificationRepository.saveAll(notifications);
-            log.info("[notification] MessageCreatedEvent 알림 생성: channel={}, targets={}",
-                event.channelName(), notifications.size());
+        publishNotifications(notifications,
+            () -> log.info("[notification] Message 알림 생성: channel={}, targets={}",
+                channel.getName(), notifications.size()));
 
-            notifications.forEach(n ->
-                sseService.send(
-                    List.of(n.getReceiver().getId()),
-                    eventName,
-                    notificationMapper.toDto(n)
-                )
-            );
-        }
+        return notifications.stream()
+            .map(notificationMapper::toDto)
+            .toList();
     }
 
     @Override
@@ -114,21 +125,14 @@ public class BasicNotificationService implements NotificationService {
             event.oldRole() + " -> " + event.newRole()
         );
 
-        notificationRepository.save(notification);
-        log.info("[notification] RoleUpdatedEvent 알림 생성 - user={}, {} -> {}",
-            user.getUsername(), event.oldRole(), event.newRole());
-
-        sseService.send(
-            List.of(user.getId()),
-            eventName,
-            notificationMapper.toDto(notification)
-        );
+        publishNotifications(List.of(notification),
+            () -> log.info("[notification] RoleUpdatedEvent 알림 생성 - user={}, {} -> {}",
+                user.getUsername(), event.oldRole(), event.newRole()));
     }
 
     @Override
     @Transactional
     public void notifyAdmin(S3UploadFailedEvent event) {
-        // 관리자(User.ADMIN) 계정 조회
         List<User> admins = userRepository.findByRole(Role.ADMIN);
 
         List<Notification> notifications = admins.stream()
@@ -141,19 +145,34 @@ public class BasicNotificationService implements NotificationService {
             ))
             .toList();
 
-        if (!notifications.isEmpty()) {
-            notificationRepository.saveAll(notifications);
-            log.error("[notification] S3UploadFailedEvent 관리자 알림 생성: admins={}, error={}",
-                admins.size(), event.errorMessage());
+        publishNotifications(notifications,
+            () -> log.error("[notification] S3UploadFailedEvent 관리자 알림 생성: admins={}, error={}",
+                admins.size(), event.errorMessage()));
+    }
 
-            notifications.forEach(n ->
-                sseService.send(
-                    List.of(n.getReceiver().getId()),
-                    eventName,
-                    notificationMapper.toDto(n)
-                )
-            );
+    private void publishNotifications(List<Notification> notifications, Runnable logAction) {
+        if (notifications.isEmpty()) {
+            return;
         }
+
+        notificationRepository.saveAll(notifications);
+        logAction.run();
+
+        notifications.forEach(n -> {
+            NotificationDto dto = notificationMapper.toDto(n);
+
+            // SSE 전송
+            sseService.send(
+                List.of(n.getReceiver().getId()),
+                eventName,
+                dto
+            );
+
+            // 이벤트 발행
+            eventPublisher.publishEvent(
+                new NotificationsCreatedEvent(Set.of(n.getReceiver().getId()), dto)
+            );
+        });
     }
 
     private String buildMessageTitle(String authorName, String channelName) {
@@ -170,5 +189,6 @@ public class BasicNotificationService implements NotificationService {
         String oneLine = content.replaceAll("\\s+", " ").trim();
         return oneLine.length() > 80 ? oneLine.substring(0, 80) + "…" : oneLine;
     }
+
 }
 

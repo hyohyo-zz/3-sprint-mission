@@ -14,14 +14,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
-@ConditionalOnProperty(name = "app.jwt.registry.type", havingValue = "inmemory")
-@Component
+//@Component
 @RequiredArgsConstructor
 @Slf4j
 public class InMemoryJwtRegistry implements JwtRegistry {

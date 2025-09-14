@@ -33,4 +33,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @EntityGraph(attributePaths = "profile")
     Optional<User> findById(UUID id);
 
+    Optional<User> findByEmail(String email);
+
 }

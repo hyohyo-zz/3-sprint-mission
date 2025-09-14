@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "app.jwt.registry.type", havingValue = "redis")
 public class RedisJwtRegistry implements JwtRegistry {
 
     private static final String USER_JWT_KEY_PREFIX = "jwt:user:";
@@ -152,39 +151,44 @@ public class RedisJwtRegistry implements JwtRegistry {
             .count(1000)
             .build();
 
-        redisTemplate.executeWithStickyConnection((RedisConnection connection) -> {
+        redisTemplate.execute((RedisConnection connection) -> {
             try (Cursor<byte[]> cursor = connection.scan(options)) {
                 while (cursor.hasNext()) {
                     String userKey = (String) redisTemplate.getKeySerializer().deserialize(cursor.next());
-                    List<Object> tokens = redisTemplate.opsForList().range(userKey, 0, -1);
-
-                    if (tokens != null) {
-                        boolean hasValidTokens = false;
-
-                        for (int i = tokens.size() - 1; i >= 0; i--) {
-                            if (tokens.get(i) instanceof JwtInformation jwtInfo) {
-                                boolean isExpired =
-                                    !jwtTokenProvider.validateAccessToken(jwtInfo.getAccessToken()) ||
-                                        !jwtTokenProvider.validateRefreshToken(jwtInfo.getRefreshToken());
-
-                                if (isExpired) {
-                                    redisTemplate.opsForList().set(userKey, i, "EXPIRED");
-                                    redisTemplate.opsForList().remove(userKey, 1, "EXPIRED");
-                                    removeTokenIndex(jwtInfo.getAccessToken(), jwtInfo.getRefreshToken());
-                                } else {
-                                    hasValidTokens = true;
-                                }
-                            }
-                        }
-
-                        if (!hasValidTokens) {
-                            redisTemplate.delete(userKey);
-                        }
-                    }
+                    processUserKey(userKey);
                 }
+            } catch (Exception e) {
+                log.error("[RedisJwtRegistry] clearExpiredJwtInformation 실패", e);
             }
             return null;
         });
+    }
+
+    private void processUserKey(String userKey) {
+        List<Object> tokens = redisTemplate.opsForList().range(userKey, 0, -1);
+        if (tokens == null) return;
+
+        boolean hasValidTokens = false;
+
+        for (int i = tokens.size() - 1; i >= 0; i--) {
+            if (tokens.get(i) instanceof JwtInformation jwtInfo) {
+                boolean isExpired =
+                    !jwtTokenProvider.validateAccessToken(jwtInfo.getAccessToken()) ||
+                        !jwtTokenProvider.validateRefreshToken(jwtInfo.getRefreshToken());
+
+                if (isExpired) {
+                    redisTemplate.opsForList().set(userKey, i, "EXPIRED");
+                    redisTemplate.opsForList().remove(userKey, 1, "EXPIRED");
+                    removeTokenIndex(jwtInfo.getAccessToken(), jwtInfo.getRefreshToken());
+                } else {
+                    hasValidTokens = true;
+                }
+            }
+        }
+
+        if (!hasValidTokens) {
+            redisTemplate.delete(userKey);
+        }
     }
 
     private String getUserKey(UUID userId) {
