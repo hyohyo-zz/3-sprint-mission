@@ -17,9 +17,11 @@ import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.PageResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.BinaryContentStatus;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.Role;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
@@ -39,10 +41,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.SliceImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,7 +80,7 @@ class BasicMessageServiceTest {
         UUID channelId = UUID.randomUUID();
         User author = new User("조현아", "zzo@email.com", "password123!", null);
         ReflectionTestUtils.setField(author, "id", authorId);
-        UserDto userDto = new UserDto(authorId, "조현아", "zzo@email.com", null, null);
+        UserDto userDto = new UserDto(authorId, "조현아", "zzo@email.com", null, null, Role.USER);
         Channel channel = new Channel(ChannelType.PUBLIC, "채널1", "테스트 채널");
         ReflectionTestUtils.setField(channel, "id", channelId);
         MessageCreateRequest request = new MessageCreateRequest("테스트 메시지 내용~", channelId, authorId);
@@ -119,10 +118,10 @@ class BasicMessageServiceTest {
             attachByte);
         List<BinaryContent> attachments = List.of(binaryContent);
         BinaryContentDto attachmentDto = new BinaryContentDto(UUID.randomUUID(),
-            "testAttachment", (long) attachByte.length, "png");
+            "testAttachment", (long) attachByte.length, "png", BinaryContentStatus.SUCCESS);
         User author = new User("조현아", "zzo@email.com", "password123!", null);
         ReflectionTestUtils.setField(author, "id", authorId);
-        UserDto userDto = new UserDto(authorId, "조현아", "zzo@email.com", null, null);
+        UserDto userDto = new UserDto(authorId, "조현아", "zzo@email.com", null, null, Role.USER);
         Channel channel = new Channel(ChannelType.PUBLIC, "채널1", "테스트 채널");
         ReflectionTestUtils.setField(channel, "id", channelId);
         // 메시지 내용없고 첨부파일만
@@ -151,40 +150,75 @@ class BasicMessageServiceTest {
     }
 
     @Test
-    @DisplayName("메시지 전체 조회 - 성공")
-    void findAllByChannelId_Success() {
-        // Given
-        Instant now = Instant.now();
-        Pageable pageable = PageRequest.of(0, 10);
+    @DisplayName("커서 기반 메시지 조회 - 다음 페이지 있음")
+    void findAllByChannelId_HasNext() {
         UUID channelId = UUID.randomUUID();
-        Message message = mock(Message.class);
-        MessageDto messageDto = new MessageDto(
-            UUID.randomUUID(),
-            Instant.now(),
-            null,
-            "테스트 메시지 내용~",
-            channelId,
-            mock(UserDto.class),
-            null
-        );
-        Slice<Message> messageSlice = new SliceImpl<>(List.of(message), pageable, false);
-        PageResponse<MessageDto> expectedResponse = new PageResponse<>(
-            List.of(messageDto), null, 1, false, 1L
-        );
-        given(messageRepository.findByChannelIdAndCreatedAtLessThan(eq(channelId), any(),
-            eq(pageable)))
-            .willReturn(messageSlice);
-        given(messageMapper.toDto(message)).willReturn(messageDto);
-        given(pageResponseMapper.fromSlice(any(Slice.class), any(Instant.class))).willReturn(
-            expectedResponse);
+        Instant cursor = Instant.parse("2025-07-07T09:00:00Z");
+        int limit = 2;
+        Sort.Direction direction = Sort.Direction.DESC;
 
-        // When
-        PageResponse<MessageDto> result = messageService.findAllByChannelId(channelId, now,
-            pageable);
+        Message m1 = mock(Message.class);
+        Message m2 = mock(Message.class);
+        Message m3 = mock(Message.class); // limit+1 건
 
-        // Then
-        assertThat(result.content()).hasSize(1);
-        assertThat(result.content().get(0).content()).isEqualTo("테스트 메시지 내용~");
+        MessageDto dto1 = new MessageDto(
+            UUID.randomUUID(), Instant.now(), null,
+            "메시지1", channelId, mock(UserDto.class), null
+        );
+        MessageDto dto2 = new MessageDto(
+            UUID.randomUUID(), Instant.now(), null,
+            "메시지2", channelId, mock(UserDto.class), null
+        );
+
+        given(messageRepository.findByChannelIdWithCursor(channelId, cursor, direction, limit + 1))
+            .willReturn(List.of(m1, m2, m3));
+        given(messageMapper.toDto(m1)).willReturn(dto1);
+        given(messageMapper.toDto(m2)).willReturn(dto2);
+        given(messageRepository.countByChannelId(channelId)).willReturn(3L);
+
+        PageResponse<MessageDto> result = messageService.findAllByChannelId(
+            channelId, cursor, direction.name(), limit
+        );
+
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.hasNext()).isTrue();
+        assertThat(result.totalElements()).isEqualTo(3L);
+        assertThat(result.content().get(0).content()).isEqualTo("메시지1");
+    }
+
+    @Test
+    @DisplayName("커서 기반 메시지 조회 - 다음 페이지 없음")
+    void findAllByChannelId_NoNext() {
+        UUID channelId = UUID.randomUUID();
+        Instant cursor = null;
+        int limit = 2;
+        Sort.Direction direction = Sort.Direction.ASC;
+
+        Message m1 = mock(Message.class);
+        Message m2 = mock(Message.class);
+
+        MessageDto dto1 = new MessageDto(
+            UUID.randomUUID(), Instant.now(), null,
+            "메시지1", channelId, mock(UserDto.class), null
+        );
+        MessageDto dto2 = new MessageDto(
+            UUID.randomUUID(), Instant.now(), null,
+            "메시지2", channelId, mock(UserDto.class), null
+        );
+
+        given(messageRepository.findByChannelIdWithCursor(channelId, cursor, direction, limit + 1))
+            .willReturn(List.of(m1, m2));
+        given(messageMapper.toDto(m1)).willReturn(dto1);
+        given(messageMapper.toDto(m2)).willReturn(dto2);
+        given(messageRepository.countByChannelId(channelId)).willReturn(2L);
+
+        PageResponse<MessageDto> result = messageService.findAllByChannelId(
+            channelId, cursor, direction.name(), limit
+        );
+
+        assertThat(result.content()).hasSize(2);
+        assertThat(result.hasNext()).isFalse();
+        assertThat(result.totalElements()).isEqualTo(2L);
     }
 
     @Test

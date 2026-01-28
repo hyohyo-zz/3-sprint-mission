@@ -8,7 +8,6 @@ import com.sprint.mission.discodeit.dto.response.PageResponse;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.data.domain.Pageable;
 
 public interface MessageService {
 
@@ -17,8 +16,8 @@ public interface MessageService {
 
     MessageDto find(UUID id);
 
-    PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant createAt,
-        Pageable pageable);
+    PageResponse<MessageDto> findAllByChannelId(UUID channelId, Instant cursor, String direction,
+        int limit);
 
     MessageDto update(UUID messageId, MessageUpdateRequest request);
 
